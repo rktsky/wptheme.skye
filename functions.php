@@ -15,7 +15,10 @@ $sage_includes = [
   'lib/setup.php',     // Theme setup
   'lib/titles.php',    // Page titles
   'lib/wrapper.php',   // Theme wrapper class
-  'lib/customizer.php' // Theme customizer
+  'lib/customizer.php', // Theme customizer
+  'lib/cubetech/post_types.php',
+  'lib/cubetech/taxonomies.php',
+  'lib/cubetech/other.php'
 ];
 
 foreach ($sage_includes as $file) {
