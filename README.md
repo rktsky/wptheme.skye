@@ -11,15 +11,27 @@ Folgendes muss installiert werden:
 
 Navigiere in WordPress auf den Ordner Themes: `cd web/[projektname]/wp-content/themes`
 
-Klonen
+### Klonen
+
 ```bash
-git clone git@github.com:cubetech/wptheme.sage.git
+git clone git@github.com:cubetech/wptheme.sage.git wptheme.meinname
 ```
 
-Umbenennen
+### Neues Repo auf GitHub erstellen
+
+Neues privates Repo für das Projekt auf GitHub gemäss Namenskonvention erstellen
+
+### Origin anpassen und neues Origin einbinden
+
 ```bash
-mv wptheme.sage wptheme.meinname
+git remote rename origin sage
+git remote add origin git@github.com:cubetech/wptheme.meintheme.git
+git push -u origin master
 ```
+
+Nun ist das Theme im Bereich Git bereit, um weiterentwickelt zu werden.
+Der originale Upstream ist als `sage` noch verfügbar, so können Weiterentwicklungen per Rebase oder Cherrypick eingebunden werden.
+Die History bleibt ebenfalls erhalten, damit nachträglich überprüft werden kann, in welchem Status das Theme exportiert wurde.
 
 ## Theme konfigurieren
 Nach der Installation des Themes navigiere weiter zum installiertem Theme `cd wptheme.meinname/`
