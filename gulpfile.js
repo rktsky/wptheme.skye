@@ -6,6 +6,7 @@ var changed      = require('gulp-changed');
 var concat       = require('gulp-concat');
 var flatten      = require('gulp-flatten');
 var gulp         = require('gulp');
+var bless        = require('gulp-bless');
 var gulpif       = require('gulp-if');
 var imagemin     = require('gulp-imagemin');
 var jshint       = require('gulp-jshint');
@@ -63,7 +64,9 @@ var enabled = {
   // Strip debug statments from javascript when `--production`
   stripJSDebug: argv.production,
   // Minify CSS, JS, and Images
-  minify: !argv.fast
+  minify: !argv.fast,
+  // Split minified css when '--production'
+  split: argv.production
 };
 
 // Path to the compiled assets manifest in the dist directory
@@ -124,6 +127,15 @@ var cssTasks = function(filename) {
       }));
     })();
 };
+
+// ### Bless
+gulp.task('bless', function() {
+  if(enabled.split) {
+    return gulp.src(path.dist + 'styles/*.css')
+    .pipe(bless())
+     .pipe(gulp.dest(path.dist + 'styles'));
+  }
+});
 
 // ### JS processing pipeline
 // Example
@@ -275,6 +287,7 @@ gulp.task('watch', function() {
 // Generally you should be running `gulp` instead of `gulp build`.
 gulp.task('build', function(callback) {
   runSequence('styles',
+  			  'bless',
               'scripts',
               ['fonts', 'images'],
               callback);
