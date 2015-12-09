@@ -104,3 +104,11 @@ function assets() {
   wp_enqueue_script('sage/js', Assets\asset_path('scripts/main.js'), ['jquery'], null, true);
 }
 add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\assets', 100);
+
+/**
+ * Register scripts - so we can localize later
+ */
+function register_scripts() {
+	wp_register_script('sage/js', Assets\asset_path('scripts/main.js'), ['jquery'], null, true);
+}
+add_action('init', __NAMESPACE__ . '\\register_scripts');
