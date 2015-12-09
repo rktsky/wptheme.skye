@@ -18,6 +18,7 @@ $sage_includes = [
   'lib/wrapper.php',   // Theme wrapper class
   'lib/customizer.php', // Theme customizer
   'lib/wp_bootstrap_navwalker.php', // Boostrap Navigation
+  'lib/cubetech/localize.php', // cubetech JS Localize
 ];
 
 foreach ($sage_includes as $file) {
