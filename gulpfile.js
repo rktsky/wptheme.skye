@@ -273,6 +273,10 @@ gulp.task('watch', function() {
 		proxy: finalurl, snippetOptions: {
 			whitelist: ['/wp-admin/admin-ajax.php'],
 			blacklist: ['/wp-admin/**']
+		},
+		middleware: function (req, res, next) {
+			res.setHeader('Access-Control-Allow-Origin', '*');
+			next();
 		}
 	});
 	gulp.watch([path.source + 'styles/**/*'], ['styles']);
