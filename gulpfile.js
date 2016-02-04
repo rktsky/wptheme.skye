@@ -267,7 +267,8 @@ gulp.task('clean', require('del').bind(null, [path.dist]));
 gulp.task('watch', function() { 
 	var url = process.cwd();
 	url = url.split('/');
-	var finalurl = "http://" + url[4] + "." + url[2] + ".56.cubelab.ch";
+	host = process.env.HOSTNAME;
+	var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
 	browserSync.init({ 
 		files: ['{lib,templates}/**/*.php', '*.php'],
 		proxy: finalurl, snippetOptions: {
