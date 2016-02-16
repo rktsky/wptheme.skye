@@ -39,6 +39,7 @@ Nach der Installation des Themes navigiere weiter zum installiertem Theme `cd wp
 Nun müssen die nötigen Ressourcen geladen werden:
 ```bash
 npm install
+npm install -g bower
 bower install --save
 gulp
 ```
