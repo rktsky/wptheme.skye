@@ -19,6 +19,7 @@ $sage_includes = [
   'lib/customizer.php', // Theme customizer
   'lib/wp_bootstrap_navwalker.php', // Boostrap Navigation
   'lib/cubetech/localize.php', // cubetech JS Localize
+  'lib/svg/scalable-vector-graphics.php'
 ];
 
 foreach ($sage_includes as $file) {
