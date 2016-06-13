@@ -40,6 +40,7 @@ Nun müssen die nötigen Ressourcen geladen werden:
 ```bash
 npm install
 npm install -g bower
+npm install gulp-bless
 bower install --save
 gulp
 ```
