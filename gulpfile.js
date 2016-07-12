@@ -11,7 +11,6 @@ var gulpif       = require('gulp-if');
 var imagemin     = require('gulp-imagemin');
 var jshint       = require('gulp-jshint');
 var lazypipe     = require('lazypipe');
-var less         = require('gulp-less');
 var merge        = require('merge-stream');
 var minifyCss    = require('gulp-minify-css');
 var plumber      = require('gulp-plumber');
@@ -89,9 +88,6 @@ var cssTasks = function(filename) {
     })
     .pipe(function() {
       return gulpif(enabled.maps, sourcemaps.init());
-    })
-    .pipe(function() {
-      return gulpif('*.less', less());
     })
     .pipe(function() {
       return gulpif('*.scss', sass({
