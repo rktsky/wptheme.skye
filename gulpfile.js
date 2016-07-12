@@ -263,8 +263,11 @@ gulp.task('clean', require('del').bind(null, [path.dist]));
 gulp.task('watch', function() { 
 	var url = process.cwd();
 	url = url.split('/');
-	host = process.env.HOSTNAME;
-	var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
+	host = process.env.ENVHOSTNAME;
+	if( host === undefined ) {
+		host = process.env.HOSTNAME;
+	}
+var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
 	browserSync.init({ 
 		files: ['{lib,templates}/**/*.php', '*.php'],
 		proxy: finalurl, snippetOptions: {
