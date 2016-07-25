@@ -11,7 +11,6 @@ var gulpif       = require('gulp-if');
 var imagemin     = require('gulp-imagemin');
 var jshint       = require('gulp-jshint');
 var lazypipe     = require('lazypipe');
-var less         = require('gulp-less');
 var merge        = require('merge-stream');
 var minifyCss    = require('gulp-minify-css');
 var plumber      = require('gulp-plumber');
@@ -89,9 +88,6 @@ var cssTasks = function(filename) {
     })
     .pipe(function() {
       return gulpif(enabled.maps, sourcemaps.init());
-    })
-    .pipe(function() {
-      return gulpif('*.less', less());
     })
     .pipe(function() {
       return gulpif('*.scss', sass({
@@ -267,8 +263,11 @@ gulp.task('clean', require('del').bind(null, [path.dist]));
 gulp.task('watch', function() { 
 	var url = process.cwd();
 	url = url.split('/');
-	host = process.env.HOSTNAME;
-	var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
+	host = process.env.ENVHOSTNAME;
+	if( host === undefined ) {
+		host = process.env.HOSTNAME;
+	}
+var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
 	browserSync.init({ 
 		files: ['{lib,templates}/**/*.php', '*.php'],
 		proxy: finalurl, snippetOptions: {
