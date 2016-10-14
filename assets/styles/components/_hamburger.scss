@@ -1,0 +1,19 @@
+/* Hamburger Styling */
+@media (max-width: 768px) {
+	.navbar-toggle { 
+		padding: 0; height: 20px; width: 24px; position: relative;
+		.icon-bar { background-color: $brand-primary; height: 4px; width: 24px; margin: 0 0 6px; position: absolute; }
+		.icon-bar:nth-child(2) { top: 8px; }
+		.icon-bar:nth-child(3) { top: 0; margin-top: 0 }
+		.icon-bar:nth-child(4) { top: 16px; }
+		.icon-bar:last-child { margin:0; } 
+	}
+	.hamburger-menu.white .navbar-toggle .icon-bar { background-color: white; }
+	.hamburger-menu.white .page-title { color: white; }
+	
+	.icon-bar { transition: all .5s; transition-delay: 0s; }
+	
+	.nav-open .navbar-toggle .icon-bar:nth-child(2) {transform: rotate(45deg); top: 7px; }
+	.nav-open .navbar-toggle .icon-bar:nth-child(3) {transform: rotate(45deg); top: 7px; }
+	.nav-open .navbar-toggle .icon-bar:nth-child(4) {transform: rotate(-45deg); top: 7px; }
+}
