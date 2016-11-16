@@ -20,6 +20,9 @@ var sass         = require('gulp-sass');
 var sourcemaps   = require('gulp-sourcemaps');
 var uglify       = require('gulp-uglify');
 
+var wpPot = require('gulp-wp-pot');
+var sort = require('gulp-sort');
+
 // See https://github.com/austinpray/asset-builder
 var manifest = require('asset-builder')('./assets/manifest.json');
 
@@ -314,4 +317,18 @@ gulp.task('wiredep', function() {
 // `gulp` - Run a complete build. To compile for production run `gulp --production`.
 gulp.task('default', ['clean'], function() {
   gulp.start('build');
+});
+
+
+gulp.task('translate', function () {
+    return gulp.src(['*.php', 'templates/*.php'])
+        .pipe(sort())
+        .pipe(wpPot( {
+            domain: 'sage',
+            destFile:'sage.pot',
+            package: 'sage',
+            bugReport: 'https://cubetech.com',
+            lastTranslator: 'cubetech <info@cubetech.ch>'
+        } ))
+        .pipe(gulp.dest('lang'));
 });
