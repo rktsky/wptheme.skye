@@ -56,8 +56,8 @@ Um eine Library zu installieren, kann diese unter http://bower.io/search diese g
 Eine Library wird danach mit `bower install libraryname --save` installiert.
 
 ## Neue Funktion
-Es kann nun ein POT File für die Übersetzung generiert werden. Das passiert per Gulp Task. Einfach
+Es kann nun ein POT File für die Übersetzung generiert werden. Das passiert per gulp Task. Folgender Befehl ist nötig:
 ```bash
 gulp translate
 ```
-in die Kommandozeile eingeben.
+Dann können per Loco Translate ganz einfach die Strings übersetzt werden.
