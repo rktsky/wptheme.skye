@@ -21,7 +21,8 @@ $sage_includes = [
   'lib/cubetech/image.php', // cubetech Image Function
   'lib/cubetech/image-sizes.php', // cubetech Register Image Sizes
   'lib/cubetech/localize.php', // cubetech JS Localize
-  'lib/svg/scalable-vector-graphics.php'
+  'lib/svg/scalable-vector-graphics.php', // cubetech SVG handling
+  'lib/cubetech/acf/options.php' // cubetech Theme Options
 ];
 
 foreach ($sage_includes as $file) {
