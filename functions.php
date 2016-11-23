@@ -9,7 +9,11 @@
  *
  * @link https://github.com/roots/sage/pull/1042
  */
- 
+
+// define constants of theme
+// theme text domain, override it here and also in style.css
+define( 'THEME_TEXT_DOMAIN', 'wptheme.sage' );
+
 $sage_includes = [
   'lib/assets.php',    // Scripts and stylesheets
   'lib/extras.php',    // Custom functions
