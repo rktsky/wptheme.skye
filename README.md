@@ -54,3 +54,10 @@ Nun kannst du mit Coda fortfahren. Die CSS und Javascript Dateien werden automat
 ## Pakete installieren
 Um eine Library zu installieren, kann diese unter http://bower.io/search diese gesucht werden.
 Eine Library wird danach mit `bower install libraryname --save` installiert.
+
+## Neue Funktion
+Es kann nun ein POT File für die Übersetzung generiert werden. Das passiert per gulp Task. Folgender Befehl ist nötig:
+```bash
+gulp translate
+```
+Dann können per Loco Translate ganz einfach die Strings übersetzt werden.

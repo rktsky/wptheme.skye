@@ -9,7 +9,11 @@
  *
  * @link https://github.com/roots/sage/pull/1042
  */
- 
+
+// define constants of theme
+// theme text domain, override it here and also in style.css
+define( 'THEME_TEXT_DOMAIN', 'wptheme.sage' );
+
 $sage_includes = [
   'lib/assets.php',    // Scripts and stylesheets
   'lib/extras.php',    // Custom functions
@@ -22,7 +26,9 @@ $sage_includes = [
   'lib/cubetech/image-sizes.php', // cubetech Register Image Sizes
   'lib/cubetech/localize.php', // cubetech JS Localize
   'lib/cubetech/disable_emoijs.php',
-  'lib/svg/scalable-vector-graphics.php'
+  'lib/svg/scalable-vector-graphics.php',
+  'lib/svg/scalable-vector-graphics.php', // cubetech SVG handling
+  'lib/cubetech/acf/options.php' // cubetech Theme Options
 ];
 
 foreach ($sage_includes as $file) {
