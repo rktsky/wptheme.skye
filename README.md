@@ -39,9 +39,14 @@ Nach der Installation des Themes navigiere weiter zum installiertem Theme `cd wp
 Nun müssen die nötigen Ressourcen geladen werden:
 ```bash
 npm install
-npm install -g bower
 bower install --save
 gulp
+```
+
+Falls bower nicht installiert ist, kann dies wie folgt nachgeholt werden:
+```bash
+npm install bower # Lokal im Projekt
+npm install -g bower # Global auf dem System
 ```
 
 Die --save Option wird benötigt, damit bower die Libraries als Abhängigkeiten im .bower.json registriert.
