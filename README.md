@@ -56,6 +56,17 @@ Für das sukzessive Kompilieren von CSS und Javascript wird jetzt der Befehl `gu
 ## Wie weiter?
 Nun kannst du mit Coda fortfahren. Die CSS und Javascript Dateien werden automatisch geladen.
 
+Als nächstes ein passendes README.md erstellen:
+```bash
+mv README.tpl.md README.md
+```
+
+Danach das Readme sowie die style.css anpassen und ein Screenshot hochladen.
+
+Nun kann mit der Umsetzung begonnen werden.
+
+Das Readme ist *stets* gemäss Vorgabe nachzuführen!
+
 ## Pakete installieren
 Um eine Library zu installieren, kann diese unter http://bower.io/search diese gesucht werden.
 Eine Library wird danach mit `bower install libraryname --save` installiert.
