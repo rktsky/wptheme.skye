@@ -1,3 +1,7 @@
+//Fixes the bug which cause tinymce to jump on reload
 body#tinymce {
   margin: 12px !important;
+  height: auto !important;
+  min-height: initial !important;
+  display: block !important;
 }
