@@ -108,7 +108,8 @@ var cssTasks = function(filename) {
         'ie 9',
         'android 2.3',
         'android 4',
-        'opera 12'
+        'opera 12',
+        'iOS 8'
       ]
     })
     .pipe(function() {
@@ -263,7 +264,7 @@ gulp.task('clean', require('del').bind(null, [path.dist]));
 // `manifest.config.devUrl`. When a modification is made to an asset, run the
 // build step for that asset and inject the changes into the page.
 // See: http://www.browsersync.io
-gulp.task('watch', function() { 
+gulp.task('watch', function() {
 	var url = process.cwd();
 	url = url.split('/');
 	host = process.env.ENVHOSTNAME;
@@ -271,7 +272,7 @@ gulp.task('watch', function() {
 		host = process.env.HOSTNAME;
 	}
 var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
-	browserSync.init({ 
+	browserSync.init({
 		files: ['{lib,templates}/**/*.php', '*.php'],
 		proxy: finalurl, snippetOptions: {
 			whitelist: ['/wp-admin/admin-ajax.php'],
@@ -287,7 +288,7 @@ var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
 	gulp.watch([path.source + 'fonts/**/*'], ['fonts']);
 	gulp.watch([path.source + 'images/**/*'], ['images']);
 	gulp.watch(['bower.json', 'assets/manifest.json'], ['build']);
-}); 
+});
 
 // ### Build
 // `gulp build` - Run all the build tasks but don't clean up beforehand.
