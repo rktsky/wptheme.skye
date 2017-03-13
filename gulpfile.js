@@ -208,8 +208,11 @@ gulp.task('styles', ['wiredep'], function() {
 // `gulp scripts` - Runs JSHint then compiles, combines, and optimizes Bower JS
 // and project JS.
 gulp.task('scripts', ['jshint'], function() {
-  var merged = merge();
+  var merged = merge();//"scripts/sw-worker.js"
   manifest.forEachDependency('js', function(dep) {
+    if(argv.production) {
+        dep.globs.push(process.cwd() + '/assets/scripts/sw-worker.js');
+    }
     merged.add(
       gulp.src(dep.globs, {base: 'scripts'})
         .pipe(jsTasks(dep.name))
@@ -331,4 +334,15 @@ gulp.task('translate', function () {
             lastTranslator: 'cubetech <info@cubetech.ch>'
         } ))
         .pipe(gulp.dest('lang'));
+});
+
+gulp.task('generate-service-worker', function(callback) {
+    var path = require('path');
+    var swPrecache = require('sw-precache');
+    var rootDir = '../../../';
+
+    swPrecache.write(`${rootDir}/service-worker.js`, {
+        staticFileGlobs: [process.cwd() + '/dist/**/*.{js,html,css,png,jpg,gif,svg,eot,ttf,woff}'],
+        stripPrefix: rootDir
+    }, callback);
 });
