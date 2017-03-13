@@ -61,3 +61,12 @@ Es kann nun ein POT File für die Übersetzung generiert werden. Das passiert pe
 gulp translate
 ```
 Dann können per Loco Translate ganz einfach die Strings übersetzt werden.
+
+
+## Neue Funktion: Service Workers
+Es kann nun ein Service Worker für die Assets des Themes erstellt werden. Dafür sind folgende Schritte nötig:
+```bash
+gulp generate-service-worker
+gulp --production
+```
+Achtung: Der Service Worker funktioniert nur auf https und localhost!
