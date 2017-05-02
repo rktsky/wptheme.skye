@@ -101,8 +101,7 @@ var cssTasks = function(filename) {
     .pipe(autoprefixer, {
       browsers: [
         'last 2 versions',
-        'ie 8',
-        'ie 9',
+		'ie 9',
         'android 2.3',
         'android 4',
         'opera 12'
@@ -267,9 +266,9 @@ gulp.task('watch', function() {
 	if( host === undefined ) {
 		host = process.env.HOSTNAME;
 	}
-var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
+	var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
 	browserSync.init({ 
-		files: ['{lib,templates}/**/*.php', '*.php'],
+		files: ['{lib,templates,woocommerce}/**/*.php', '*.php'],
 		proxy: finalurl, snippetOptions: {
 			whitelist: ['/wp-admin/admin-ajax.php'],
 			blacklist: ['/wp-admin/**']

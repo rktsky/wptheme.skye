@@ -18,7 +18,7 @@ function setup() {
 
   // Make theme available for translation
   // Community translations can be found at https://github.com/roots/sage-translations
-  load_theme_textdomain('sage', get_template_directory() . '/lang');
+  load_theme_textdomain(THEME_TEXT_DOMAIN, get_template_directory() . '/lang');
 
   // Enable plugins to manage the document title
   // http://codex.wordpress.org/Function_Reference/add_theme_support#Title_Tag
@@ -27,7 +27,7 @@ function setup() {
   // Register wp_nav_menu() menus
   // http://codex.wordpress.org/Function_Reference/register_nav_menus
   register_nav_menus([
-    'primary_navigation' => __('Primary Navigation', 'sage')
+  	'primary_navigation' => __('Hauptnavigation', THEME_TEXT_DOMAIN)
   ]);
 
   // Enable post thumbnails
@@ -38,7 +38,7 @@ function setup() {
 
   // Enable post formats
   // http://codex.wordpress.org/Post_Formats
-  add_theme_support('post-formats', ['aside', 'gallery', 'link', 'image', 'quote', 'video', 'audio']);
+  // add_theme_support('post-formats', ['aside', 'gallery', 'link', 'image', 'quote', 'video', 'audio']);
 
   // Enable HTML5 markup support
   // http://codex.wordpress.org/Function_Reference/add_theme_support#HTML5
@@ -54,23 +54,17 @@ add_action('after_setup_theme', __NAMESPACE__ . '\\setup');
  * Register sidebars
  */
 function widgets_init() {
-  register_sidebar([
-    'name'          => __('Primary', 'sage'),
+	
+  // Register sidebar if needed	
+  
+  /* register_sidebar([
+    'name'          => __('Seitenleiste', THEME_TEXT_DOMAIN),
     'id'            => 'sidebar-primary',
     'before_widget' => '<section class="widget %1$s %2$s">',
     'after_widget'  => '</section>',
     'before_title'  => '<h3>',
     'after_title'   => '</h3>'
-  ]);
-
-  register_sidebar([
-    'name'          => __('Footer', 'sage'),
-    'id'            => 'sidebar-footer',
-    'before_widget' => '<section class="widget %1$s %2$s">',
-    'after_widget'  => '</section>',
-    'before_title'  => '<h3>',
-    'after_title'   => '</h3>'
-  ]);
+  ]); */
 }
 add_action('widgets_init', __NAMESPACE__ . '\\widgets_init');
 

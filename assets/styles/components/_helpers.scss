@@ -1,5 +1,6 @@
-// WordPress Generated Classes
-// http://codex.wordpress.org/CSS#WordPress_Generated_Classes
+/*
+ * Include all helper classes here
+ */
 
 // Media alignment
 .alignnone {
@@ -43,3 +44,26 @@
   @extend .sr-only;
   @extend .sr-only-focusable;
 }
+
+// TinyMCE
+body#tinymce {
+  margin: 12px !important;
+}
+
+// Disable firefox outlines
+.content a.btn:focus, 
+.submit > input:focus,
+input.button:focus, 
+input.button-primary[type="submit"]:focus, 
+.btn.active.focus, 
+.btn.active:focus, 
+.btn.focus, 
+.btn.focus:active, 
+.btn:active:focus, 
+.btn:focus,
+input[type="submit"],
+a:focus,
+a:active,
+.nav-toggle,
+.nav-toggle:active,
+.nav-toggle:focus { border: 0; outline: 0; }

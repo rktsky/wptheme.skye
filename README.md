@@ -1,4 +1,4 @@
-# WordPress Theme [Sage](https://roots.io/sage/)
+# cubetech Development Basetheme. Based on [Sage](https://roots.io/sage/)
 ## Anforderungen
 Folgendes muss installiert werden:
 
@@ -39,7 +39,6 @@ Nach der Installation des Themes navigiere weiter zum installiertem Theme `cd wp
 Nun müssen die nötigen Ressourcen geladen werden:
 ```bash
 npm install
-npm install -g bower
 bower install --save
 gulp
 ```

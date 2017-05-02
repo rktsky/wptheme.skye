@@ -2,7 +2,7 @@
 
 <?php if (!have_posts()) : ?>
   <div class="alert alert-warning">
-    <?php _e('Sorry, no results were found.', 'sage'); ?>
+    <?php _e('Sorry, no results were found.', THEME_TEXT_DOMAIN); ?>
   </div>
   <?php get_search_form(); ?>
 <?php endif; ?>

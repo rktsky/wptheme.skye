@@ -9,7 +9,11 @@
  *
  * @link https://github.com/roots/sage/pull/1042
  */
- 
+
+// define constants of theme
+// theme text domain, override it here and also in style.css
+define( 'THEME_TEXT_DOMAIN', 'wptheme.sage' );
+
 $sage_includes = [
   'lib/assets.php',    // Scripts and stylesheets
   'lib/extras.php',    // Custom functions
@@ -21,14 +25,15 @@ $sage_includes = [
   'lib/cubetech/image.php', // cubetech Image Function
   'lib/cubetech/image-sizes.php', // cubetech Register Image Sizes
   'lib/cubetech/localize.php', // cubetech JS Localize
-  'lib/svg/scalable-vector-graphics.php'
+  'lib/cubetech/svg/scalable-vector-graphics.php', // cubetech SVG WordPress handling
+  'lib/cubetech/acf/options.php' // cubetech ACF Options
 ];
 
 foreach ($sage_includes as $file) {
-  if (!$filepath = locate_template($file)) {
-    trigger_error(sprintf(__('Error locating %s for inclusion', 'sage'), $file), E_USER_ERROR);
-  }
-
-  require_once $filepath;
+	if (!$filepath = locate_template($file)) {
+		trigger_error(sprintf(__('Error locating %s for inclusion', THEME_TEXT_DOMAIN), $file), E_USER_ERROR);
+	}
+	
+	require_once $filepath;
 }
 unset($file, $filepath);

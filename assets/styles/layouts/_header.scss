@@ -1,0 +1,39 @@
+/*
+ * Header styles
+ */
+
+header.navbar.navbar-default {
+	
+	// Logo
+	.navbar-brand {
+		padding: 0px; margin-left: 0px;
+		img { width: 50px; height: auto; }
+	}
+	
+	// Navbar Toggle
+	.nav-toggle { 
+		border: none; width: 35px; height: 35px; margin-top: 10px; margin-right: 15px; float: right; padding: 0; position: relative; background: none;
+		
+		&:hover, &:focus { background: none; }		
+		
+		// Icon Bars
+		.icon-bar { 
+			position: absolute; background-color: $brand-primary; width: 35px; height: 2px; margin: 0 0 6px; transition: top 200ms ease-in-out 200ms, transform 200ms ease-in-out; right: 0;
+			
+			&:last-child { margin: 0; }
+			&:nth-child(2) { top: 26px; }
+			&:nth-child(3) { top: 0px; }
+			&:nth-child(4) { top: 13px; }
+		}
+		
+		// Icon Bars opened
+		&.open .icon-bar { 
+			margin: 0; transition: top 200ms ease-in-out, transform 200ms ease-in-out 200ms;
+			
+			&:nth-child(2), 
+			&:nth-child(3) { transform: rotate(45deg); top: 13px; }
+			&:nth-child(4) { transform: rotate(-45deg); }
+		}
+	}	
+
+}

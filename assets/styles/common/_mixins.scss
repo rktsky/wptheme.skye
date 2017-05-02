@@ -1,3 +1,7 @@
+/*
+ * Helper functions (mixins)
+ */
+
 @mixin placeholder {
 	&::-webkit-input-placeholder	{@content}
 	&:-moz-placeholder		{@content}

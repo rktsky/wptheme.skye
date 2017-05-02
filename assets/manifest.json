@@ -2,7 +2,8 @@
   "dependencies": {
     "main.js": {
       "files": [
-        "scripts/main.js"
+        "scripts/main.js",
+        "scripts/responsivemenu.js"        
       ],
       "main": true
     },
@@ -15,8 +16,5 @@
     "jquery.js": {
       "bower": ["jquery"]
     }
-  },
-  "config": {
-    "devUrl": "http://burckhardt.sven.56.cubelab.ch"
   }
 }
