@@ -13,3 +13,256 @@
   @extend .btn;
   @extend .btn-default;
 }
+
+/**
+ * Gravity Forms default styling
+ * Available helper classes: inline (checkboxes or radios on one line), half_left and half_right (for two inputs on the same row)
+ */
+.gform_wrapper {
+
+  width: 100%; max-width: 500px;
+
+  form {
+
+    // main error notification
+    .validation_error { color: red; }
+
+    // form body containing all input elements
+    .gform_body {
+
+      ul.gform_fields {
+        list-style: none; padding: 0;
+
+        li.gfield {
+
+          // input label
+          .gfield_label { margin-top: 20px; }
+
+          // input description
+          .gfield_description {
+            margin-top: 5px;
+
+            // input validation message (after incorrect submission)
+            &.validation_message { color: red; }
+          }
+
+          // input container
+          .ginput_container {
+
+            // normal text inputs
+            input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea {
+              padding: 12px 15px 11px; border: 1px solid black; color: black; outline: 0; border-radius: 0; -webkit-appearance: none; resize: none; width: 100%;
+              @include placeholder { color: black; opacity: 1; }
+            }
+
+            // checkbox inputs
+            .gfield_checkbox {
+              list-style: none; padding: 0;
+              li {
+
+                [type="checkbox"]:not(:checked),
+                [type="checkbox"]:checked {
+                  position: absolute;
+                  left: -9999px;
+                }
+                [type="checkbox"]:not(:checked) + label,
+                [type="checkbox"]:checked + label {
+                  position: relative;
+                  padding-left: 25px;
+                  padding-top: 2px;
+                  cursor: pointer;
+                }
+
+                /* checkbox aspect */
+                [type="checkbox"]:not(:checked) + label:before,
+                [type="checkbox"]:checked + label:before {
+                  content: '';
+                  position: absolute;
+                  left: 0; top: 2px;
+                  width: 17px;
+                  height: 17px;
+                  border: 1px solid #dbdbdb;
+                  background-color: #eeeeee;
+                  transition: all .15s;
+                }
+
+                [type="checkbox"]:checked + label:before {
+                  background-color: $brand-primary;
+                }
+                /* checked mark aspect */
+                [type="checkbox"]:not(:checked) + label:after,
+                [type="checkbox"]:checked + label:after {
+                  content: '';
+                  display: block;
+                  background-image: url(../images/checkmark.svg);
+                  background-repeat: no-repeat;
+                  background-size: 11px;
+                  background-position: center center;
+                  position: absolute;
+                  top: 2px;
+                  left: 0px;
+                  transition: all .15s;
+                  height: 16px;
+                  width: 16px;
+                }
+                /* checked mark aspect changes */
+                [type="checkbox"]:not(:checked) + label:after {
+                  opacity: 0;
+                  transform: scale(0);
+                }
+                [type="checkbox"]:checked + label:after {
+                  opacity: 1;
+                  transform: scale(1);
+                }
+                /* disabled checkbox */
+                [type="checkbox"]:disabled:not(:checked) + label:before,
+                [type="checkbox"]:disabled:checked + label:before {
+                  box-shadow: none;
+                  border-color: #bbb;
+                  background-color: #ddd;
+                }
+                [type="checkbox"]:disabled:checked + label:after {
+                  color: #999;
+                }
+                [type="checkbox"]:disabled + label {
+                  color: #aaa;
+                }
+
+              }
+            }
+
+            // radio inputs
+            .gfield_radio {
+              list-style: none; padding: 0;
+              li {
+
+                [type="radio"]:not(:checked),
+                [type="radio"]:checked {
+                  position: absolute;
+                  left: -9999px;
+                }
+                [type="radio"]:not(:checked) + label,
+                [type="radio"]:checked + label {
+                  position: relative;
+                  padding-left: 25px;
+                  padding-top: 2px;
+                  cursor: pointer;
+                }
+
+                /* checkbox aspect */
+                [type="radio"]:not(:checked) + label:before,
+                [type="radio"]:checked + label:before {
+                  content: '';
+                  position: absolute;
+                  left: 0; top: 2px;
+                  width: 17px;
+                  height: 17px;
+                  border: 1px solid #dbdbdb;
+                  background-color: #eeeeee;
+                  border-radius: 50%;
+                  transition: all .15s;
+                }
+
+                [type="radio"]:checked + label:before {
+                  background-color: $brand-primary;
+                }
+                /* checked mark aspect */
+                [type="radio"]:not(:checked) + label:after,
+                [type="radio"]:checked + label:after {
+                  content: '';
+                  display: block;
+                  background-image: url(../images/radiodot.svg);
+                  background-repeat: no-repeat;
+                  background-size: 13px;
+                  background-position: 2px 3px;
+                  position: absolute;
+                  top: 2px;
+                  left: 0px;
+                  transition: all .15s;
+                  height: 16px;
+                  width: 16px;
+                }
+                /* checked mark aspect changes */
+                [type="radio"]:not(:checked) + label:after {
+                  opacity: 0;
+                  transform: scale(0);
+                }
+                [type="radio"]:checked + label:after {
+                  opacity: 1;
+                  transform: scale(1);
+                }
+                /* disabled checkbox */
+                [type="radio"]:disabled:not(:checked) + label:before,
+                [type="radio"]:disabled:checked + label:before {
+                  box-shadow: none;
+                  border-color: #bbb;
+                  background-color: #ddd;
+                }
+                [type="radio"]:disabled:checked + label:after {
+                  color: #999;
+                }
+                [type="radio"]:disabled + label {
+                  color: #aaa;
+                }
+
+              }
+            }
+
+          }
+
+          // fileupload inputs
+          .ginput_container_fileupload {
+
+            border: 1px dashed black; width: 100%; text-align: center; padding: 70px 0px;
+
+            .gform_drop_instructions { padding-right: 10px; }
+
+            input[type="button"] { color: white; padding: 12px 15px 11px; border-radius: 0; background-color: $brand-primary; appearance: none; border: none; outline: 0; }
+
+          }
+
+          // multiselect
+          .ginput_container_multiselect {
+
+            select {
+              border: 1px solid black; min-width: 250px; max-width: 100%; outline: 0; appearance: none;
+            }
+          }
+
+          // helper classes
+          &.half_left {
+            width: 48%;
+            float: left;
+            margin-right: 2%;
+          }
+
+          &.half_right {
+            width: 48%;
+            float: right;
+            margin-left: 2%;
+          }
+
+          &.inline {
+
+            &:before, &:after {
+              content: " ";
+              display: table;
+            }
+
+            li { float: left; padding-right: 15px; padding-bottom: 5px; }
+          }
+
+        }
+
+      }
+
+    }
+
+    // form footer containing submission button
+    .gform_footer {
+      margin-top: 40px;
+      input[type="submit"] { float: right; color: white; padding: 12px 15px 11px; background-color: $brand-primary; appearance: none; border: none; outline: 0; }
+
+    }
+
+  }

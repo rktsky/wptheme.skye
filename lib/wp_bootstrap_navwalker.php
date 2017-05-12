@@ -10,7 +10,14 @@
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
-class wp_bootstrap_navwalker extends Walker_Nav_Menu {
+final class wp_bootstrap_navwalker extends Walker_Nav_Menu {
+
+	/**
+	 * @var
+	 */
+	private $activeMenuItem;
+
+	private $ancestors;
 
 	/**
 	 * @see Walker::start_lvl()
@@ -62,7 +69,7 @@ class wp_bootstrap_navwalker extends Walker_Nav_Menu {
 
 			$class_names = join( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $item, $args ) );
 
-			if ( $args->has_children )
+			if ( $args->has_children && $args->depth === 0 )
 				$class_names .= ' dropdown';
 
 			if ( in_array( 'current-menu-item', $classes ) )
@@ -81,7 +88,7 @@ class wp_bootstrap_navwalker extends Walker_Nav_Menu {
 			$atts['rel']    = ! empty( $item->xfn )		? $item->xfn	: '';
 
 			// If item has_children add atts to a.
-			if ( $args->has_children && $depth === 0 ) {
+			if ( $args->has_children && $depth === 0 && $args->depth === 0 ) {
 				$atts['href']   		= '#';
 				$atts['data-toggle']	= 'dropdown';
 				$atts['class']			= 'dropdown-toggle';
@@ -115,7 +122,7 @@ class wp_bootstrap_navwalker extends Walker_Nav_Menu {
 				$item_output .= '<a'. $attributes .'>';
 
 			$item_output .= $args->link_before . apply_filters( 'the_title', $item->title, $item->ID ) . $args->link_after;
-			$item_output .= ( $args->has_children && 0 === $depth ) ? ' <span class="caret"></span></a>' : '</a>';
+			$item_output .= ( $args->has_children && 0 === $depth && $args->depth === 0 ) ? ' <span class="caret"></span></a>' : '</a>';
 			$item_output .= $args->after;
 
 			$output .= apply_filters( 'walker_nav_menu_start_el', $item_output, $item, $depth, $args );
@@ -143,17 +150,17 @@ class wp_bootstrap_navwalker extends Walker_Nav_Menu {
 	 * @return null Null on failure with no changes to parameters.
 	 */
 	public function display_element( $element, &$children_elements, $max_depth, $depth, $args, &$output ) {
-        if ( ! $element )
-            return;
+		if ( ! $element )
+			return;
 
-        $id_field = $this->db_fields['id'];
+		$id_field = $this->db_fields['id'];
 
-        // Display this element.
-        if ( is_object( $args[0] ) )
-           $args[0]->has_children = ! empty( $children_elements[ $element->$id_field ] );
+		// Display this element.
+		if ( is_object( $args[0] ) )
+			$args[0]->has_children = ! empty( $children_elements[ $element->$id_field ] );
 
-        parent::display_element( $element, $children_elements, $max_depth, $depth, $args, $output );
-    }
+		parent::display_element( $element, $children_elements, $max_depth, $depth, $args, $output );
+	}
 
 	/**
 	 * Menu Fallback
@@ -202,5 +209,183 @@ class wp_bootstrap_navwalker extends Walker_Nav_Menu {
 
 			echo $fb_output;
 		}
+	}
+
+
+	public function walk( $elements, $max_depth ) {
+
+		// Get active menu element
+		$activeElement = array_filter( $elements, function( $ele ) {
+			return $ele->current;
+		});
+
+		$current_menu_item_top_ancestor = array_filter( $elements, function( $ele ) {
+			return $ele->current_item_ancestor && $ele->menu_item_parent == 0;
+		});
+
+
+		$ancestors = array_filter( $elements, function( $ele ) {
+			return $ele->current_item_parent;
+		});
+
+		if( !empty( $activeElement ) ) {
+			$this->activeMenuItem = reset( $activeElement );
+		}
+
+		if( !empty( $ancestors ) ) {
+			$this->ancestors = array_values( $ancestors );
+		}
+
+		if( !empty( $ancestors ) ) {
+			$this->current_menu_item_top_ancestor = array_values( $current_menu_item_top_ancestor );
+		}
+
+		$args = array_slice(func_get_args(), 2);
+
+		$output = '';
+
+		//invalid parameter or nothing to walk
+		if ( $max_depth < -1 || empty( $elements ) ) {
+			return $output;
+		}
+
+		$parent_field = $this->db_fields['parent'];
+
+		// flat display
+		if ( -1 == $max_depth ) {
+			$empty_array = array();
+			foreach ( $elements as $e )
+				$this->display_element( $e, $empty_array, 1, 0, $args, $output );
+			return $output;
+		}
+
+		/*
+		 * Need to display in hierarchical order.
+		 * Separate elements into two buckets: top level and children elements.
+		 * Children_elements is two dimensional array, eg.
+		 * Children_elements[10][] contains all sub-elements whose parent is 10.
+		 */
+		$top_level_elements = array();
+		$children_elements  = array();
+		foreach ( $elements as $e) {
+			if ( empty( $e->$parent_field ) )
+				$top_level_elements[] = $e;
+			else
+				$children_elements[ $e->$parent_field ][] = $e;
+		}
+
+		/*
+		 * When none of the elements is top level.
+		 * Assume the first one must be root of the sub elements.
+		 */
+		if ( empty($top_level_elements) ) {
+
+			$first = array_slice( $elements, 0, 1 );
+			$root = $first[0];
+
+			$top_level_elements = array();
+			$children_elements  = array();
+			foreach ( $elements as $e) {
+				if ( $root->$parent_field == $e->$parent_field )
+					$top_level_elements[] = $e;
+				else
+					$children_elements[ $e->$parent_field ][] = $e;
+			}
+		}
+
+		if( !isset( $args[0]->level ) || $args[0]->level === 0 ) {
+			foreach ( $top_level_elements as $e ) {
+				$this->display_element( $e, $children_elements, $max_depth, 0, $args, $output );
+			}
+		}
+
+
+		// check if second level navigation case
+		if( isset( $args[0]->level ) && $args[0]->level === 2 ) {
+
+			// check if active menu item parent is zero (top level) and check if there are child elements
+			if( $this->activeMenuItem->menu_item_parent == 0 ) {
+				if( isset( $children_elements[ $this->activeMenuItem->db_id ] ) ) {
+					$children_elements = array( $children_elements[ $this->activeMenuItem->db_id ] );
+				} else {
+					$children_elements = array();
+				}
+			}
+			else {
+
+				if( isset( $children_elements[ $this->current_menu_item_top_ancestor[0]->db_id ] ) ) {
+					$children_elements = array( $children_elements[ $this->current_menu_item_top_ancestor[0]->db_id ] );
+				} else {
+					$children_elements = array();
+				}
+			}
+
+		// check if other level navigation case
+		} elseif( isset( $args[0]->level ) && $args[0]->level !== 0  ) {
+			if( !empty( $this->current_menu_item_top_ancestor ) ) {
+				$children_elements = $this->find_children_from_parent( $children_elements, $this->current_menu_item_top_ancestor[0]->db_id, $args, 1 );
+			}
+			else {
+				$children_elements = array();
+			}
+		}
+
+
+		/*
+		 * If we are displaying all levels, and remaining children_elements is not empty,
+		 * then we got orphans, which should be displayed regardless.
+		 */
+		if ( ( $max_depth == 0 ) && count( $children_elements ) > 0 ) {
+			$empty_array = array();
+			foreach ( $children_elements as $orphans ) {
+				if( !empty( $orphans ) ) {
+					foreach ( $orphans as $op ) {
+						$this->display_element( $op, $empty_array, 1, 0, $args, $output );
+					}
+				}
+			}
+		}
+
+		return $output;
+	}
+
+
+	/**
+	 * This method checks all children element and gets the actual one
+	 *
+	 * @param $children_elements
+	 * @param $parent_id
+	 * @param $args
+	 * @param $current_recursion
+	 *
+	 * @return array
+	 */
+	public function find_children_from_parent( $children_elements, $parent_id, $args, $current_recursion ) {
+		$current_children = $children_elements[ $parent_id ];
+
+		// loop actual child elements
+		foreach( $current_children as $child ) {
+			// check if child element is ancestor
+			if( $child->current_item_ancestor ) {
+				// if level reached return child elements, if not recall function and check next level
+				if( $current_recursion < $args[0]->level ) {
+					return array( $children_elements[$child->db_id] );
+				} else {
+					$this->find_children_from_parent( $children_elements, $child->db_id, $args, $current_recursion++ );
+				}
+
+			}
+			elseif( $child->current ) { // check if child element is current menu point
+				// check if child elements exist
+				if( isset( $children_elements[$child->db_id] ) ) {
+					return array( $children_elements[$child->db_id] );
+				} else {
+					return array();
+				}
+			}
+
+		}
+
+
 	}
 }
