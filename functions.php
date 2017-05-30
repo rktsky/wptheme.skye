@@ -22,6 +22,7 @@ $sage_includes = [
   'lib/wrapper.php',   // Theme wrapper class
   'lib/customizer.php', // Theme customizer
   'lib/wp_bootstrap_navwalker.php', // Boostrap Navigation
+  'lib/cubetech/redirectchild.php', // cubetech Template - Redirect to Child Page
   'lib/cubetech/image.php', // cubetech Image Function
   'lib/cubetech/image-sizes.php', // cubetech Register Image Sizes
   'lib/cubetech/localize.php', // cubetech JS Localize
