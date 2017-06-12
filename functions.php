@@ -29,7 +29,8 @@ $sage_includes = [
   'lib/cubetech/disable_emoijs.php',
   'lib/svg/scalable-vector-graphics.php',
   'lib/svg/scalable-vector-graphics.php', // cubetech SVG handling
-  'lib/cubetech/acf/options.php' // cubetech Theme Options
+  'lib/cubetech/acf/options.php', // cubetech Theme Options
+  'lib/cubetech/wp_head.php' // cubetech Hooks for wp_head
 ];
 
 foreach ($sage_includes as $file) {
