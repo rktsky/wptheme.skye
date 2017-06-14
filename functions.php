@@ -10,10 +10,6 @@
  * @link https://github.com/roots/sage/pull/1042
  */
 
-// define constants of theme
-// theme text domain, override it here and also in style.css
-define( 'THEME_TEXT_DOMAIN', 'wptheme.sage' );
-
 $sage_includes = [
   'lib/assets.php',    // Scripts and stylesheets
   'lib/extras.php',    // Custom functions
@@ -21,13 +17,16 @@ $sage_includes = [
   'lib/titles.php',    // Page titles
   'lib/wrapper.php',   // Theme wrapper class
   'lib/customizer.php', // Theme customizer
-  'lib/wp_bootstrap_navwalker.php', // Boostrap Navigation
+  'lib/walker/wp_bootstrap_navwalker.php', // Boostrap Navigation
+  'lib/walker/megadropdown_walker.php', // Megadropdown Navigation
+  'lib/cubetech/twig.php', // cubetech twig functions
+  'lib/cubetech/helpers.php', // cubetech helper functions
+  'lib/cubetech/hooks.php', // cubetech hooks  
   'lib/cubetech/redirectchild.php', // cubetech Template - Redirect to Child Page
   'lib/cubetech/image.php', // cubetech Image Function
   'lib/cubetech/image-sizes.php', // cubetech Register Image Sizes
   'lib/cubetech/localize.php', // cubetech JS Localize
   'lib/cubetech/disable_emoijs.php',
-  'lib/svg/scalable-vector-graphics.php',
   'lib/svg/scalable-vector-graphics.php', // cubetech SVG handling
   'lib/cubetech/acf/options.php', // cubetech Theme Options
   'lib/cubetech/wp_head.php' // cubetech Hooks for wp_head

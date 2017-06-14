@@ -28,7 +28,7 @@ function set_theme_options_warning() {
 
 	echo '
 	<div class="notice notice-error">
-		<p><strong>' . __( 'Fehler', THEME_TEXT_DOMAIN ) . ':</strong> ' . __( 'Für das aktive WordPress-Theme wird das Plugin Advanced Custom Fields PRO benötigt.', THEME_TEXT_DOMAIN ) . '</p>
+		<p><strong>' . __( 'Fehler', 'sage' ) . ':</strong> ' . __( 'Für das aktive WordPress-Theme wird das Plugin Advanced Custom Fields PRO benötigt.', 'sage' ) . '</p>
 	</div>';
 
 }

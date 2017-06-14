@@ -103,13 +103,9 @@ var cssTasks = function(filename) {
     .pipe(concat, filename)
     .pipe(autoprefixer, {
       browsers: [
-        'last 2 versions',
-        'ie 8',
-        'ie 9',
-        'android 2.3',
+        'last 3 versions',
         'android 4',
-        'opera 12',
-        'iOS 8'
+        'iOS 9'
       ]
     })
     .pipe(function() {

@@ -43,4 +43,24 @@ function register_sage_taxonomies()	{
 
 add_action('init', 'register_sage_taxonomies');
 
-?>
+/**
+ *
+ * Remove default taxonomies
+ *
+ * @link http://w4dev.com/wp/remove-taxonomy/
+ *
+ */
+
+
+function sage_unregister_taxonomy()
+{
+    global $wp_taxonomies;
+    $taxonomies = array('category', 'post_tag');
+    foreach ($taxonomies as $taxonomy) {
+        if (taxonomy_exists($taxonomy)) {
+            unset($wp_taxonomies[$taxonomy]);
+        }
+    }
+}
+
+// add_action('init', 'sage_unregister_taxonomy');
