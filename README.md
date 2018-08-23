@@ -80,3 +80,4 @@ Dann können per Loco Translate ganz einfach die Strings übersetzt werden.
 
 ## Powered by
 
+<a href="https://www.browserstack.com" target="_blank"><img src="https://raw.githubusercontent.com/cubetech/wptheme.sage/master/Browserstack-logo%402x.png" style="width: 200px;"></a>
