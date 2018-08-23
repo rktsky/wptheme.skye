@@ -1,4 +1,4 @@
-# WordPress Theme [Sage](https://roots.io/sage/)
+# WordPress Theme cubetech Sage
 ## Anforderungen
 Folgendes muss installiert werden:
 
@@ -77,3 +77,6 @@ Es kann nun ein POT File für die Übersetzung generiert werden. Das passiert pe
 gulp translate
 ```
 Dann können per Loco Translate ganz einfach die Strings übersetzt werden.
+
+## Powered by
+
