@@ -6,22 +6,19 @@ var changed      = require('gulp-changed');
 var concat       = require('gulp-concat');
 var flatten      = require('gulp-flatten');
 var gulp         = require('gulp');
-var bless        = require('gulp-bless');
 var gulpif       = require('gulp-if');
 var imagemin     = require('gulp-imagemin');
 var jshint       = require('gulp-jshint');
 var lazypipe     = require('lazypipe');
+var less         = require('gulp-less');
 var merge        = require('merge-stream');
-var minifyCss    = require('gulp-minify-css');
+var cssNano      = require('gulp-cssnano');
 var plumber      = require('gulp-plumber');
 var rev          = require('gulp-rev');
 var runSequence  = require('run-sequence');
 var sass         = require('gulp-sass');
 var sourcemaps   = require('gulp-sourcemaps');
 var uglify       = require('gulp-uglify');
-
-var wpPot = require('gulp-wp-pot');
-var sort = require('gulp-sort');
 
 // See https://github.com/austinpray/asset-builder
 var manifest = require('asset-builder')('./assets/manifest.json');
@@ -64,15 +61,17 @@ var enabled = {
   // Fail due to JSHint warnings only when `--production`
   failJSHint: argv.production,
   // Strip debug statments from javascript when `--production`
-  stripJSDebug: argv.production,
-  // Minify CSS, JS, and Images
-  minify: !argv.fast,
-  // Split minified css when '--production'
-  split: argv.production
+  stripJSDebug: argv.production
 };
 
 // Path to the compiled assets manifest in the dist directory
 var revManifest = path.dist + 'assets.json';
+
+// Error checking; produce an error rather than crashing.
+var onError = function(err) {
+  console.log(err.toString());
+  this.emit('end');
+};
 
 // ## Reusable Pipelines
 // See https://github.com/OverZealous/lazypipe
@@ -93,6 +92,9 @@ var cssTasks = function(filename) {
       return gulpif(enabled.maps, sourcemaps.init());
     })
     .pipe(function() {
+      return gulpif('*.less', less());
+    })
+    .pipe(function() {
       return gulpif('*.scss', sass({
         outputStyle: 'nested', // libsass doesn't support expanded yet
         precision: 10,
@@ -103,16 +105,13 @@ var cssTasks = function(filename) {
     .pipe(concat, filename)
     .pipe(autoprefixer, {
       browsers: [
-        'last 3 versions',
+        'last 2 versions',
         'android 4',
-        'iOS 9'
+        'opera 12'
       ]
     })
-    .pipe(function() {
-      return gulpif(enabled.minify, minifyCss({
-        advanced: false,
-        rebase: false
-      }));
+    .pipe(cssNano, {
+      safe: true
     })
     .pipe(function() {
       return gulpif(enabled.rev, rev());
@@ -123,15 +122,6 @@ var cssTasks = function(filename) {
       }));
     })();
 };
-
-// ### Bless
-gulp.task('bless', function() {
-  if(enabled.split) {
-    return gulp.src(path.dist + 'styles/*.css')
-    .pipe(bless())
-     .pipe(gulp.dest(path.dist + 'styles'));
-  }
-});
 
 // ### JS processing pipeline
 // Example
@@ -146,12 +136,10 @@ var jsTasks = function(filename) {
       return gulpif(enabled.maps, sourcemaps.init());
     })
     .pipe(concat, filename)
-    .pipe(function() {
-      return gulpif(enabled.minify, uglify({
-        compress: {
-          'drop_debugger': enabled.stripJSDebug
-        }
-      }));
+    .pipe(uglify, {
+      compress: {
+        'drop_debugger': enabled.stripJSDebug
+      }
     })
     .pipe(function() {
       return gulpif(enabled.rev, rev());
@@ -195,6 +183,7 @@ gulp.task('styles', ['wiredep'], function() {
       });
     }
     merged.add(gulp.src(dep.globs, {base: 'styles'})
+      .pipe(plumber({errorHandler: onError}))
       .pipe(cssTasksInstance));
   });
   return merged
@@ -209,6 +198,7 @@ gulp.task('scripts', ['jshint'], function() {
   manifest.forEachDependency('js', function(dep) {
     merged.add(
       gulp.src(dep.globs, {base: 'scripts'})
+        .pipe(plumber({errorHandler: onError}))
         .pipe(jsTasks(dep.name))
     );
   });
@@ -230,11 +220,14 @@ gulp.task('fonts', function() {
 // `gulp images` - Run lossless compression on all the images.
 gulp.task('images', function() {
   return gulp.src(globs.images)
-    .pipe(gulpif(enabled.minify, imagemin({
-      progressive: true,
-      interlaced: true,
-      svgoPlugins: [{removeUnknownsAndDefaults: false}, {cleanupIDs: false}]
-    })))
+    .pipe(imagemin([
+      imagemin.jpegtran({progressive: true}),
+      imagemin.gifsicle({interlaced: true}),
+      imagemin.svgo({plugins: [
+        {removeUnknownsAndDefaults: false},
+        {cleanupIDs: false}
+      ]})
+    ]))
     .pipe(gulp.dest(path.dist + 'images'))
     .pipe(browserSync.stream());
 });
@@ -261,29 +254,19 @@ gulp.task('clean', require('del').bind(null, [path.dist]));
 // build step for that asset and inject the changes into the page.
 // See: http://www.browsersync.io
 gulp.task('watch', function() {
-	var url = process.cwd();
-	url = url.split('/');
-	host = process.env.ENVHOSTNAME;
-	if( host === undefined ) {
-		host = process.env.HOSTNAME;
-	}
-var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
-	browserSync.init({
-		files: ['{lib,templates}/**/*.php', '*.php'],
-		proxy: finalurl, snippetOptions: {
-			whitelist: ['/wp-admin/admin-ajax.php'],
-			blacklist: ['/wp-admin/**']
-		},
-		middleware: function (req, res, next) {
-			res.setHeader('Access-Control-Allow-Origin', '*');
-			next();
-		}
-	});
-	gulp.watch([path.source + 'styles/**/*'], ['styles']);
-	gulp.watch([path.source + 'scripts/**/*'], ['jshint', 'scripts']);
-	gulp.watch([path.source + 'fonts/**/*'], ['fonts']);
-	gulp.watch([path.source + 'images/**/*'], ['images']);
-	gulp.watch(['bower.json', 'assets/manifest.json'], ['build']);
+  browserSync.init({
+    files: ['{lib,templates}/**/*.php', '*.php'],
+    proxy: config.devUrl,
+    snippetOptions: {
+      whitelist: ['/wp-admin/admin-ajax.php'],
+      blacklist: ['/wp-admin/**']
+    }
+  });
+  gulp.watch([path.source + 'styles/**/*'], ['styles']);
+  gulp.watch([path.source + 'scripts/**/*'], ['jshint', 'scripts']);
+  gulp.watch([path.source + 'fonts/**/*'], ['fonts']);
+  gulp.watch([path.source + 'images/**/*'], ['images']);
+  gulp.watch(['bower.json', 'assets/manifest.json'], ['build']);
 });
 
 // ### Build
@@ -291,7 +274,6 @@ var finalurl = "http://" + url[4] + "." + url[2] + "." + host;
 // Generally you should be running `gulp` instead of `gulp build`.
 gulp.task('build', function(callback) {
   runSequence('styles',
-  			  'bless',
               'scripts',
               ['fonts', 'images'],
               callback);
@@ -314,18 +296,4 @@ gulp.task('wiredep', function() {
 // `gulp` - Run a complete build. To compile for production run `gulp --production`.
 gulp.task('default', ['clean'], function() {
   gulp.start('build');
-});
-
-
-gulp.task('translate', function () {
-    return gulp.src(['*.php', 'templates/*.php'])
-        .pipe(sort())
-        .pipe(wpPot( {
-            domain: 'sage',
-            destFile:'sage.pot',
-            package: 'sage',
-            bugReport: 'https://cubetech.com',
-            lastTranslator: 'cubetech <info@cubetech.ch>'
-        } ))
-        .pipe(gulp.dest('lang'));
 });
