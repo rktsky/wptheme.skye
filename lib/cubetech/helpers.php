@@ -1,5 +1,46 @@
 <?php
-	
+
+
+function get_component( $name ) {
+	$template = locate_template( 'templates/components/' . $name . '.php', false, false );
+	if( !$template || empty( $template ) ) {
+		echo '<!-- ERROR get_component(): Component ' . $name . ' not found! -->';
+	} else {
+		include( $template );
+	}
+}
+
+// get field function for ACF without using ACF and generating additional queries
+function get( $selector, $post_id = false, $format_value = true ) {
+
+	if( function_exists( 'get_post_meta' ) && function_exists( 'acf_get_valid_post_id' ) ) {
+		return get_post_meta( acf_get_valid_post_id( $post_id ), $selector, $format_value );
+	} else {
+		echo '<!-- ERROR get(): ACF not found. Please install. -->';
+	}
+
+}
+
+// get primary taxonomy id (works only with YOAST installed)
+if ( ! function_exists( 'get_primary_taxonomy_id' ) ) {
+function get_primary_taxonomy_id( $post_id, $taxonomy ) {
+    $prm_term = '';
+    if (class_exists('WPSEO_Primary_Term')) {
+        $wpseo_primary_term = new WPSEO_Primary_Term( $taxonomy, $post_id );
+        $prm_term = $wpseo_primary_term->get_primary_term();
+    }
+    if ( !is_object($wpseo_primary_term) && empty( $prm_term ) ) {
+        $term = wp_get_post_terms( $post_id, $taxonomy );
+        if (isset( $term ) && !empty( $term ) ) {
+            return wp_get_post_terms( $post_id, $taxonomy )[0]->term_id;
+        } else {
+            return '';
+        }
+    }
+    return $wpseo_primary_term->get_primary_term();
+}
+}
+
 /**
  * custom dump function with pre tag and parameter to interrupt script.
  * 

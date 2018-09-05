@@ -1,20 +1,37 @@
 <?php
 
-	/**
-	 * cubetech registered images checker
-	 *
-	 * Checks for available image sizes in WordPress. Error if there are only
-	 * four sizes (default size count in WP) and additional warning if no sizes
-	 * with ct- Prefix found.
-	 *
-	 * Registering image sizes in lib/cubetech/image-sizes.php
-	 *
-	 * @author		Christoph S. Ackermann <christoph.ackermann@cubetech.ch>
-	 * @since		12.7.2016
-	 * @return		string		HTML Markup with warnings
-	 */
+namespace Cubetech\Theme\Packages;
 
-	function ct_check_images() {
+/**
+ * Register image sizes and alert function
+ *
+ * @author  Christoph S. Ackermann <christoph.ackermann@cubetech.ch>
+ * @version 1.0
+ */
+class Images {
+
+	/**
+	 * Hooks the removeMetaBox action.
+	 *
+	 * @return void
+	 */
+	public function __construct()
+	{
+		add_action( 'admin_notices', array( $this, 'check_images' ) );
+		add_action( 'init', array( $this, 'images' ) );
+	}
+
+	public function images() {
+
+		require_once( get_template_directory() . '/lib/config/image_sizes.php' );
+
+		foreach( $ct_image_sizes as $key => $value ) {
+			add_image_size( $key, $value['width'], $value['height'], $value['crop'] );
+		}
+
+	}
+
+	public function check_images() {
 
 		global $ini_array;
 
@@ -53,4 +70,5 @@
 		echo '';
 
 	}
-	add_action('admin_notices', 'ct_check_images');
+
+}

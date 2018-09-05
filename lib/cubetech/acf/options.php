@@ -52,7 +52,7 @@ function set_theme_options(){
 	// loop defined fields and set them in theme options array
 	foreach( $fields as $field ) {
 
-		$value = get_field( $field, 'theme_options' );
+		$value = get_option( 'theme_options' . '_' . $field );
 
 		if( $value !== NULL && $value !== false ){
 			$theme_options[$field] = $value;
