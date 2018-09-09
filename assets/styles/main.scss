@@ -5,6 +5,8 @@
 @import "../../bower_components/bootstrap/scss/bootstrap.scss";
 // endbower
 
+@import "common/mixins";
+@import "common/variables";
 @import "common/global";
 @import "components/buttons";
 @import "components/comments";
