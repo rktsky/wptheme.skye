@@ -16,15 +16,18 @@ class Register {
 	 * @return void
 	 */
 
-	public $post_types_url = get_template_directory() . '/lib/config/post_types.php';
-	public $taxonomies_url = get_template_directory() . '/lib/config/taxonomies.php';
+	public $post_types_url = '/lib/config/post_types.php';
+	public $taxonomies_url = '/lib/config/taxonomies.php';
 
 	public function __construct() {
 
 		add_action('init', array($this, 'post_types'), 0);
 		add_action('init', array($this, 'taxonomies'));
 
-	}
+		$this->post_types_url = get_template_directory() . $this->post_types_url;
+		$this->taxonomies_url = get_template_directory() . $this->taxonomies_url;
+
+  }
 
 	public function post_types() {
 
