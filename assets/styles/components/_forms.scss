@@ -13,3 +13,6 @@
   @extend .btn;
   @extend .btn-secondary;
 }
+
+// AJAX spinner in Gravity Forms compatible for IE10+ and Edge
+_:-ms-lang(x), .gform_wrapper .gform_ajax_spinner { animation: rotating 1s linear infinite; padding-left: 0 !important; }
