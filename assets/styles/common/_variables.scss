@@ -5,6 +5,16 @@ $icon-font-path:        "../fonts/";
 $grid-columns:       12;
 
 // Colors
-$brand-primary:         #27ae60;
+$theme-colors: (
+	"primary":    $primary,
+	"secondary":  $secondary,
+	"success":    $success,
+	"info":       $info,
+	"warning":    $warning,
+	"danger":     $danger,
+	"light":      $light,
+	"dark":       $dark
+);
+
 $navbar-default-toggle-hover-bg: transparent;
 $navbar-default-toggle-border-color: transparent;
