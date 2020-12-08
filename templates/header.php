@@ -1,12 +1,16 @@
 <header class="banner">
-  <div class="container">
-    <a class="brand" href="<?= esc_url(home_url('/')); ?>"><?php bloginfo('name'); ?></a>
-    <nav class="nav-primary">
-      <?php
-      if (has_nav_menu('primary_navigation')) :
-        wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'nav']);
-      endif;
-      ?>
-    </nav>
-  </div>
+
+	<div class="container">
+
+		<div class="row">
+			<div class="col-md-4 col-8">
+				<?php get_component('header-brand'); ?>
+			</div>
+			<div class="col-md-8 col-4 my-auto">
+				<?php get_component('header-navigation'); ?>
+			</div>
+		</div>
+
+	</div>
+
 </header>

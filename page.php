@@ -1,4 +1,10 @@
-<?php while (have_posts()) : the_post(); ?>
-  <?php get_template_part('templates/page', 'header'); ?>
-  <?php get_template_part('templates/content', 'page'); ?>
-<?php endwhile; ?>
+<div class="row">
+	<div class="col-12">
+		<?php get_component('page-header'); ?>
+	</div>
+</div>
+<div class="row">
+	<div class="col-12">
+		<?php get_component('page-content'); ?>
+	</div>
+</div>

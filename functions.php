@@ -11,30 +11,35 @@
  */
 
 $sage_includes = [
-  'lib/assets.php',    // Scripts and stylesheets
-  'lib/extras.php',    // Custom functions
-  'lib/setup.php',     // Theme setup
-  'lib/titles.php',    // Page titles
-  'lib/wrapper.php',   // Theme wrapper class
-  'lib/customizer.php', // Theme customizer
-  'lib/walker/class-wp-bootstrap-navwalker.php', // Boostrap Navigation
-  'lib/walker/megadropdown_walker.php', // Megadropdown Navigation
-  'lib/cubetech/helpers.php', // cubetech helper functions
-  'lib/cubetech/hooks.php', // cubetech hooks  
-  'lib/cubetech/redirectchild.php', // cubetech Template - Redirect to Child Page
-  'lib/cubetech/localize.php', // cubetech JS Localize
-  'lib/cubetech/disable_emoijs.php',
-  'lib/svg/scalable-vector-graphics.php', // cubetech SVG handling
-  'lib/cubetech/acf/options.php', // cubetech Theme Options
-  'lib/cubetech/wp_head.php', // cubetech Hooks for wp_head
-  'lib/package/init.php' // Loading packages
+
+	'lib/assets.php',		// Scripts and stylesheets
+	'lib/extras.php',		// Custom functions
+	'lib/setup.php',		 // Theme setup
+	'lib/titles.php',		// Page titles
+	'lib/wrapper.php',	 // Theme wrapper class
+	'lib/customizer.php', // Theme customizer
+	'lib/walker/class-wp-bootstrap-navwalker.php', // Boostrap Navigation
+	'lib/walker/megadropdown_walker.php', // Megadropdown Navigation
+
+	'lib/cubetech/acf/options.php', // cubetech Theme Options
+	'lib/cubetech/disable_emoijs.php',
+	'lib/cubetech/gravityforms.php', // cubetech gravityforms functions
+	'lib/cubetech/helpers.php', // cubetech helper functions
+	'lib/cubetech/hooks.php', // cubetech hooks	
+	'lib/cubetech/localize.php', // cubetech JS Localize
+	'lib/cubetech/other.php', // cubetech other functions
+	'lib/cubetech/redirectchild.php', // cubetech Template - Redirect to Child Page
+
+	'lib/svg/scalable-vector-graphics.php', // cubetech SVG handling
+	'lib/package/init.php' // Loading packages
+
 ];
 
 foreach ($sage_includes as $file) {
-  if (!$filepath = locate_template($file)) {
-    trigger_error(sprintf(__('Error locating %s for inclusion', 'sage'), $file), E_USER_ERROR);
-  }
+	if (!$filepath = locate_template($file)) {
+		trigger_error(sprintf(__('Error locating %s for inclusion', 'sage'), $file), E_USER_ERROR);
+	}
 
-  require_once $filepath;
+	require_once $filepath;
 }
 unset($file, $filepath);

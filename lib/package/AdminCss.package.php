@@ -23,7 +23,7 @@ class AdminCss
 	public function adminThemeStyle()
 	{
 		// cubetech related menu page
-		if( file_exists ( get_template_directory_uri() . '/assets/styles/admin.css' ) ) {
+		if( file_exists ( get_template_directory() . '/assets/styles/admin.css' ) ) {
 			wp_enqueue_style('ct-admin-style', get_template_directory_uri() . '/assets/styles/admin.css');
 		}
 	}

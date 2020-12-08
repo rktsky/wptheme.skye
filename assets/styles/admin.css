@@ -1,0 +1,13 @@
+.status-draft { background: #ecf5ff !important; }
+.status-draft strong .post-state:first-of-type { color: #3a97ff; }
+
+.status-pending { background: #fffbee !important; }
+.status-pending .post-state { color: #ffd13c; }
+
+.status-publish { /* no background keep wp alternating colors */ }
+
+.status-future { background: #e7f5eb !important; }
+.status-future .post-state { color: #69c182; }
+
+.status-private { background: #fdf2f3 !important; }
+.status-private .post-state { color: #e55864; }

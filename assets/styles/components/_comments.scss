@@ -5,7 +5,7 @@
   list-style: none;
 }
 .comment-form p {
-  @extend .form-group;
+  @extend .form-text;
 }
 .comment-form input[type="text"],
 .comment-form input[type="email"],

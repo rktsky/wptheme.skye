@@ -1,10 +1,10 @@
 // Search form
 .search-form {
-  @extend .form-inline;
+  @extend .form-text;
 }
 .search-form label {
   font-weight: normal;
-  @extend .form-group;
+  @extend .form-label;
 }
 .search-form .search-field {
   @extend .form-control;
