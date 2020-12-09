@@ -144,7 +144,7 @@ var processStyles = function(done) {
         this.emit('end');
       });
     }
-    merged.add(gulp.src(dep.globs, {base: 'styles'})
+    merged.add(gulp.src(dep.globs, { allowEmpty: true, base: 'styles' })
       .pipe(plumber({errorHandler: onError}))
       .pipe(cssTasksInstance));
   });
@@ -184,7 +184,7 @@ var processScripts = function(done) {
   var merged = merge();
   manifest.forEachDependency('js', function(dep) {
     merged.add(
-      gulp.src(dep.globs, {base: 'scripts'})
+      gulp.src(dep.globs, { allowEmpty: true, base: 'scripts'})
         .pipe(plumber({errorHandler: onError}))
         .pipe(jsTasks(dep.name))
     );
@@ -201,7 +201,7 @@ var processScripts = function(done) {
 // https://github.com/taptapship/wiredep
 gulp.task('wiredep', function() {
   var wiredep = require('wiredep').stream;
-  return gulp.src(project.css)
+  return gulp.src(project.css, { allowEmpty: true })
     .pipe(wiredep())
     .pipe(changed(path.source + 'styles', {
       hasChanged: changed.compareSha1Digest
@@ -235,7 +235,7 @@ gulp.task('scripts', gulp.series('jshint', processScripts));
 // `gulp fonts` - Grabs all the fonts and outputs them in a flattened directory
 // structure. See: https://github.com/armed/gulp-flatten
 gulp.task('fonts', function() {
-  return gulp.src(globs.fonts)
+  return gulp.src(globs.fonts, { allowEmpty: true })
     .pipe(flatten())
     .pipe(gulp.dest(path.dist + 'fonts'))
     .pipe(browserSync.stream());
@@ -244,7 +244,7 @@ gulp.task('fonts', function() {
 // ### Images
 // `gulp images` - Run lossless compression on all the images.
 gulp.task('images', function() {
-  return gulp.src(globs.images)
+  return gulp.src(globs.images, { allowEmpty: true })
     .pipe(imagemin([
       imagemin.mozjpeg({progressive: true}),
       imagemin.gifsicle({interlaced: true}),
@@ -271,6 +271,8 @@ gulp.task('watch', function() {
   browserSync.init({
     files: ['{lib,templates}/**/*.php', '*.php'],
     proxy: config.devUrl,
+    open: false,
+    host: '95.128.33.103',
     snippetOptions: {
       whitelist: ['/wp-admin/admin-ajax.php'],
       blacklist: ['/wp-admin/**'],
