@@ -97,3 +97,8 @@ function assets() {
   wp_enqueue_script('sage/js', Assets\asset_path('scripts/main.js'), ['jquery'], null, true);
 }
 add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\assets', 100);
+
+function ct_login_style() {
+    wp_enqueue_style( 'ct-login', Assets\asset_path('styles/login.css') );
+}
+add_action( 'login_enqueue_scripts', __NAMESPACE__ . '\\ct_login_style' );

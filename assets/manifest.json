@@ -17,6 +17,11 @@
       "files": [
         "scripts/customizer.js"
       ]
+    },
+    "login.css": {
+      "files": [
+        "styles/login.scss"
+      ]
     }
   },
   "config": {
