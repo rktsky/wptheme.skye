@@ -2,7 +2,10 @@
 
 	// preparing data
 	global $theme_options;
-	$logo 					= get_image_url_by_size( $theme_options['theme_logo'] );
+
+	$logo = false;
+	if( is_array( $theme_options ) && !empty( $theme_options['theme_logo'] ) )
+		$logo = get_image_url_by_size( $theme_options['theme_logo'] );
 
 ?>
 
