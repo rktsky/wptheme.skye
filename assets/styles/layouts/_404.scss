@@ -7,11 +7,11 @@
     }
     .not-found-title-container p { 
 	    color: black; font-size: 25px; text-align: center; margin-bottom: 30px; 
-		a { color: $brand-primary; }    
+		a { color: $primary; }    
 	}
     .not-found-subtitle-container {
       p, a { color: black; font-size: 16px; text-align: center; }
-      a { color: $brand-primary; }
+      a { color: $primary; }
     }
   }
 }

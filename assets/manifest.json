@@ -17,9 +17,6 @@
       "files": [
         "scripts/customizer.js"
       ]
-    },
-    "jquery.js": {
-      "bower": ["jquery"]
     }
   },
   "config": {
