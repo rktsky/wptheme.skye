@@ -17,6 +17,8 @@
 			$result = get_post_meta( acf_get_valid_post_id( $post_id ), $selector, $format_value );
 			if( empty( $result ) )
 				$result = get_user_meta( acf_get_valid_post_id( $post_id ), $selector, $format_value );
+			if( empty( $result ) )
+				$result = get_option( $selector );
 			return $result;
 		} else {
 			echo '<!-- ERROR get(): ACF not found. Please install. -->';

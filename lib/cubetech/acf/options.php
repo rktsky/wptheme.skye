@@ -75,7 +75,10 @@ function set_theme_options(){
 function unset_theme_options() {
 
 	$screen = get_current_screen();
+
 	if( is_int( strpos( $screen->id, 'theme-options' ) ) ) {
+		$favicon_id = get_option( 'theme_options_favicon' );
+		update_option( 'site_icon', $favicon_id );
 		delete_transient( 'ct_theme_options' );
 	}
 
