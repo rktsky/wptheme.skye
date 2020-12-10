@@ -14,13 +14,16 @@
 	function get( $selector, $post_id = false, $format_value = true ) {
 	
 		if( function_exists( 'get_post_meta' ) && function_exists( 'acf_get_valid_post_id' ) ) {
-			return get_post_meta( acf_get_valid_post_id( $post_id ), $selector, $format_value );
+			$result = get_post_meta( acf_get_valid_post_id( $post_id ), $selector, $format_value );
+			if( empty( $result ) )
+				$result = get_user_meta( acf_get_valid_post_id( $post_id ), $selector, $format_value );
+			return $result;
 		} else {
 			echo '<!-- ERROR get(): ACF not found. Please install. -->';
 		}
 	
-	}
-	
+	}	
+
 	// get primary taxonomy id (works only with YOAST installed)
 	if ( ! function_exists( 'get_primary_taxonomy_id' ) ) {
 	function get_primary_taxonomy_id( $post_id, $taxonomy ) {

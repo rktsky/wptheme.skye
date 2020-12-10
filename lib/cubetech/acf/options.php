@@ -45,26 +45,44 @@ function set_theme_options(){
 	global $theme_options;
 
 	$theme_options = array();
-
-	// define fields
-	$fields = array( 'theme_logo' );
-
-	// loop defined fields and set them in theme options array
-	foreach( $fields as $field ) {
-
-		$value = get_option( 'theme_options' . '_' . $field );
-
-		if( $value !== NULL && $value !== false ){
-			$theme_options[$field] = $value;
-		} else {
-			$theme_options[$field] = false;
+	$cache = get_transient( 'ct_theme_options' );
+	if( !empty( $cache ) ) {
+		$theme_options = $cache;
+	} else {
+		
+		// define fields
+		$fields = array( 'theme_logo', 'favicon' );
+	
+		// loop defined fields and set them in theme options array
+		foreach( $fields as $field ) {
+	
+			$value = get_field( $field, 'theme_options' );
+	
+			if( $value !== NULL && $value !== false ){
+				$theme_options[$field] = $value;
+			} else {
+				$theme_options[$field] = false;
+			}
+	
 		}
+
+		set_transient( 'ct_theme_options', $theme_options );
 
 	}
 
 }
 
-if( function_exists( 'get_field' ) ) {
+function unset_theme_options() {
+
+	$screen = get_current_screen();
+	if( is_int( strpos( $screen->id, 'theme-options' ) ) ) {
+		delete_transient( 'ct_theme_options' );
+	}
+
+}
+add_action( 'acf/save_post', 'unset_theme_options', 20 );
+
+if( function_exists( 'get_field' ) && !is_admin() ) {
 	add_action( 'init', 'set_theme_options' );
 }
 
@@ -98,6 +116,30 @@ if( function_exists( 'acf_add_local_field_group' ) ):
 				'max_height' => '',
 				'max_size' => '',
 				'mime_types' => 'svg',
+			),
+			array(
+				'key' => 'field_5fd1f35046c1f',
+				'label' => 'Favicon hochladen',
+				'name' => 'favicon',
+				'type' => 'image',
+				'instructions' => 'Bitte lade ein PNG mit 512x512 hoch.',
+				'required' => 0,
+				'conditional_logic' => 0,
+				'wrapper' => array(
+					'width' => '',
+					'class' => '',
+					'id' => '',
+				),
+				'return_format' => 'url',
+				'preview_size' => 'thumbnail',
+				'library' => 'uploadedTo',
+				'min_width' => '512',
+				'min_height' => '512',
+				'min_size' => '',
+				'max_width' => '',
+				'max_height' => '',
+				'max_size' => '',
+				'mime_types' => 'png',
 			),
 		),
 		'location' => array (
