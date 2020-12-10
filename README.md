@@ -1,4 +1,7 @@
 # WordPress Theme cubetech Sage
+
+## ACHTUNG: Bootstrap 5 beta 1 aktiviert!
+
 ## Anforderungen
 Folgendes muss installiert werden:
 
