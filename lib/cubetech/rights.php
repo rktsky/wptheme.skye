@@ -10,36 +10,23 @@
 
 		// Check if we have an user
 		if( empty( $current_user ) ) {
-
 			// See if we can get that damn user
 			$current_user = wp_get_current_user();
-
-			// Uhoh, Houston, user lost in space
-			if( empty( $current_user ) ) {
-
-				// Send me to the template
-				if( !empty( $template ) ) {
-					get_template_part( $template );
-					wp_footer();
-					exit;
-				} else {
-					return false;
-				}
-
-			}
-
 		}		
 
 		// Check if the given role(s) is in the user's roles array
 		$inrole = false;
-		if( is_array( $role ) ) {
-			foreach( $role as $r ) {
-				if( in_array( $r, (array) $current_user->roles ) )
+		if( !empty( $current_user ) ) {
+			// If we have an array as input, else if we have a string
+			if( is_array( $role ) ) {
+				foreach( $role as $r ) {
+					if( in_array( $r, (array) $current_user->roles ) )
+						$inrole = true;
+				}
+			} else {
+				if( in_array( (string) $role, (array) $current_user->roles ) )
 					$inrole = true;
 			}
-		} else {
-			if( in_array( $role, (array) $current_user->roles ) )
-				$inrole = true;
 		}
 
 		if (
