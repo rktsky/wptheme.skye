@@ -29,6 +29,7 @@ $sage_includes = [
 	'lib/cubetech/localize.php', // cubetech JS Localize
 	'lib/cubetech/other.php', // cubetech other functions
 	'lib/cubetech/redirectchild.php', // cubetech Template - Redirect to Child Page
+	'lib/cubetech/rights.php', // cubetech Rights function
 
 	'lib/svg/scalable-vector-graphics.php', // cubetech SVG handling
 	'lib/package/init.php' // Loading packages

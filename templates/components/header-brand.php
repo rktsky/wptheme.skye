@@ -5,7 +5,7 @@
 
 	$logo = false;
 	if( is_array( $theme_options ) && !empty( $theme_options['theme_logo'] ) )
-		$logo = get_image_url_by_size( $theme_options['theme_logo'] );
+		$logo = $theme_options['theme_logo'];
 
 ?>
 
