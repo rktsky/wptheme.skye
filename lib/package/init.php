@@ -7,6 +7,7 @@
 	require_once( 'ClassicEditor.package.php' );
 	require_once( 'Dashboard.package.php' );
 	require_once( 'Images.package.php' );
+	require_once( 'MenuCache.package.php' );
 	require_once( 'Performance.package.php' );
 	require_once( 'Register.package.php' );
 
@@ -19,4 +20,6 @@
 	new Cubetech\Theme\Packages\Images();
 	new Cubetech\Theme\Packages\Performance();
 	new Cubetech\Theme\Packages\Register();
-	
+
+	$cubetech_menu_cache = new Cubetech\Theme\Packages\MenuCache( false );
+	add_action( 'wp_update_nav_menu', 'Cubetech\Theme\Packages\MenuCache::purge' );

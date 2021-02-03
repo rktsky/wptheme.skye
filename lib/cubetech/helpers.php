@@ -26,6 +26,37 @@
 	
 	}	
 
+	function get_image( $id, $size = 'full' ) {
+
+		if( empty( (int) $id ) )
+			return false;
+
+		$cacheid = 'ct_image_cache_' . $id;
+		$imageurl = get_transient( $cacheid );
+
+		if( empty( $imageurl ) || empty( $imageurl[ $size ] ) ) {
+			if( $size === 'full' ) {
+				$imageurl[ $size ] = wp_get_attachment_url( $id );
+			} else {
+				$imageurl[ $size ] = wp_get_attachment_image_src( $id, $size )[0];
+			}
+			set_transient( $cacheid, $imageurl );
+		}
+
+		return $imageurl[ $size ];
+
+	}
+
+	function get_image_reset( $value, $post_id, $field ) {
+
+		$cacheid = 'ct_image_cache_' . get( $field['name'], $post_id );
+		delete_transient( $cacheid );
+
+		return $value;
+
+	}
+	add_filter('acf/update_value/type=image', 'get_image_reset', 10, 3);
+
 	// get primary taxonomy id (works only with YOAST installed)
 	if ( ! function_exists( 'get_primary_taxonomy_id' ) ) {
 	function get_primary_taxonomy_id( $post_id, $taxonomy ) {

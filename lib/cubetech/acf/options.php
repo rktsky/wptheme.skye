@@ -40,18 +40,24 @@ if( function_exists( 'acf_add_options_page' ) ) {
 }
 
 // set theme options for global access
-function set_theme_options(){
+function get_theme_options() {
 
 	global $theme_options;
 
 	$theme_options = array();
 	$cache = get_transient( 'ct_theme_options' );
+
 	if( !empty( $cache ) ) {
+
 		$theme_options = $cache;
+
 	} else {
 		
 		// define fields
-		$fields = array( 'theme_logo', 'favicon' );
+		$fields = array(
+			'theme_logo',
+			'favicon',
+		);
 	
 		// loop defined fields and set them in theme options array
 		foreach( $fields as $field ) {
@@ -70,6 +76,12 @@ function set_theme_options(){
 
 	}
 
+	return $theme_options;
+
+}
+
+if( function_exists( 'get_field' ) && !is_admin() ) {
+	add_action( 'init', 'get_theme_options' );
 }
 
 function unset_theme_options() {
@@ -83,6 +95,7 @@ function unset_theme_options() {
 	}
 
 }
+
 add_action( 'acf/save_post', 'unset_theme_options', 20 );
 
 if( function_exists( 'get_field' ) && !is_admin() ) {
