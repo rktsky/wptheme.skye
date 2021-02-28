@@ -1,18 +1,17 @@
 .admin-bar .not-found-main-container { top: 32px; }
 .not-found-main-container { position: fixed; top: 0px; right: 0px; bottom: 0px; left: 0px; z-index: 100; background-color: white;
-  .not-found-centered-container { height: 237px; position: absolute; top: 50%; -webkit-transform: translateY(-50%); -moz-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%); width: 100%; margin-left: -50%; left: 50%; padding: 0 20px;
-    .not-found-header-container {
-      img { width: 200px; height: auto; margin: 0px auto; display: block; margin-bottom: 50px; }
-      h1 { color: black; text-align: center; }
-    }
-    .not-found-title-container p { 
-	    color: black; font-size: 25px; text-align: center; margin-bottom: 30px; 
-		a { color: $primary; }    
+	.not-found-centered-container { height: 237px; position: absolute; top: 50%; -webkit-transform: translateY(-50%); -moz-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%); width: 100%; margin-left: -50%; left: 50%; padding: 0 20px;
+		.not-found-header-container {
+			img { width: 200px; height: auto; margin: 0px auto; display: block; margin-bottom: 50px; }
+			h1 { color: black; text-align: center; }
+		}
+		.not-found-title-container p { 
+			color: black; font-size: 25px; text-align: center; margin-bottom: 30px; 
+		a { color: $primary; }
 	}
-    .not-found-subtitle-container {
-      p, a { color: black; font-size: 16px; text-align: center; }
-      a { color: $primary; }
-    }
-  }
+		.not-found-subtitle-container {
+			p, a { color: black; font-size: 16px; text-align: center; }
+			a { color: $primary; }
+		}
+	}
 }
-.error404 header { display: none; }

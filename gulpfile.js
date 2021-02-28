@@ -102,9 +102,6 @@ var cssTasks = function(filename) {
       return gulpif(!enabled.failStyleTask, plumber());
     })
     .pipe(function() {
-      return gulpif(enabled.maps, sourcemaps.init());
-    })
-    .pipe(function() {
       return gulpif('*.scss', sass({
         outputStyle: 'nested', // libsass doesn't support expanded yet
         precision: 10,
@@ -114,24 +111,21 @@ var cssTasks = function(filename) {
     })
     .pipe(concat, filename)
     .pipe(autoprefixer, {
-      overrideBrowserslist: [
-        '>0.2%',
-        'not dead',
-        'not op_mini all',
-        'last 1 ie version'
-      ]
     })
-    .pipe(cleanCSS, {
+    .pipe( function() {
+	    return gulpif(!enabled.rev, cleanCSS({
+      level: 0
+    }));
+    })
+    .pipe( function() {
+	    return gulpif(enabled.rev, cleanCSS({
       level: 2
+    }));
     })
     .pipe(function() {
       return gulpif(enabled.rev, rev());
     })
-    .pipe(function() {
-      return gulpif(enabled.maps, sourcemaps.write('.', {
-        sourceRoot: 'assets/styles/'
-      }));
-    })();
+    ();
 };
 
 var processStyles = function(done) {
@@ -272,10 +266,15 @@ gulp.task('watch', function() {
     files: ['{lib,templates}/**/*.php', '*.php'],
     proxy: config.devUrl,
     open: false,
+    host: '95.128.33.103',
     snippetOptions: {
       whitelist: ['/wp-admin/admin-ajax.php'],
       blacklist: ['/wp-admin/**'],
     },
+    https: {
+	    key: "/etc/letsencrypt/live/acki.cubetech.dev/privkey.pem",
+	    cert: "/etc/letsencrypt/live/acki.cubetech.dev/fullchain.pem"
+	},
   });
   gulp.watch([path.source + 'styles/**/*'], gulp.series('styles'));
   gulp.watch([path.source + 'scripts/**/*'], gulp.series('jshint', 'scripts'));

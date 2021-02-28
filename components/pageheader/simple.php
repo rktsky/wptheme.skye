@@ -2,9 +2,12 @@
 
 	global $data;
 
+	if( empty( $data ) )
+		$data = (object) [];
+
 	// yeah false need to be a string - fuckdumb ACF
 	if( empty( $data->override ) || $data->override === "false" )
-		$data->title = Roots\Sage\Titles\title();
+		$data->title = Cubetech\Skye\Titles\title();
 
 ?>
 

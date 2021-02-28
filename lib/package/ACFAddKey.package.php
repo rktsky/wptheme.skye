@@ -1,6 +1,6 @@
 <?php
 
-namespace Cubetech\Theme\Packages;
+namespace Cubetech\Skye\Packages;
 
 /**
  * Activate ACF License Key if there is none (so even after search-replace it reactivates itself)

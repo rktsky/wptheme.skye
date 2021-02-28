@@ -18,7 +18,7 @@
 
 	<?php get_component( 'page', 'header' ); ?>
 
-	<div class="container-fluid">
+	<div class="container">
 		<div class="row archive archive-container">
 			<?php
 				while ( have_posts() ) {
@@ -27,7 +27,7 @@
 					?>
 					<div class="col-md-6 col-12 archive element">
 						<?php
-							get_component( 'news', 'element-block' );
+							get_component( 'posts', 'element' );
 						?>
 					</div>
 					<?php

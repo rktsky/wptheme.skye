@@ -1,11 +1,10 @@
-# WordPress Theme cubetech Sage
+# WordPress Theme cubetech Skye
 
-## ACHTUNG: Bootstrap 5 beta 1 aktiviert!
+## ACHTUNG: Bootstrap 5 beta 2 aktiviert!
 
 ## Anforderungen
 Folgendes muss installiert werden:
 
-* sass (`sudo gem install sass`)
 * [node.js](http://nodejs.org)
 * gulp (`npm install -g gulp`)
 * bower (`npm install -g bower`)
@@ -17,7 +16,7 @@ Navigiere in WordPress auf den Ordner Themes: `cd web/[projektname]/wp-content/t
 ### Klonen
 
 ```bash
-git clone git@github.com:cubetech/wptheme.sage.git wptheme.meinname
+git clone git@github.com:cubetech/wptheme.skye.git wptheme.meinname
 ```
 
 ### Neues Repo auf GitHub erstellen
@@ -27,13 +26,13 @@ Neues privates Repo für das Projekt auf GitHub gemäss Namenskonvention erstell
 ### Origin anpassen und neues Origin einbinden
 
 ```bash
-git remote rename origin sage
+git remote rename origin skye
 git remote add origin git@github.com:cubetech/wptheme.meintheme.git
 git push -u origin master
 ```
 
 Nun ist das Theme im Bereich Git bereit, um weiterentwickelt zu werden.
-Der originale Upstream ist als `sage` noch verfügbar, so können Weiterentwicklungen per Rebase oder Cherrypick eingebunden werden.
+Der originale Upstream ist als `skye` noch verfügbar, so können Weiterentwicklungen per Rebase oder Cherrypick eingebunden werden.
 Die History bleibt ebenfalls erhalten, damit nachträglich überprüft werden kann, in welchem Status das Theme exportiert wurde.
 
 ## Theme konfigurieren
@@ -42,7 +41,7 @@ Nach der Installation des Themes navigiere weiter zum installiertem Theme `cd wp
 Nun müssen die nötigen Ressourcen geladen werden:
 ```bash
 npm install
-bower install --save
+bower install
 gulp
 ```
 
@@ -57,7 +56,7 @@ Die --save Option wird benötigt, damit bower die Libraries als Abhängigkeiten 
 Für das sukzessive Kompilieren von CSS und Javascript wird jetzt der Befehl `gulp watch --fast` eingegeben.
 
 ## Wie weiter?
-Nun kannst du mit Coda fortfahren. Die CSS und Javascript Dateien werden automatisch geladen.
+Nun kannst du mit Deinem Editor fortfahren. Die CSS und Javascript Dateien werden automatisch geladen.
 
 Als nächstes ein passendes README.md erstellen:
 ```bash

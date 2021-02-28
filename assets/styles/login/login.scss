@@ -1,0 +1,17 @@
+body.login {
+	color: $body-color; background: $secondary;
+	div#login {
+		form#loginform {
+			input {
+				border-color: $secondary;
+				&:focus, &:active { border-color: $secondary; box-shadow: 0 0 0 1px $secondary; }
+			}
+			p.submit input#wp-submit { background: $secondary; border-color: $secondary; }
+			.button-secondary { color: $secondary; }
+		}
+		a {
+			color: $primary;
+			&:hover{ color: darken( $primary, 10% ); }
+		}
+	}
+}

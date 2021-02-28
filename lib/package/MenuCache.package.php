@@ -1,6 +1,6 @@
 <?php
 
-namespace Cubetech\Theme\Packages;
+namespace Cubetech\Skye\Packages;
 
 /**
  * AJAX API

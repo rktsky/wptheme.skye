@@ -1,26 +1,26 @@
 {
-  "name": "sage",
-  "homepage": "https://www.cubetech.ch/",
-  "authors": [
-    "cubetech GmbH <info@cubetech.ch>"
-  ],
-  "license": "MIT",
-  "private": true,
-  "dependencies": {
-    "bootstrap": "^5.0.0-beta1",
-    "fontawesome": "^5.15.1"
-  },
-  "overrides": {
-    "bootstrap": {
-      "main": [
-        "./scss/bootstrap.scss",
-        "./dist/js/bootstrap.bundle.js"
-      ]
-    },
-    "fontawesome": {
-      "main": [
-        "./webfonts/*"
-      ]
-    }
-  }
+	"name": "skye",
+	"homepage": "https://www.cubetech.ch/",
+	"authors": [
+		"cubetech GmbH <info@cubetech.ch>"
+	],
+	"license": "MIT",
+	"private": true,
+	"dependencies": {
+		"bootstrap": "^5.0.0-beta2",
+		"fontawesome": "^5.15.1"
+	},
+	"overrides": {
+		"bootstrap": {
+			"main": [
+				"./scss/bootstrap.scss",
+				"./dist/js/bootstrap.bundle.js"
+			]
+		},
+		"fontawesome": {
+			"main": [
+				"./webfonts/*"
+			]
+		}
+	}
 }

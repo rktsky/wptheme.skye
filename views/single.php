@@ -14,7 +14,7 @@
 		$data->url = get_permalink( get_option( 'page_for_posts' ) );
 
 	if( empty( $data->urltitle ) )
-		$data->urltitle = __( 'Alle News', 'sage' );
+		$data->urltitle = __( 'Alle News', 'skye' );
 
 	$data->categories = wp_get_post_categories( $post->ID, [ 'fields' => 'ids' ] );
 	$data->tags = get_the_tags( $post->ID );
@@ -78,7 +78,7 @@
 						<?php the_content(); ?>
 					</div>
 					<footer>
-						<?php wp_link_pages(['before' => '<nav class="page-nav"><p>' . __('Pages:', 'sage'), 'after' => '</p></nav>']); ?>
+						<?php wp_link_pages(['before' => '<nav class="page-nav"><p>' . __('Pages:', 'skye'), 'after' => '</p></nav>']); ?>
 					</footer>
 					<?php comments_template('/components/comments.php'); ?>
 				</article>

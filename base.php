@@ -1,8 +1,8 @@
 <?php
 
-use Roots\Sage\Setup;
-use Roots\Sage\Wrapper;
-use Cubetech\Theme\Packages\Templates;
+use Cubetech\Skye\Setup;
+use Cubetech\Skye\Wrapper;
+use Cubetech\Skye\Packages\Templates;
 
 global $theme_options, $wp_query;
 
@@ -23,7 +23,7 @@ $body_class = [];
 	<body <?php body_class( $body_class ); ?>>
 		<!--[if IE]>
 			<div class="alert alert-warning">
-				<?php _e('You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.', 'sage'); ?>
+				<?php _e('You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.', 'skye'); ?>
 			</div>
 		<![endif]-->
 		<?php

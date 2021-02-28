@@ -39,3 +39,5 @@ add_action('wp_dashboard_setup', function() {
 
 // Never show the admin welcome panel
 remove_action('welcome_panel', 'wp_welcome_panel');
+
+remove_theme_support( 'core-block-patterns' );
