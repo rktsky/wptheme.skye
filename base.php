@@ -2,13 +2,25 @@
 
 use Roots\Sage\Setup;
 use Roots\Sage\Wrapper;
+use Cubetech\Theme\Packages\Templates;
+
+global $theme_options, $wp_query;
+
+$body_class = [];
 
 ?>
 	
 <!doctype html>
 <html <?php language_attributes(); ?>>
-	<?php get_template_part('templates/head'); ?>
-	<body <?php body_class(); ?>>
+
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="x-ua-compatible" content="ie=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<?php wp_head(); ?>
+	</head>
+
+	<body <?php body_class( $body_class ); ?>>
 		<!--[if IE]>
 			<div class="alert alert-warning">
 				<?php _e('You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.', 'sage'); ?>
@@ -16,19 +28,23 @@ use Roots\Sage\Wrapper;
 		<![endif]-->
 		<?php
 			do_action('get_header');
-			get_template_part('templates/header');
+			get_component( 'header' );
 		?>
-		<div class="wrap container" role="document">
-			<div class="content row">
-				<main class="main">
-					<?php include Wrapper\template_path(); ?>
-				</main><!-- /.main -->
-			</div><!-- /.content -->
-		</div><!-- /.wrap -->
+		<main class="main" role="document">
+			<?php
+			
+				if( empty( $templates ) || !is_object( $templates ) )
+					$templates = new Templates();
+			
+				include( $templates->template() );
+			
+			?>
+		</main><!-- /.main -->
 		<?php
 			do_action('get_footer');
-			get_template_part('templates/footer');
+			get_component( 'footer' );
 			wp_footer();
 		?>
+		<div class="ct-loader"></div>
 	</body>
 </html>

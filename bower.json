@@ -1,20 +1,25 @@
 {
   "name": "sage",
-  "homepage": "https://roots.io/sage/",
+  "homepage": "https://www.cubetech.ch/",
   "authors": [
-    "Ben Word <ben@benword.com>"
+    "cubetech GmbH <info@cubetech.ch>"
   ],
   "license": "MIT",
   "private": true,
   "dependencies": {
     "bootstrap": "^5.0.0-beta1",
-    "mapbox-gl": "^2.1.4"
+    "fontawesome": "^5.15.1"
   },
   "overrides": {
     "bootstrap": {
       "main": [
         "./scss/bootstrap.scss",
         "./dist/js/bootstrap.bundle.js"
+      ]
+    },
+    "fontawesome": {
+      "main": [
+        "./webfonts/*"
       ]
     }
   }
