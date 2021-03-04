@@ -81,6 +81,7 @@ function print_assets() {
 
 	$file = 'styles/main.css';
 	if( file_exists( Assets\dist_path( $file ) ) ) {
+		//  deepcode ignore XSS: no external input
 		echo '<style type="text/css" name=\'' . $file . '\'>' . str_replace( '../', parse_url( get_template_directory_uri(), PHP_URL_PATH ) . '/dist/', file_get_contents( Assets\dist_path( $file ) ) ) . '</style>';
 	}
 

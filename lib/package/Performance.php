@@ -73,6 +73,7 @@ class Performance {
 
 		if( !is_readable( $mofile ) ) return false;
 
+		// deepcode ignore InsecureHash: must not be secure
 		$data = get_transient( md5( $mofile ) );
 		$mtime = filemtime( $mofile );
 
@@ -84,6 +85,7 @@ class Performance {
 				'entries' => $mo->entries,
 				'headers' => $mo->headers
 			);
+			// deepcode ignore InsecureHash: must not be secure
 			set_transient( md5( $mofile ), $data );
 		} else {
 			$mo->entries = $data[ 'entries' ];
