@@ -1,0 +1,22 @@
+.component {
+	padding: 6.25rem 0 6.75rem; background: var(--color-white); color: var(--color-text);
+	&.component-medium { padding: 4.25rem 0; }
+	&.component-small { padding: 3rem 0; }
+	&.component-mini { padding: 0; }
+	&.component-dark {
+		background: $ct-charcoal; color: white;
+		--color-charcoal: #{$ct-white};
+		--color-white: #{$ct-charcoal};
+	}
+}
+
+@include media-breakpoint-up(md) {
+
+	.component {
+		padding: 11.25rem 0 12rem;
+		&.component-medium { padding: 8.125rem 0; }
+		&.component-small { padding: 6.25rem 0; }
+		&.component-mini { padding: 0; }
+	}
+
+}

@@ -1,25 +1,27 @@
 <?php
 	
-	require_once( 'ACFAddKey.package.php' );
-	require_once( 'AdminAddTaxToMenu.package.php' );
-	require_once( 'AdminCss.package.php' );
-	require_once( 'AdminMenuGroup.package.php' );
-	require_once( 'ClassicEditor.package.php' );
-	require_once( 'Dashboard.package.php' );
-	require_once( 'Images.package.php' );
-	require_once( 'MenuCache.package.php' );
-	require_once( 'Performance.package.php' );
-	require_once( 'Register.package.php' );
+	require_once( 'ACFAddKey.php' );
+	require_once( 'AdminAddTaxToMenu.php' );
+	require_once( 'AdminCss.php' );
+	require_once( 'AdminMenuGroup.php' );
+	require_once( 'ClassicEditor.php' );
+	require_once( 'Dashboard.php' );
+	require_once( 'Images.php' );
+	require_once( 'MenuCache.php' );
+	require_once( 'NotFound.php' );
+	require_once( 'Performance.php' );
+	require_once( 'Register.php' );
+	require_once( 'Templates.php' );
 
-	new Cubetech\Theme\Packages\ACFAddKey();
-	//new Cubetech\Theme\Packages\AdminAddTaxToMenu();
-	new Cubetech\Theme\Packages\AdminCss();
-	//new Cubetech\Theme\Packages\AdminMenuGroup();
-	new Cubetech\Theme\Packages\ClassicEditor();
-	//new Cubetech\Theme\Packages\Dashboard();
-	new Cubetech\Theme\Packages\Images();
-	new Cubetech\Theme\Packages\Performance();
-	new Cubetech\Theme\Packages\Register();
+	new Cubetech\Skye\Packages\ACFAddKey();
+	//new Cubetech\Skye\Packages\AdminAddTaxToMenu();
+	new Cubetech\Skye\Packages\AdminCss();
+	//new Cubetech\Skye\Packages\AdminMenuGroup();
+	new Cubetech\Skye\Packages\ClassicEditor();
+	//new Cubetech\Skye\Packages\Dashboard();
+	new Cubetech\Skye\Packages\Images();
+	new Cubetech\Skye\Packages\Performance();
+	new Cubetech\Skye\Packages\Register();
 
-	$cubetech_menu_cache = new Cubetech\Theme\Packages\MenuCache( false );
-	add_action( 'wp_update_nav_menu', 'Cubetech\Theme\Packages\MenuCache::purge' );
+	$cubetech_menu_cache = new Cubetech\Skye\Packages\MenuCache( false );
+	add_action( 'wp_update_nav_menu', 'Cubetech\Skye\Packages\MenuCache::purge' );

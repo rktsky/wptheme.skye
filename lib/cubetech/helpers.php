@@ -1,18 +1,26 @@
 <?php
 
 
-	function get_component( $name ) {
-		$template = locate_template( 'templates/components/' . $name . '.php', false, false );
-		if( !$template || empty( $template ) ) {
+	function get_component( $name, $second = false ) {
+
+		if( !empty( $second ) )
+			$name = $name . '/' . $second;
+
+		$template = locate_template( 'components/' . $name . '.php', false, false );
+
+		if( ( !$template || empty( $template ) ) && empty( $second ) )
+			$template = locate_template( 'components/' . $name . '/' . $name . '.php', false, false );
+
+		if( !$template || empty( $template ) )
 			echo '<!-- ERROR get_component(): Component ' . $name . ' not found! -->';
-		} else {
+		else
 			include( $template );
-		}
+
 	}
 	
 	// get field function for ACF without using ACF and generating additional queries
 	function get( $selector, $post_id = false, $format_value = true ) {
-	
+
 		if( function_exists( 'get_post_meta' ) && function_exists( 'acf_get_valid_post_id' ) ) {
 			$result = get_post_meta( acf_get_valid_post_id( $post_id ), $selector, $format_value );
 			if( empty( $result ) )
@@ -59,24 +67,24 @@
 
 	// get primary taxonomy id (works only with YOAST installed)
 	if ( ! function_exists( 'get_primary_taxonomy_id' ) ) {
-	function get_primary_taxonomy_id( $post_id, $taxonomy ) {
-	    $prm_term = '';
-	    if (class_exists('WPSEO_Primary_Term')) {
-	        $wpseo_primary_term = new WPSEO_Primary_Term( $taxonomy, $post_id );
-	        $prm_term = $wpseo_primary_term->get_primary_term();
-	    }
-	    if ( !is_object($wpseo_primary_term) && empty( $prm_term ) ) {
-	        $term = wp_get_post_terms( $post_id, $taxonomy );
-	        if (isset( $term ) && !empty( $term ) ) {
-	            return wp_get_post_terms( $post_id, $taxonomy )[0]->term_id;
-	        } else {
-	            return '';
-	        }
-	    }
-	    return $wpseo_primary_term->get_primary_term();
+		function get_primary_taxonomy_id( $post_id, $taxonomy ) {
+		    $prm_term = '';
+		    if (class_exists('WPSEO_Primary_Term')) {
+		        $wpseo_primary_term = new WPSEO_Primary_Term( $taxonomy, $post_id );
+		        $prm_term = $wpseo_primary_term->get_primary_term();
+		    }
+		    if ( !is_object($wpseo_primary_term) && empty( $prm_term ) ) {
+		        $term = wp_get_post_terms( $post_id, $taxonomy );
+		        if (isset( $term ) && !empty( $term ) ) {
+		            return wp_get_post_terms( $post_id, $taxonomy )[0]->term_id;
+		        } else {
+		            return '';
+		        }
+		    }
+		    return $wpseo_primary_term->get_primary_term();
+		}
 	}
-	}
-	
+
 	/**
 	 * custom dump function with pre tag and parameter to interrupt script.
 	 * 
@@ -91,28 +99,7 @@
 	        die();
 	    }
 	}
-	
-	/**
-	 * get_image_url_by_size function.
-	 * 
-	 * @access public
-	 * @param bool $post_ID (default: false)
-	 * @param string $size (default: '')
-	 * @return void
-	 */
-	function get_image_url_by_size($post_ID = false, $size = '') {
-	    if (empty($post_ID)) {
-	        return false;
-	    }
-	    if ($size === '') {
-	        $size = 'full';
-	    }
-	    $image = wp_get_attachment_image_src($post_ID, $size);
-	    $image = $image[0];
-	
-	    return $image;
-	}
-		
+
 	/**
 	 * telephone_url function.
 	 * 
@@ -123,7 +110,7 @@
 	function telephone_url($number) {
 	    $nationalprefix = '+41';
 	    $protocol       = 'tel:';
-	
+
 	    $formattedNumber = $number;
 	    if ($formattedNumber !== '') {
 	        // add national dialing code prefix to tel: link if it's not already set
@@ -131,10 +118,34 @@
 	            $formattedNumber = preg_replace('/^0/', $nationalprefix, $formattedNumber);
 	        }
 	    }
-	
+
 	    $formattedNumber = str_replace('(0)', '', $formattedNumber);
 	    $formattedNumber = preg_replace('~[^0-9\+]~', '', $formattedNumber);
 	    $formattedNumber = trim($formattedNumber);
-	
+
 	    return $protocol . $formattedNumber;
+	}
+
+	function get_excerpt( $id, $length = 25 ) {
+
+		$excerpt = get_the_excerpt( (int) $id );
+
+		if( empty( $excerpt ) )
+			return false;
+
+		$ea = explode( ' ', $excerpt );
+		$excerpt = '';
+		$amount = count( $ea );
+		if( $amount > $length )
+			$amount = $length;
+
+		for( $i = 0; $i < $amount; $i++ ) {
+			$excerpt .= $ea[ $i ] . ' ';
+		}
+
+		if( $amount === $length )
+			$excerpt .= '…';
+
+		return $excerpt;
+
 	}

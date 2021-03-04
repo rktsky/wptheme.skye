@@ -1,21 +1,26 @@
 {
-  "name": "sage",
-  "homepage": "https://roots.io/sage/",
-  "authors": [
-    "Ben Word <ben@benword.com>"
-  ],
-  "license": "MIT",
-  "private": true,
-  "dependencies": {
-    "bootstrap": "^5.0.0-beta1",
-    "mapbox-gl": "^2.1.4"
-  },
-  "overrides": {
-    "bootstrap": {
-      "main": [
-        "./scss/bootstrap.scss",
-        "./dist/js/bootstrap.bundle.js"
-      ]
-    }
-  }
+	"name": "skye",
+	"homepage": "https://www.cubetech.ch/",
+	"authors": [
+		"cubetech GmbH <info@cubetech.ch>"
+	],
+	"license": "MIT",
+	"private": true,
+	"dependencies": {
+		"bootstrap": "^5.0.0-beta2",
+		"fontawesome": "^5.15.1"
+	},
+	"overrides": {
+		"bootstrap": {
+			"main": [
+				"./scss/bootstrap.scss",
+				"./dist/js/bootstrap.bundle.js"
+			]
+		},
+		"fontawesome": {
+			"main": [
+				"./webfonts/*"
+			]
+		}
+	}
 }

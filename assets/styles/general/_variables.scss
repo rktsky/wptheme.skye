@@ -1,0 +1,48 @@
+// Grid settings
+$grid-columns:       		12;
+
+// Colors -> CSS3 variables in _colors.scss, use them!
+$primary:					#3b9280;
+$secondary:					#bc974e;
+$font-color:				#24231d;
+$white:						#ffffff;
+
+$body-bg:					$white;
+$body-color:				$font-color;
+
+// Typography
+$font-family-base: 			Helvetica, Arial, sans-serif;
+$headings-font-family: 		Helvetica, Arial, sans-serif;
+$font-weight-bold:			700;
+$headings-font-weight:		bold;
+$font-size-base:			1rem;
+
+$fa-font-path:				"../fonts";
+
+$h1-line-height:			1.2;
+$h2-line-height:			1.2;
+$h3-line-height:			1.3;
+$h4-line-height:			1.33;
+$h5-line-height:			1.4;
+$h6-line-height:			1.25;
+
+// Spacers
+$spacer:					1rem !default;
+$spacers:					() !default;
+$spacers: map-merge(
+	(
+		0: 0,
+		1: ($spacer * .25),    //  4px
+		2: ($spacer * .5),     //  8px
+		3: $spacer,            // 16px
+		4: ($spacer * 1.5),    // 24px
+		5: ($spacer * 2.25),   // 36px
+		6: ($spacer * 3),      // 48px
+		7: ($spacer * 4),      // 64px
+		8: ($spacer * 5),      // 80px
+		9: ($spacer * 6.25),   //100px
+		10: ($spacer * 7.5),   //120px
+		11: ($spacer * 9.375)  //150px
+	),
+	$spacers
+);

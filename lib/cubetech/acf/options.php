@@ -7,12 +7,44 @@ function register_options() {
 
 	// Theme options
 	$page = array(
-		'page_title' => 'Theme Optionen',
+		'page_title' => 'cubetech<br>Einstellungen',
+		'menu_title' => '',
+		'menu_slug' => 'theme-options-parent',
+		'capability' => 'edit_posts',
+		'position' => false,
+		'parent_slug' => '',
+		'icon_url' => false,
+		'redirect' => true,
+		'post_id' => 'theme_options',
+		'autoload' => false,
+	);
+
+	acf_add_options_page( $page );
+
+	// Theme options
+	$page = array(
+		'page_title' => 'Grundeinstellungen',
 		'menu_title' => '',
 		'menu_slug' => 'theme-options',
 		'capability' => 'edit_posts',
 		'position' => false,
-		'parent_slug' => '',
+		'parent_slug' => 'theme-options-parent',
+		'icon_url' => false,
+		'redirect' => true,
+		'post_id' => 'theme_options',
+		'autoload' => false,
+	);
+
+	acf_add_options_page( $page );
+
+	// Theme options
+	$page = array(
+		'page_title' => 'APIs',
+		'menu_title' => '',
+		'menu_slug' => 'theme-options-api',
+		'capability' => 'edit_posts',
+		'position' => false,
+		'parent_slug' => 'theme-options-parent',
 		'icon_url' => false,
 		'redirect' => true,
 		'post_id' => 'theme_options',
@@ -28,7 +60,7 @@ function set_theme_options_warning() {
 
 	echo '
 	<div class="notice notice-error">
-		<p><strong>' . __( 'Fehler', 'sage' ) . ':</strong> ' . __( 'Für das aktive WordPress-Theme wird das Plugin Advanced Custom Fields PRO benötigt.', 'sage' ) . '</p>
+		<p><strong>' . __( 'Fehler', 'skye' ) . ':</strong> ' . __( 'Für das aktive WordPress-Theme wird das Plugin Advanced Custom Fields PRO benötigt.', 'skye' ) . '</p>
 	</div>';
 
 }
@@ -51,12 +83,13 @@ function get_theme_options() {
 
 		$theme_options = $cache;
 
-	} else {
+	} elseif( function_exists( 'get_field' ) ) {
 		
 		// define fields
 		$fields = array(
 			'theme_logo',
 			'favicon',
+			'gmakey',
 		);
 	
 		// loop defined fields and set them in theme options array
@@ -97,86 +130,3 @@ function unset_theme_options() {
 }
 
 add_action( 'acf/save_post', 'unset_theme_options', 20 );
-
-if( function_exists( 'get_field' ) && !is_admin() ) {
-	add_action( 'init', 'set_theme_options' );
-}
-
-// options fields
-if( function_exists( 'acf_add_local_field_group' ) ):
-
-	acf_add_local_field_group( array (
-		'key' => 'group_57dc049b82657',
-		'title' => 'Grundinformationen zum Theme',
-		'fields' => array (
-			array (
-				'key' => 'field_57dc04b32276e',
-				'label' => 'Logo',
-				'name' => 'theme_logo',
-				'type' => 'image',
-				'instructions' => 'Dieses Logo wird für das Theme verwendet und zum Beispiel im Kopfbereich der Webseite dargestellt. Für das Logo wird nur das vektorbasierende Bildformat SVG erlaubt.',
-				'required' => 0,
-				'conditional_logic' => 0,
-				'wrapper' => array (
-					'width' => '',
-					'class' => '',
-					'id' => '',
-				),
-				'return_format' => 'url',
-				'preview_size' => 'thumbnail',
-				'library' => 'all',
-				'min_width' => '',
-				'min_height' => '',
-				'min_size' => '',
-				'max_width' => '',
-				'max_height' => '',
-				'max_size' => '',
-				'mime_types' => 'svg',
-			),
-			array(
-				'key' => 'field_5fd1f35046c1f',
-				'label' => 'Favicon hochladen',
-				'name' => 'favicon',
-				'type' => 'image',
-				'instructions' => 'Bitte lade ein PNG mit 512x512 hoch.',
-				'required' => 0,
-				'conditional_logic' => 0,
-				'wrapper' => array(
-					'width' => '',
-					'class' => '',
-					'id' => '',
-				),
-				'return_format' => 'url',
-				'preview_size' => 'thumbnail',
-				'library' => 'uploadedTo',
-				'min_width' => '512',
-				'min_height' => '512',
-				'min_size' => '',
-				'max_width' => '',
-				'max_height' => '',
-				'max_size' => '',
-				'mime_types' => 'png',
-			),
-		),
-		'location' => array (
-			array (
-				array (
-					'param' => 'options_page',
-					'operator' => '==',
-					'value' => 'theme-options',
-				),
-			),
-		),
-		'menu_order' => 0,
-		'position' => 'normal',
-		'style' => 'default',
-		'label_placement' => 'top',
-		'instruction_placement' => 'label',
-		'hide_on_screen' => '',
-		'active' => 1,
-		'description' => '',
-	) );
-
-endif;
-
-?>

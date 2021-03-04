@@ -1,17 +1,19 @@
-// Automatically injected Bower dependencies via wiredep (never manually edit this block)
-// bower:scss
-@import "../../bower_components/bootstrap/scss/bootstrap.scss";
-// endbower
+@import "general/mixins";
+@import "general/variables";
 
-@import "common/mixins";
-@import "common/variables";
-@import "common/fonts";
-@import "common/global";
+@import "../../bower_components/bootstrap/scss/bootstrap.scss";
+@import "../../bower_components/fontawesome/scss/fontawesome.scss";
+@import "../../bower_components/fontawesome/scss/brands.scss";
+@import "../../bower_components/fontawesome/scss/solid.scss";
+@import "../../bower_components/fontawesome/scss/regular.scss";
+
+@import "general/fonts";
+@import "general/global";
+@import "general/typography";
 
 @import "components/buttons";
 @import "components/comments";
 @import "components/forms";
-@import "components/grid";
 @import "components/hamburger";
 @import "components/wp-classes";
 
