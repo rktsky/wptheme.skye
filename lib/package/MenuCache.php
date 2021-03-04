@@ -75,13 +75,12 @@ class MenuCache {
 
 	private function set_caching_key() {
 
-		global $sitepress;
+		global $sitepress, $polylang;
 
 		$this->caching_key = 'cubetech-menu-cache-' . $this->menu_location;
 		if( isset($sitepress) && $sitepress !== NULL ):
 			$this->caching_key .= '-' . $sitepress->get_current_language();
 		elseif( !empty( $polylang->curlang->slug ) ):
-			global $polylang;
 			$this->caching_key .= '-' . $polylang->curlang->slug;
 		endif;
 
@@ -113,6 +112,9 @@ class MenuCache {
 		if( $this->args['active'] === true && $this->data !== false ) {
 
 			global $post;
+
+			if( empty( $post ) )
+				return;
 
 			if( empty( $post->ancestors ) ) :
 				$section_ids = array( $post->ID );

@@ -23,6 +23,7 @@ class Performance {
 		remove_action( 'plugins_loaded', '_wp_customize_include', 10);
 		remove_action( 'admin_enqueue_scripts', '_wp_customize_loader_settings', 11);
 		add_filter( 'map_meta_cap', array( $this, 'filter_to_remove_customize_capability'), 10, 4 );
+		add_filter( 'override_load_textdomain',array( $this, 'a_faster_load_textdomain'), 1, 3 );
 
 		if(!is_admin()){
 			remove_action('wp_head', 'wp_print_scripts');
@@ -63,6 +64,39 @@ class Performance {
 		}
 		
 		return $caps;
+
+	}
+
+	public function a_faster_load_textdomain( $retval, $domain, $mofile ) {
+
+		global $l10n;
+
+		if( !is_readable( $mofile ) ) return false;
+
+		$data = get_transient( md5( $mofile ) );
+		$mtime = filemtime( $mofile );
+
+		$mo = new \MO();
+		if(!$data || !isset( $data[ 'mtime' ] ) || $mtime > $data[ 'mtime' ]) {
+			if ( !$mo->import_from_file( $mofile ) ) return false;
+			$data = array(
+				'mtime' => $mtime,
+				'entries' => $mo->entries,
+				'headers' => $mo->headers
+			);
+			set_transient( md5( $mofile ), $data );
+		} else {
+			$mo->entries = $data[ 'entries' ];
+			$mo->headers = $data[ 'headers' ];
+		}
+
+		if( isset( $l10n[ $domain ] ) ) {
+			$mo->merge_with( $l10n[ $domain ] );
+		}
+
+		$l10n[ $domain ] = &$mo;
+
+		return true;
 
 	}
 

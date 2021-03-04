@@ -1,7 +1,12 @@
 <?php
 
 	// prepare data
-	global $theme_options;
+	global $theme_options, $data;
+
+	if( empty( $data ) )
+		$data = (object) [];
+
+	$data->ulclass = 'nav';
 
 ?>
 

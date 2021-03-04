@@ -1,16 +1,16 @@
 <?php
 	
-	require_once( 'ACFAddKey.package.php' );
-	require_once( 'AdminAddTaxToMenu.package.php' );
-	require_once( 'AdminCss.package.php' );
-	require_once( 'AdminMenuGroup.package.php' );
-	require_once( 'ClassicEditor.package.php' );
-	require_once( 'Dashboard.package.php' );
-	require_once( 'Images.package.php' );
-	require_once( 'MenuCache.package.php' );
+	require_once( 'ACFAddKey.php' );
+	require_once( 'AdminAddTaxToMenu.php' );
+	require_once( 'AdminCss.php' );
+	require_once( 'AdminMenuGroup.php' );
+	require_once( 'ClassicEditor.php' );
+	require_once( 'Dashboard.php' );
+	require_once( 'Images.php' );
+	require_once( 'MenuCache.php' );
 	require_once( 'NotFound.php' );
-	require_once( 'Performance.package.php' );
-	require_once( 'Register.package.php' );
+	require_once( 'Performance.php' );
+	require_once( 'Register.php' );
 	require_once( 'Templates.php' );
 
 	new Cubetech\Skye\Packages\ACFAddKey();
