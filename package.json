@@ -44,7 +44,7 @@
     "gulp-rev": "^7.1.2",
     "gulp-sass": "^3.2.1",
     "gulp-sourcemaps": "^3.0.0",
-    "gulp-uglify": "^2.0.0",
+    "gulp-terser": "2.1.0",
     "imagemin-pngcrush": "^7.0.0",
     "jshint": "^2.9.3",
     "jshint-stylish": "^2.0.1",

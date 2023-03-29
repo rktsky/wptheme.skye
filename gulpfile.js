@@ -17,7 +17,7 @@ var plumber			= require('gulp-plumber');
 var rev				= require('gulp-rev');
 var sass			= require('gulp-sass');
 var sourcemaps	 	= require('gulp-sourcemaps');
-var uglify			= require('gulp-uglify');
+var uglify			= require('gulp-terser');
 
 // See https://github.com/austinpray/asset-builder
 var manifest = require('asset-builder')('./assets/manifest.json');
