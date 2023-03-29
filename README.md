@@ -1,6 +1,6 @@
 # WordPress Theme cubetech Skye
 
-## ACHTUNG: Bootstrap 5 beta 2 aktiviert!
+## ACHTUNG: Bootstrap 5.3.0 aktiviert!
 
 ## Anforderungen
 Folgendes muss installiert werden:
