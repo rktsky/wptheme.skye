@@ -1,4 +1,4 @@
-# WordPress Theme cubetech Skye
+# WordPress Theme "Skye"
 
 ## ACHTUNG: Bootstrap 5.3.0 aktiviert!
 
@@ -16,7 +16,7 @@ Navigiere in WordPress auf den Ordner Themes: `cd web/[projektname]/wp-content/t
 ### Klonen
 
 ```bash
-git clone git@github.com:cubetech/wptheme.skye.git wptheme.meinname
+git clone git@github.com:rktsky/wptheme.skye.git wptheme.meinname
 ```
 
 ### Neues Repo auf GitHub erstellen
@@ -27,7 +27,7 @@ Neues privates Repo für das Projekt auf GitHub gemäss Namenskonvention erstell
 
 ```bash
 git remote rename origin skye
-git remote add origin git@github.com:cubetech/wptheme.meintheme.git
+git remote add origin git@github.com:rktsky/wptheme.meintheme.git
 git push -u origin master
 ```
 
@@ -82,4 +82,4 @@ Dann können per Loco Translate ganz einfach die Strings übersetzt werden.
 
 ## Powered by
 
-<a href="https://www.browserstack.com" target="_blank"><img src="https://raw.githubusercontent.com/cubetech/wptheme.sage/master/Browserstack-logo%402x.png" style="width: 200px;"></a>
+<a href="https://www.browserstack.com" target="_blank"><img src="https://raw.githubusercontent.com/rktsky/wptheme.skye/master/Browserstack-logo%402x.png" style="width: 200px;"></a>
