@@ -1,15 +1,15 @@
 {
   "name": "skye",
   "version": "2.0.0",
-  "author": "cubetech GmbH <info@cubetech.ch>",
-  "homepage": "https://github.com/cubetech/wptheme.skye",
+  "author": "Rocketsky GmbH <info@rocketsky.ch>",
+  "homepage": "https://github.com/rktsky/wptheme.skye",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git://github.com/cubetech/wptheme.skye.git"
+    "url": "git://github.com/rktsky/wptheme.skye.git"
   },
   "bugs": {
-    "url": "https://github.com/cubetech/wptheme.skye/issues"
+    "url": "https://github.com/rktsky/wptheme.skye/issues"
   },
   "licenses": [
     {
