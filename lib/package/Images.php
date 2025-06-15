@@ -25,7 +25,7 @@ class Images {
 
 		require_once( get_template_directory() . '/lib/config/image_sizes.php' );
 
-		foreach( $ct_image_sizes as $key => $value ) {
+		foreach( $rs_image_sizes as $key => $value ) {
 			add_image_size( $key, $value['width'], $value['height'], $value['crop'] );
 		}
 
@@ -48,7 +48,7 @@ class Images {
 
 		foreach( $image_sizes as $img ):
 
-			if( strpos( $img, 'ct-' ) !== false ):
+			if( strpos( $img, 'rs-' ) !== false ):
 				$found_ct = true;
 			endif;
 
@@ -63,7 +63,7 @@ class Images {
 		if( $found_ct === false ):
 			echo '
 			<div class="notice notice-warning">
-				<p><strong>Warnung:</strong> Für diese WordPress-Installation wurden noch keine angepassten cubetech-Bildgrössen (ct- Prefix) registriert. Aktuell verfügbare Grössen: ' . $sizes . '</p>
+				<p><strong>Warnung:</strong> Für diese WordPress-Installation wurden noch keine angepassten Rocketsky-Bildgrössen (rs- Prefix) registriert. Aktuell verfügbare Grössen: ' . $sizes . '</p>
 			</div>';
 		endif;
 
