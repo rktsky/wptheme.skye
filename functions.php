@@ -16,17 +16,17 @@ $skye_includes = [
 	'lib/titles.php',		// Page titles
 	'lib/walker/class-wp-bootstrap-navwalker.php', // Boostrap Navigation
 
-	'lib/cubetech/acf/options.php', // cubetech Theme Options
-	'lib/cubetech/disable_emoijs.php',
-	'lib/cubetech/gravityforms.php', // cubetech gravityforms functions
-	'lib/cubetech/helpers.php', // cubetech helper functions
-	'lib/cubetech/hooks.php', // cubetech hooks	
-	'lib/cubetech/localize.php', // cubetech JS Localize
-	'lib/cubetech/other.php', // cubetech other functions
-	'lib/cubetech/redirectchild.php', // cubetech Template - Redirect to Child Page
-	'lib/cubetech/rights.php', // cubetech Rights function
+	'lib/rocketsky/acf/options.php', // rocketsky Theme Options
+	'lib/rocketsky/disable_emoijs.php',
+	'lib/rocketsky/gravityforms.php', // rocketsky gravityforms functions
+	'lib/rocketsky/helpers.php', // rocketsky helper functions
+	'lib/rocketsky/hooks.php', // rocketsky hooks	
+	'lib/rocketsky/localize.php', // rocketsky JS Localize
+	'lib/rocketsky/other.php', // rocketsky other functions
+	'lib/rocketsky/redirectchild.php', // rocketsky Template - Redirect to Child Page
+	'lib/rocketsky/rights.php', // rocketsky Rights function
 
-	'lib/svg/scalable-vector-graphics.php', // cubetech SVG handling
+	'lib/svg/scalable-vector-graphics.php', // rocketsky SVG handling
 	'lib/package/init.php' // Loading packages
 
 ];
@@ -43,8 +43,8 @@ if( file_exists( 'vendor/autoload.php' ) ) {
 	require_once 'vendor/autoload.php';
 }
 
-function ct_base() {
+function rs_base() {
 	$template = 'base.php';
 	return locate_template( $template );
 }
-add_filter( 'template_include', 'ct_base', 109 );
+add_filter( 'template_include', 'rs_base', 109 );
