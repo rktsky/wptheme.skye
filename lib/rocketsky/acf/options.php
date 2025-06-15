@@ -7,7 +7,7 @@ function register_options() {
 
 	// Theme options
 	$page = array(
-		'page_title' => 'cubetech<br>Einstellungen',
+		'page_title' => 'Rocketsky<br>Einstellungen',
 		'menu_title' => '',
 		'menu_slug' => 'theme-options-parent',
 		'capability' => 'edit_posts',
@@ -77,7 +77,7 @@ function get_theme_options() {
 	global $theme_options;
 
 	$theme_options = array();
-	$cache = get_transient( 'ct_theme_options' );
+	$cache = get_transient( 'rs_theme_options' );
 
 	if( !empty( $cache ) ) {
 
@@ -105,7 +105,7 @@ function get_theme_options() {
 	
 		}
 
-		set_transient( 'ct_theme_options', $theme_options );
+		set_transient( 'rs_theme_options', $theme_options );
 
 	}
 
@@ -124,7 +124,7 @@ function unset_theme_options() {
 	if( is_int( strpos( $screen->id, 'theme-options' ) ) ) {
 		$favicon_id = get_option( 'theme_options_favicon' );
 		update_option( 'site_icon', $favicon_id );
-		delete_transient( 'ct_theme_options' );
+		delete_transient( 'rs_theme_options' );
 	}
 
 }
