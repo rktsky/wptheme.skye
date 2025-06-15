@@ -1,11 +1,11 @@
 <?php
 
-namespace Cubetech\Skye\Packages;
+namespace Rocketsky\Skye\Packages;
 
 /**
  * Custom WP welcome dashboard
  *
- * @author  Christoph S. Ackermann <christoph.ackermann@cubetech.ch>
+ * @author  Christoph Ackermann <acki@rocketsky.ch>
  * @version 1.0
  */
 class Dashboard {
@@ -45,20 +45,20 @@ class Dashboard {
 		</style>
 	
 		<div class="ct-welcome-panel-content" style="margin-left: 13px; max-width: 1500px;">
-			<h2>Willkommen zu Deiner Website von cubetech!</h2>
+			<h2>Willkommen zu Deiner Website von Rocketsky!</h2>
 			<p class="about-description">Nachfolgend findest Du einige Informationen zum loslegen sowie Supportinformationen.</p>
 			<div class="welcome-panel-column-container">
 				<div class="welcome-panel-column">
 					<h3>Support</h3>
 					<p>
-						cubetech GmbH<br>
-						Lagerhausweg 30<br>
-						3018 Bern (Schweiz)<br><br>
-						Supportformular: <a href="https://www.cubetech.ch/support" target="_blank">cubetech.ch/support</a><br>
-						Mail: <a href="mailto:support@cubetech.ch">support@cubetech.ch</a><br>
-						Telefon: <a href="tel:+41315115151">+41 31 511 51 51</a>
+						Rocketsky GmbH<br>
+						Wasserwerkgasse 5a<br>
+						3011 Bern (Schweiz)<br><br>
+						Supportformular: <a href="https://www.rocketsky.ch" target="_blank">rocketsky.ch</a><br>
+						Mail: <a href="mailto:acki@rocketsky.ch">acki@rocketsky.ch</a><br>
+						Telefon: n/a
 					</p>
-					<a class="button button-primary button-hero" href="https://www.cubetech.ch" target="_blank">Besuche unsere Website</a><br><br>
+					<a class="button button-primary button-hero" href="https://www.visualcraft.ch" target="_blank">Besuche unsere Website</a><br><br>
 				</div><!-- .welcome-panel-column -->
 				<div class="welcome-panel-column">
 					<h3>Erste Schritte</h3>
@@ -78,15 +78,15 @@ class Dashboard {
 				</div><!-- .welcome-panel-column -->
 				<div class="welcome-panel-column">
 					<h3>Deine Ansprechperson</h3>
-					<p><img src="https://www.cubetech.ch/media/circle-ct18-ca-t4.png" style="width: 120px;"><br>
-						<strong>Christoph S. Ackermann (Acki)</strong><br>
-						Handy: +41 79 959 08 32 (keine Supportanfragen)<br>
-						Mail: <a href="mailto:christoph.ackermann@cubetech.ch">christoph.ackermann@cubetech.ch</a><br><br>
-						<a class="button" href="https://www.cubetech.ch/cubetech/team/christoph-s-ackermann" target="_blank">Acki auf der Website besuchen</a><br>
+					<p><img src="https://www.rocketsky.ch/media/circle-ct18-ca-t4.png" style="width: 120px;"><br>
+						<strong>Christoph Ackermann (Acki)</strong><br>
+						Handy: +41 79 289 98 96 (keine Supportanfragen)<br>
+						Mail: <a href="mailto:acki@rocketsky.ch">acki@rocketsky.ch</a><br><br>
+						<a class="button" href="https://www.linkedin.com/in/acki" target="_blank">Acki auf LinkedIn besuchen</a><br>
 				</div><!-- .welcome-panel-column welcome-panel-last -->
 				<div class="welcome-panel-column">
 					<h3>Deine Verträge</h3>
-					<p><strong>Hosting cubetech (aktiv)</strong><br>
+					<p><strong>Hosting Rocketsky (aktiv)</strong><br>
 						Nächste Verlängerung: Ende Juli 2019<br>
 						<br>
 						<strong>Service Level Agreement (aktiv)</strong><br>

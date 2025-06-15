@@ -1,10 +1,10 @@
 <?php
-namespace Cubetech\Skye\Packages;
+namespace Rocketsky\Skye\Packages;
 
 /**
  * Creates some admin page for grouping CPT.
  *
- * @author Christoph S. Ackermann <christoph.ackermann@cubetech.ch>
+ * @author  Christoph Ackermann <acki@rocketsky.ch>
  * @version 1.0
  */
 class AdminMenuGroup
@@ -22,13 +22,13 @@ class AdminMenuGroup
 
 	public function createMenuPage()
 	{
-		// cubetech related menu page
+		// Rocketsky related menu page
 /*
 		add_menu_page(
-			'cubetech Demo',
-			'» cubetech Demo',
+			'Rocketsky Demo',
+			'» Rocketsky Demo',
 			'edit_posts',
-			'edit.php?post_type=ct-demo',
+			'edit.php?post_type=rs-demo',
 			'',
 			'dashicons-megaphone',
 			30

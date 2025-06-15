@@ -1,6 +1,6 @@
 <?php
 
-namespace Cubetech\Skye\Titles;
+namespace Rocketsky\Skye\Titles;
 
 /**
  * Page titles

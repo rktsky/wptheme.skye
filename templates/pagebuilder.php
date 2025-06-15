@@ -1,6 +1,6 @@
 <?php
 /*
-Template Name: cubetech Seitenbaukasten
+Template Name: Rocketsky Seitenbaukasten
 Template Post Type: page
 */
 

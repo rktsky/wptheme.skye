@@ -1,12 +1,12 @@
 <?php
 
-namespace Cubetech\Skye\Packages;
+namespace Rocketsky\Skye\Packages;
 
 /**
  * Activate ACF License Key if there is none (so even after search-replace it reactivates itself)
  * Snippet found on GitHub Gist, thanks @teolaz !
  *
- * @author  Christoph S. Ackermann <christoph.ackermann@cubetech.ch>
+ * @author  Christoph Ackermann <acki@rocketsky.ch>
  * @version 1.0
  */
 class ACFAddKey {

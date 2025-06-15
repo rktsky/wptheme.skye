@@ -1,6 +1,6 @@
 <?php
 
-	use Cubetech\Skye\Packages\NotFound;
+	use Rocketsky\Skye\Packages\NotFound;
 	global $data, $theme_options;
 
 	$similar = new NotFound;

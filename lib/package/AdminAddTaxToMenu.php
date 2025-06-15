@@ -1,10 +1,10 @@
 <?php
-namespace Cubetech\Skye\Packages;
+namespace Rocketsky\Skye\Packages;
 
 /**
  * Creates some admin page for grouping CPT.
  *
- * @author Christoph S. Ackermann <christoph.ackermann@cubetech.ch>
+ * @author  Christoph Ackermann <acki@rocketsky.ch>
  * @version 1.0
  */
 class AdminAddTaxToMenu

@@ -1,8 +1,8 @@
 <?php
 
-namespace Cubetech\Skye\Extras;
+namespace Rocketsky\Skye\Extras;
 
-use Cubetech\Skye\Setup;
+use Rocketsky\Skye\Setup;
 
 /**
  * Add <body> classes

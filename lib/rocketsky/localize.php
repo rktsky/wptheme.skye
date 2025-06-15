@@ -1,6 +1,6 @@
 <?php
 
-namespace Cubetech\Skye\Localize;
+namespace Rocketsky\Skye\Localize;
 
 /**
  * Localize dat script

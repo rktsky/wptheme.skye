@@ -1,23 +1,25 @@
 <?php
 
 	// prepare data
-	global $theme_options, $data;
+	global $theme_options, $data, $Rocketsky_user;
 
 	if( empty( $data ) )
 		$data = (object) [];
 
-	$data->ulclass = 'nav';
+	$data->ulclass = 'navbar-nav';
 
 ?>
 
-<div class="menu" aria-hidden="true">
-	<div class="menu-container container-md">
-		<div class="row mainrow">
-			<div class="col-12 col-md-9">
-				<nav class="navbar" role="navigation">
-					<?php get_component( 'navigation', 'nav' ); ?>
-				</nav>
-			</div>
-		</div>
+<nav class="navbar navbar-expand-lg navbar-light">
+	<?php get_component( 'header', 'brand' ); ?>
+	<div class="navbar-collapse collapse" id="navbarNav">
+		<?php get_component( 'navigation', 'nav' ); ?>
 	</div>
-</div>
+	<button class="menu-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="icon-bar one"></span>
+		<span class="icon-bar two"></span>
+		<span class="icon-bar three"></span>
+	</button>
+
+
+</nav>

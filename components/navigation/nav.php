@@ -4,7 +4,7 @@
 
 	$location = 'primary_navigation';
 
-	new Cubetech\Skye\Packages\MenuCache( array(
+	new Rocketsky\Skye\Packages\MenuCache( array(
 	    'theme_location'    => $location,
 	    'depth'             => -1,
 	    'menu_class'        => $data->ulclass,

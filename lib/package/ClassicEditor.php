@@ -1,5 +1,5 @@
 <?php
-namespace Cubetech\Skye\Packages;
+namespace Rocketsky\Skye\Packages;
 /**
  * Classic Editor
  *

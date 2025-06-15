@@ -1,8 +1,8 @@
 <?php
 
-namespace Cubetech\Skye\Setup;
+namespace Rocketsky\Skye\Setup;
 
-use Cubetech\Skye\Assets;
+use Rocketsky\Skye\Assets;
 
 /**
  * Theme setup

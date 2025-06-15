@@ -7,7 +7,7 @@
 
 	// yeah false need to be a string - fuckdumb ACF
 	if( empty( $data->override ) || $data->override === "false" )
-		$data->title = Cubetech\Skye\Titles\title();
+		$data->title = Rocketsky\Skye\Titles\title();
 
 ?>
 

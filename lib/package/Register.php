@@ -1,11 +1,11 @@
 <?php
 
-namespace Cubetech\Skye\Packages;
+namespace Rocketsky\Skye\Packages;
 
 /**
  * Register Post Types and Taxonomies
  *
- * @author  Christoph S. Ackermann <christoph.ackermann@cubetech.ch>
+ * @author  Christoph Ackermann <acki@rocketsky.ch>
  * @version 1.0
  */
 class Register {
@@ -35,7 +35,7 @@ class Register {
 
 			require_once( $this->post_types_url );
 	
-			foreach( $ct_post_types as $key => $value ) {
+			foreach( $rs_post_types as $key => $value ) {
 				register_post_type( $key, $value['args'] );
 			}
 
@@ -49,7 +49,7 @@ class Register {
 
 			require_once( $this->taxonomies_url );
 			
-			foreach( $ct_taxonomies as $key => $value ) {
+			foreach( $rs_taxonomies as $key => $value ) {
 				register_taxonomy( $key, $value['post_types'], $value['args'] );
 			}
 

@@ -13,15 +13,15 @@
 	require_once( 'Register.php' );
 	require_once( 'Templates.php' );
 
-	new Cubetech\Skye\Packages\ACFAddKey();
-	//new Cubetech\Skye\Packages\AdminAddTaxToMenu();
-	new Cubetech\Skye\Packages\AdminCss();
-	//new Cubetech\Skye\Packages\AdminMenuGroup();
-	new Cubetech\Skye\Packages\ClassicEditor();
-	//new Cubetech\Skye\Packages\Dashboard();
-	new Cubetech\Skye\Packages\Images();
-	new Cubetech\Skye\Packages\Performance();
-	new Cubetech\Skye\Packages\Register();
+	new Rocketsky\Skye\Packages\ACFAddKey();
+	//new Rocketsky\Skye\Packages\AdminAddTaxToMenu();
+	new Rocketsky\Skye\Packages\AdminCss();
+	//new Rocketsky\Skye\Packages\AdminMenuGroup();
+	new Rocketsky\Skye\Packages\ClassicEditor();
+	//new Rocketsky\Skye\Packages\Dashboard();
+	new Rocketsky\Skye\Packages\Images();
+	new Rocketsky\Skye\Packages\Performance();
+	new Rocketsky\Skye\Packages\Register();
 
-	$cubetech_menu_cache = new Cubetech\Skye\Packages\MenuCache( false );
-	add_action( 'wp_update_nav_menu', 'Cubetech\Skye\Packages\MenuCache::purge' );
+	$rocketsky_menu_cache = new Rocketsky\Skye\Packages\MenuCache( false );
+	add_action( 'wp_update_nav_menu', 'Rocketsky\Skye\Packages\MenuCache::purge' );

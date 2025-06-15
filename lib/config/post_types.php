@@ -1,10 +1,10 @@
 <?php
 
-$ct_post_types = array(
+$rs_post_types = array(
 
-	// ct Example =>  Beispielposttype
+	// rs Example =>  Beispielposttype
 /*
-	'ct-example' => array(
+	'rs-example' => array(
 		'args' => array(
 			'label' => _x('Beispiel', 'Beispiel', 'skye'),
 			'labels' => array(
@@ -26,7 +26,7 @@ $ct_post_types = array(
 			'hierarchical'        => false,
 			'public'              => true,
 			'show_ui'             => true,
-			'show_in_menu'        => 'edit.php?post_type=ct-demo',
+			'show_in_menu'        => 'edit.php?post_type=rs-demo',
 			'show_in_nav_menus'   => true,
 			'show_in_admin_bar'   => true,
 			'menu_position'       => 1,

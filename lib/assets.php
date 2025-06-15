@@ -1,6 +1,6 @@
 <?php
 
-namespace Cubetech\Skye\Assets;
+namespace Rocketsky\Skye\Assets;
 
 /**
  * Get paths for assets

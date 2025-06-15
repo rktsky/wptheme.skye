@@ -1,11 +1,11 @@
 <?php
 
-namespace Cubetech\Skye\Packages;
+namespace Rocketsky\Skye\Packages;
 
 /**
  * AJAX API
  *
- * @author  Christoph S. Ackermann <christoph.ackermann@cubetech.ch>
+ * @author  Christoph Ackermann <acki@rocketsky.ch>
  * @version 1.0
  */
 class MenuCache {
@@ -77,7 +77,7 @@ class MenuCache {
 
 		global $sitepress, $polylang;
 
-		$this->caching_key = 'cubetech-menu-cache-' . $this->menu_location;
+		$this->caching_key = 'Rocketsky-menu-cache-' . $this->menu_location;
 		if( isset($sitepress) && $sitepress !== NULL ):
 			$this->caching_key .= '-' . $sitepress->get_current_language();
 		elseif( !empty( $polylang->curlang->slug ) ):
@@ -168,7 +168,7 @@ class MenuCache {
 				
 				foreach( $languages as $lang => $value ) {
 					
-					delete_transient( 'cubetech-menu-cache-' . $location . '-' . $lang );
+					delete_transient( 'Rocketsky-menu-cache-' . $location . '-' . $lang );
 					
 				}
 				
@@ -177,13 +177,13 @@ class MenuCache {
 				$languages = get_terms( 'language', array( 'hide_empty' => false, 'orderby' => 'term_group' ) );
 				foreach( $languages as $lang => $value ) {
 					
-					delete_transient( 'cubetech-menu-cache-' . $location . '-' . $value->slug );
+					delete_transient( 'Rocketsky-menu-cache-' . $location . '-' . $value->slug );
 					
 				}					
 				
 			} else {
 				
-				delete_transient( 'cubetech-menu-cache-' . $location );
+				delete_transient( 'Rocketsky-menu-cache-' . $location );
 				
 			}
 

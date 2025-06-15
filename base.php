@@ -1,8 +1,8 @@
 <?php
 
-use Cubetech\Skye\Setup;
-use Cubetech\Skye\Wrapper;
-use Cubetech\Skye\Packages\Templates;
+use Rocketsky\Skye\Setup;
+use Rocketsky\Skye\Wrapper;
+use Rocketsky\Skye\Packages\Templates;
 
 global $theme_options, $wp_query;
 

@@ -1,11 +1,11 @@
 <?php
 
-$ct_taxonomies = array(
+$rs_taxonomies = array(
 
 	// Taxonomy for: Beispiels
 /*
-	'ct-example-cat' => array(
-		'post_types' 	=> array('ct-example'),
+	'rs-example-cat' => array(
+		'post_types' 	=> array('rs-example'),
 		'args' 			=> array(
 			'hierarchical' 	=> false,
 			'labels' 		=> array(
