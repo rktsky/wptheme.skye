@@ -149,3 +149,22 @@
 		return $excerpt;
 
 	}
+
+	function make_slug( $title = false ) {
+
+		global $data;
+
+		$slug = false;
+
+		if( !empty( $title ) ):
+			$slug = $title;
+		elseif( !empty( $data ) ):
+			$slug = $data->title;
+		endif;
+
+		if( !empty( $slug ) )
+			$slug = sanitize_title( $slug );
+
+		return $slug;
+
+	}

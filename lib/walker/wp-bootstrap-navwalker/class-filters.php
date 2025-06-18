@@ -214,7 +214,7 @@ class Filters extends Plugin {
 	 * @return array
 	 */
 	public function set_link_attributes_childless( $atts, $item, $args, $depth ) {
-		if ( $item->has_children & $depth > 0 ) {
+		if ( $item->has_children && $depth > 0 ) {
 			return $atts;
 		}
 
