@@ -22,6 +22,34 @@ assert.ok(site.startsWith(path.join(root, '.git/runtime') + path.sep), 'Only the
 assert.ok(!fs.existsSync(target), 'Never overwrite an existing MU plugin.');
 fs.mkdirSync(output, {recursive: true});
 
+/**
+ * Capture the admitted system-font viewport while its complete CSS is held.
+ *
+ * Firefox's document.fonts.ready also waits for the pending stylesheet. That
+ * cannot settle until the caller releases that response after this capture.
+ * Disable only Playwright's auxiliary font wait for this one capture; the
+ * actual page, CSS readiness, typography and geometry assertions stay intact.
+ * Restore any caller setting even if screenshot transport fails. The fixture
+ * requires no custom font faces/imports and makes no webfont readiness claim.
+ *
+ * @param {Object} page Actual Playwright page under the held CSS request.
+ * @param {string} filename Screenshot output inside the disposable runtime.
+ * @return {Promise<void>} Completion of the actual browser capture.
+ * @since 3.0.0
+ */
+async function capturePendingSystemFontViewport(page, filename) {
+	const full = fs.readFileSync(path.join(root, 'dist', manifest['main.css']), 'utf8');
+	assert.doesNotMatch(full, /@(?:font-face|import)\b/i, 'The pending screenshot contract requires the current system-font stylesheet.');
+	const previous = process.env.PW_TEST_SCREENSHOT_NO_FONTS_READY;
+	try {
+		process.env.PW_TEST_SCREENSHOT_NO_FONTS_READY = '1';
+		await page.screenshot({path: filename});
+	} finally {
+		if (previous === undefined) delete process.env.PW_TEST_SCREENSHOT_NO_FONTS_READY;
+		else process.env.PW_TEST_SCREENSHOT_NO_FONTS_READY = previous;
+	}
+}
+
 async function run() {
 	fs.writeFileSync(target, source, {mode: 0o600, flag: 'wx'});
 	let browser;
@@ -61,7 +89,7 @@ async function run() {
 					const positions = await page.locator('.navbar-nav > li').evaluateAll(items => items.map(item => item.getBoundingClientRect().y));
 					assert.ok(positions.every(y => Math.abs(y - positions[0]) < 1), 'Visible desktop siblings occupy one horizontal row, not merely a flex container.');
 				}
-				await page.screenshot({path:path.join(output, 'pending-' + width + '.png')});
+				await capturePendingSystemFontViewport(page, path.join(output, 'pending-' + width + '.png'));
 				release();
 				await page.evaluate(() => window.skyeCriticalStyles.ready);
 				await page.waitForLoadState('networkidle');
