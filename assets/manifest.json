@@ -1,25 +1,48 @@
 {
-  "dependencies": {
-    "main.js": {
-      "files": [
-        "scripts/main.js",
-        "scripts/hamburger.js"
-      ],
-      "main": true
-    },
-    "main.css": {
-      "files": [
-        "styles/main.scss"
-      ],
-      "main": true
-    },
-    "login.css": {
-      "files": [
-        "styles/login.scss"
-      ]
-    }
+  "styles": {
+    "main.css": "styles/main.scss",
+    "login.css": "styles/login.scss",
+    "fontawesome.css": "styles/fontawesome.scss"
   },
-  "config": {
-    "devUrl": "http://example.test"
+  "scripts": {
+    "main.js": "scripts/main.js",
+    "critical-styles.js": "scripts/critical-styles.js",
+    "critical-form-gate.js": "scripts/critical-form-gate.js"
+  },
+  "performance": {
+    "mobileBreakpoint": 576,
+    "critical": {
+      "version": 1,
+      "id": "skye-shell-v1",
+      "filename": "main-critical.css",
+      "placeholder": "__SKYE_THEME_DIST__",
+      "classes": [
+        "active",
+        "collapse",
+        "collapsed",
+        "collapsing",
+        "show",
+        "screen-reader-text",
+        "visually-hidden",
+        "visually-hidden-focusable",
+        "skip-link",
+        "nav-open"
+      ],
+      "prefixes": [
+        "navbar",
+        "nav-",
+        "dropdown",
+        "brand",
+        "page-header"
+      ],
+      "source_paths": [
+        "base.php",
+        "components/header/",
+        "components/navigation/",
+        "components/pageheader/"
+      ]
+    },
+    "icons": [],
+    "fonts": []
   }
 }
