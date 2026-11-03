@@ -96,8 +96,11 @@ async function run() {
 		fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result,null,2)+'\n');
 		console.log(JSON.stringify({status:'pass',...result},null,2));
 	} finally {
-		if (browser) await browser.close();
-		if (fs.existsSync(target) && fs.readFileSync(target).equals(source)) fs.unlinkSync(target);
+		try {
+			if (browser) await browser.close();
+		} finally {
+			if (fs.existsSync(target) && fs.readFileSync(target).equals(source)) fs.unlinkSync(target);
+		}
 	}
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

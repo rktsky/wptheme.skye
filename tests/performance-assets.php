@@ -1,5 +1,11 @@
 <?php
 /** Verify actual asset path/manifest, icon and early-form contracts against native Core. */
+
+if ( 'cli' !== PHP_SAPI ) {
+	http_response_code( 403 );
+	exit;
+}
+
 require __DIR__ . '/performance-fixture.php';
 use Rocketsky\Skye\Assets;
 use Rocketsky\Skye\Packages\Icons;

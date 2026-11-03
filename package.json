@@ -13,7 +13,10 @@
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
     "test:build": "node --test tests/build.test.mjs",
-    "test:performance": "node --test tests/critical-loader.test.cjs"
+    "test:performance": "node --test tests/critical-loader.test.cjs",
+    "lint:js": "node tools/check-assets.mjs js",
+    "lint:style": "node tools/check-assets.mjs style",
+    "test:release": "node --test tests/release.test.mjs"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "6.7.2",

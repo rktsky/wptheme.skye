@@ -2,8 +2,8 @@
 /**
  * Verify the empty GF stylesheet alias through real WordPress style queues.
  *
- * Backported from completed Volksgarage Website 6fecb117; only fixture names and paths generalized.
- * Run: SKYE_WORDPRESS_CORE=/absolute/wordpress php tools/tests/empty-form-style.php
+ * Backported from completed Volksgarage Website 6fecb117; fixture boundaries and native contracts generalized.
+ * Run: SKYE_WORDPRESS_CORE=/absolute/wordpress php tests/performance-empty-style.php
  * Only provider paths/request context are fixtures. Core registers, resolves and
  * prints every dependency and inline style; no site, HTTP request or DB is used.
  *
@@ -11,6 +11,11 @@
  */
 
 namespace Rocketsky\Skye\Packages {
+	if ( 'cli' !== PHP_SAPI ) {
+		http_response_code( 403 );
+		exit;
+	}
+
 	/**
 	 * Supply the isolated admin boundary without loading an account or installation.
 	 * @return bool Whether this fixture represents an admin request.

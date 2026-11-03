@@ -2,6 +2,11 @@
 /** Bootstrap actual Core parsers and dependency registries with local request boundaries only. */
 
 namespace Rocketsky\Skye\Packages {
+	if ( 'cli' !== PHP_SAPI ) {
+		http_response_code( 403 );
+		exit;
+	}
+
 	/** Supply public/private request state without loading a site or principal. @since 3.0.0 @return bool Whether the fixture is administrative. */
 	function is_admin() {
 		return ! empty( $GLOBALS['perf_context']['admin'] );

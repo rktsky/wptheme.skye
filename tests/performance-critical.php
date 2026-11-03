@@ -1,5 +1,11 @@
 <?php
 /** Verify actual progressive/native-style contracts, refusal and fallback with real Core. */
+
+if ( 'cli' !== PHP_SAPI ) {
+	http_response_code( 403 );
+	exit;
+}
+
 require __DIR__ . '/performance-fixture.php';
 use Rocketsky\Skye\Assets;
 use Rocketsky\Skye\Packages\CriticalStyles;

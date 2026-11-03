@@ -20,6 +20,10 @@
  */
 
 namespace {
+	if ( 'cli' !== PHP_SAPI ) {
+		http_response_code( 403 );
+		exit;
+	}
 
 	error_reporting( E_ALL );
 
@@ -2725,7 +2729,6 @@ namespace {
 		skye_media_check( get_option( MediaPipeline::STATE_OPTION ) === array( 'cursor' => 0, 'complete' => false, 'version' => MediaPipeline::VERSION ), 'A corrupt installation state is replaced through the normal checked setup path.' );
 	}
 
-
 	/**
 	 * Verify new native crop definitions restart discovery without render work.
 	 *
@@ -2760,7 +2763,6 @@ namespace {
 			$_wp_additional_image_sizes = $registered;
 		}
 	}
-
 
 	/**
 	 * Preserve in-flight URLs when a successful native edit outlives ledger failure.

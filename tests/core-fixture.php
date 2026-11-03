@@ -1,6 +1,11 @@
 <?php
 /** Isolate native WordPress/optional-provider boundaries while executing actual Skye functions and templates. */
 
+if ( 'cli' !== PHP_SAPI ) {
+	http_response_code( 403 );
+	exit;
+}
+
 /** Local deterministic request data; no database, network or persistent site state exists. */
 class CoreFixture {
 	/** @var string Theme source path used by the actual component resolver. */

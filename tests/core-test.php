@@ -1,5 +1,11 @@
 <?php
 /** Regress actual core helpers, isolated component contracts, routing and protected render paths. */
+
+if ( 'cli' !== PHP_SAPI ) {
+	http_response_code( 403 );
+	exit;
+}
+
 if ( in_array( '--without-acf', $argv, true ) ) {
 	define( 'SKYE_CORE_WITHOUT_ACF', true );
 }

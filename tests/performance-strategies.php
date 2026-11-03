@@ -2,8 +2,8 @@
 /**
  * Verify the real WordPress dependency/inline guards for GF loading strategies.
  *
- * Backported from completed Volksgarage Website 6fecb117; only fixture names and paths generalized.
- * Run: SKYE_WORDPRESS_CORE=/absolute/wordpress php tools/tests/asset-strategies.php
+ * Backported from completed Volksgarage Website 6fecb117; fixture boundaries and native contracts generalized.
+ * Run: SKYE_WORDPRESS_CORE=/absolute/wordpress php tests/performance-strategies.php
  * Core prints the actual script tags. Only the synthetic registration graph and
  * admin screen are fixtures; no site, database, HTTP request or plugin is loaded.
  * The GF 3.2.1 graph was checked against GFForms::register_scripts() and
@@ -11,6 +11,11 @@
  *
  * @since 3.0.0
  */
+
+if ( 'cli' !== PHP_SAPI ) {
+	http_response_code( 403 );
+	exit;
+}
 
 error_reporting( E_ALL );
 
