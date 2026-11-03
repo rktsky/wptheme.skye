@@ -27,7 +27,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '24.15.0'
+          node-version: '24.22.2'
           cache: npm
       - name: Use the documented npm runtime
         run: npm install --global npm@12.2.1
@@ -131,7 +131,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '24.15.0'
+          node-version: '24.22.2'
       - name: Use the documented npm runtime
         run: npm install --global npm@12.2.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
@@ -151,7 +151,7 @@ jobs:
           node "$RUNNER_TEMP/skye-playwright/node_modules/playwright/cli.js" install --with-deps '${{ matrix.browser }}'
       - name: Prepare the native SQLite site
         run: python3 tools/testing/setup-site.py --root .git/runtime/site --wordpress-version 7.1.4 --php-binary php
-      - name: Check actual pages, navigation and development-path denial
+      - name: Check pages, navigation, native fallback and critical delivery
         run: |
           php -S 127.0.0.1:8973 -t "$SKYE_SITE_ROOT" tests/server.php > .git/runtime/browser-server.log 2>&1 &
           server_pid=$!
@@ -167,12 +167,14 @@ jobs:
           if (!ready) throw new Error('The isolated PHP site did not become ready.');
           JS
           node tests/browser.cjs
+          node tests/browser-critical.cjs
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: browser-${{ matrix.browser }}
           path: |
             .git/runtime/browser-${{ matrix.browser }}/
+            .git/runtime/browser-critical-${{ matrix.browser }}/
             .git/runtime/browser-server.log
           if-no-files-found: warn
           retention-days: 7
