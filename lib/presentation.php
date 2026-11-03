@@ -319,3 +319,30 @@ function skye_render_comments() {
 function skye_breadcrumbs_html() {
 	return function_exists( 'yoast_breadcrumb' ) ? (string) yoast_breadcrumb( '', '', false ) : '';
 }
+
+/**
+ * Capture the registered footer through the native WordPress widget renderer.
+ *
+ * The view receives only ready HTML; widget selection and callback execution stay
+ * in this library. Empty sidebars produce no placeholder, and callback failures
+ * restore the caller's buffer depth instead of leaking partial footer markup.
+ *
+ * @since 3.0.0
+ * @return string Native widget serializer output, or an empty string when inactive.
+ * @throws Throwable Propagates widget failures after cleaning owned buffers.
+ */
+function skye_footer_sidebar_html() {
+	if ( ! is_active_sidebar( 'sidebar-footer' ) ) {
+		return '';
+	}
+	$level = ob_get_level();
+	ob_start();
+	try {
+		dynamic_sidebar( 'sidebar-footer' );
+		return ob_get_clean();
+	} finally {
+		while ( ob_get_level() > $level ) {
+			ob_end_clean();
+		}
+	}
+}

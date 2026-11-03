@@ -319,6 +319,16 @@ try {
 	$nav_html = skye_component_html( 'navigation', false, array( 'navigation' => $navigation, 'brand' => $brand ) );
 	core_check( str_contains( $nav_html, 'data-bs-toggle="drawer"' ) && str_contains( $nav_html, '<dialog' ) && str_contains( $nav_html, 'md:navbar-expand' ), 'Real navigation uses Bootstrap6 Alpha dialog/navbar contracts.' );
 	core_check( str_contains( $nav_html, '<noscript>' ) && str_contains( $nav_html, 'skye-no-script-navigation' ), 'Real navigation provides a complete no-JS link path.' );
+	$sidebar_calls = core_calls( 'dynamic_sidebar' );
+	core_check( '' === skye_footer_sidebar_html() && $sidebar_calls === core_calls( 'dynamic_sidebar' ), 'An inactive footer does not invoke widget callbacks or emit a placeholder.' );
+	CoreFixture::$flags['is_active_sidebar'] = true;
+	CoreFixture::$sidebar_html = 'NATIVE_WIDGET_FIXTURE';
+	$sidebar_html = skye_footer_sidebar_html();
+	core_check( 'NATIVE_WIDGET_FIXTURE' === $sidebar_html && $sidebar_calls + 1 === core_calls( 'dynamic_sidebar' ), 'An active footer delegates exactly once to the native sidebar renderer.' );
+	$footer = skye_component_html( 'footer', false, array( 'brand' => $brand, 'sidebar_html' => $sidebar_html ) );
+	core_check( str_contains( $footer, 'footer-widgets' ) && str_contains( $footer, 'NATIVE_WIDGET_FIXTURE' ), 'The actual footer component includes its explicit native widget HTML.' );
+	$empty_footer = skye_component_html( 'footer', false, array( 'brand' => $brand, 'sidebar_html' => '' ) );
+	core_check( ! str_contains( $empty_footer, 'footer-widgets' ), 'The actual empty footer contains no widget wrapper.' );
 	core_check( 0 === core_calls( 'set_transient' ), 'Native rendering does not create persistent presentation transients.' );
 	echo 'Core regression passed (' . $checks . ' checks; ACF ' . ( defined( 'SKYE_CORE_WITHOUT_ACF' ) ? 'absent' : 'present' ) . ").\n";
 } finally {

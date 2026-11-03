@@ -16,7 +16,8 @@ Der Loadervertrag garantiert weiterhin die alte Aufrufform, aber nicht die impli
 | Komponente | Kontext |
 | --- | --- |
 | `header`, `navigation` | `brand` aus `skye_brand_model()`, `navigation` aus `skye_navigation_model()` |
-| `header/brand`, `footer` | `brand` mit Name, URL, optionaler Logo-URL und nativer Bildausgabe |
+| `header/brand` | `brand` mit Name, URL, optionaler Logo-URL und nativer Bildausgabe |
+| `footer` | `brand` und bereits durch `skye_footer_sidebar_html()` gerendertes `sidebar_html` |
 | `page/header`, `pageheader/simple` | `header` aus `skye_page_header_model()` |
 | `posts/element`, `search` | `article` aus `skye_post_model()` |
 | `posts/meta` | `article` aus `skye_post_meta_model()` oder dem vollständigen Kartenmodell |
@@ -66,10 +67,16 @@ Bootstrap 6 verwendet `.menu-item` für interaktive Menüeinträge mit voller Br
 
 Die auf ausdrücklichen Benutzerwunsch verwendete Version `6.0.0-alpha.1` nutzt `md:navbar-expand`, ein natives `dialog.drawer`, `data-bs-toggle="drawer"` und `data-bs-toggle="menu"` mit `.menu`/`.menu-item`. Ein separates Untermenü-Button lässt den übergeordneten Seitenlink navigierbar. Ein No-JavaScript-Pfad enthält vollständige normale Menülinks. Navigation ist auf zwei Ebenen beschränkt, entsprechend dem expliziten Navbar-/Untermenüvertrag. Die optische/Browserabnahme dieser neuen Alpha-Komponenten wird getrennt von PHP-Prüfungen dokumentiert.
 
+## Klassische Footer-Widgets
+
+Die registrierte native Sidebar `sidebar-footer` wird im Standardfooter tatsächlich ausgegeben. `skye_footer_sidebar_html()` entscheidet in `lib/` über den aktiven Bereich und delegiert an das originale `dynamic_sidebar()`. Das Template erhält nur die fertige native Serializer-Ausgabe; Widgetauswahl, Callbackausführung und Fehler-/Puffergrenzen bleiben ausserhalb der HTML-Komponente. Ohne aktive Widgets werden weder Widgetcallbacks noch ein leerer Widget-Wrapper ausgegeben. Anbieterrechte und Inhalte bleiben Verträge des jeweiligen nativen Widgets.
+
+`tests/core-sidebar-native.php` prüft den echten WordPress-Widgetrenderer gegen die isolierte Testinstallation: Widgetregistrierung und Sidebarzuordnung werden nur im laufenden Prozess gefiltert, keine produktiven oder gespeicherten Widgetoptionen verändert. Ein Testcallback emittiert einen Klartextmarker innerhalb der vom Originalrenderer gelieferten Wrapper. Danach wird die Sidebar leer geprüft und die tatsächliche Footer-Komponente mit und ohne Markup gerendert.
+
 ## Herkunft und tatsächliche Prüfungen
 
 Historische `@since`-Angaben wurden mit `git log --all --reverse -G` über die alten umbenannten Dateipfade ermittelt, insbesondere `3fd4db0` (Komponenten/Register, 2018), `b6516ee` (Bilder/Menü, 2021), `71ed84f` (Templates/NotFound/Excerpt, 2021), `6b7c27a` (Rechte, 2020), `4918f86` (Telefon/Debug, 2017) und `4e4f2d8` (Slug, 2025). Neue Verträge verwenden `@since 3.0.0`.
 
 `php tests/core-test.php` und derselbe Lauf mit `--without-acf` führen die tatsächlichen Funktionen und Templates mit ausdrücklich isolierten nativen API-Gegenstellen aus. Die Tests prüfen Rohwerte/Quellgrenzen, aktive und fehlende ACF-API, Fehler von Term-/Yoast-APIs, Kindtheme-/Loader-/Puffergrenzen, Rollen, Menü-Cachefreiheit, Bootstrap-6-Markup, Routing, geschützte Modelle, vollständige leere Standardansichten und echte Exit-Pfade in PHP-Unterprozessen. Sie sind keine komplette WordPress-Installation, kein HTTP-/Browser- oder echter Gerätetest. Der gemeinsame Architektur-/Stilcheck ergänzt diese Tests, ersetzt sie aber nicht.
 
-Konsultierte Primärquellen, 03.11.2026: [WordPress Metadaten](https://developer.wordpress.org/reference/functions/get_metadata/), [native Menüs](https://developer.wordpress.org/reference/functions/wp_nav_menu/), [Komponenten/Kindthemes](https://developer.wordpress.org/reference/functions/get_template_part/), [zulässige native Vorlagen](https://developer.wordpress.org/reference/classes/wp_theme/get_page_templates/), [sichere Weiterleitung](https://developer.wordpress.org/reference/functions/wp_safe_redirect/), [native Bild-URL](https://developer.wordpress.org/reference/functions/wp_get_attachment_image_url/), [Bootstrap-6-Navbar](https://getbootstrap.com/docs/6.0/components/navbar/), [Bootstrap-6-Menü](https://getbootstrap.com/docs/6.0/components/menu/).
+Konsultierte Primärquellen, 03.11.2026: [WordPress Metadaten](https://developer.wordpress.org/reference/functions/get_metadata/), [native Widgets](https://developer.wordpress.org/reference/functions/dynamic_sidebar/), [native Menüs](https://developer.wordpress.org/reference/functions/wp_nav_menu/), [Komponenten/Kindthemes](https://developer.wordpress.org/reference/functions/get_template_part/), [zulässige native Vorlagen](https://developer.wordpress.org/reference/classes/wp_theme/get_page_templates/), [sichere Weiterleitung](https://developer.wordpress.org/reference/functions/wp_safe_redirect/), [native Bild-URL](https://developer.wordpress.org/reference/functions/wp_get_attachment_image_url/), [Bootstrap-6-Navbar](https://getbootstrap.com/docs/6.0/components/navbar/), [Bootstrap-6-Menü](https://getbootstrap.com/docs/6.0/components/menu/).

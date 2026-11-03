@@ -101,6 +101,7 @@ jobs:
         run: php tools/testing/run.php
       - name: Verify native site behavior before and after the separate Classic Editor
         run: |
+          php tests/core-sidebar-native.php
           php tests/site-verify.php
           php tests/site-verify.php --activate-classic-plugin
           php tests/site-verify.php

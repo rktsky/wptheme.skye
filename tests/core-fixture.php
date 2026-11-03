@@ -40,6 +40,8 @@ class CoreFixture {
 	public static $type = 'post';
 	/** @var array Native query variable boundary. */
 	public static $query = array();
+	/** @var string Ready native widget output supplied at the API boundary. */
+	public static $sidebar_html = '';
 	/** @var mixed Optional primary-term provider result. */
 	public static $primary = false;
 
@@ -178,6 +180,9 @@ class CoreFixture {
 			case 'comments_open':
 			case 'get_comments_number':
 				return false;
+			case 'dynamic_sidebar':
+				echo self::$sidebar_html;
+				return true;
 			case 'the_posts_navigation':
 			case 'the_post_navigation':
 			case 'the_content':
@@ -1302,5 +1307,27 @@ function is_post_type_archive( ...$args ) {
  * @return mixed Controlled native query response.
  */
 function get_query_var( ...$args ) {
+	return CoreFixture::call( __FUNCTION__, $args );
+}
+
+/**
+ * Supply the isolated native is_active_sidebar boundary for actual footer composition.
+ *
+ * @since 3.0.0
+ * @param mixed ...$args Actual native sidebar arguments.
+ * @return mixed Controlled native sidebar response.
+ */
+function is_active_sidebar( ...$args ) {
+	return CoreFixture::call( __FUNCTION__, $args );
+}
+
+/**
+ * Supply the isolated native dynamic_sidebar boundary for actual footer composition.
+ *
+ * @since 3.0.0
+ * @param mixed ...$args Actual native sidebar arguments.
+ * @return mixed Controlled native sidebar response.
+ */
+function dynamic_sidebar( ...$args ) {
 	return CoreFixture::call( __FUNCTION__, $args );
 }

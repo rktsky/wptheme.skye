@@ -18,7 +18,7 @@ $cases = array(
 	array( 'performance-form-controls.php' ),
 	array( 'performance-critical.php' ),
 );
-$fixtures = array( 'core-fixture.php', 'performance-fixture.php', 'critical-site-fixture.php', 'server.php', 'site-fixture.php', 'site-verify.php' );
+$fixtures = array( 'core-fixture.php', 'performance-fixture.php', 'critical-site-fixture.php', 'server.php', 'site-fixture.php', 'site-verify.php', 'core-sidebar-native.php' );
 $known = array_unique( array_merge( array_column( $cases, 0 ), $fixtures ) );
 $actual = array_map( 'basename', glob( $root . '/tests/*.php' ) );
 $unknown = array_diff( $actual, $known );

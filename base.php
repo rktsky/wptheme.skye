@@ -17,7 +17,7 @@
 			<?php skye_render_main_view(); ?>
 		</main>
 		<?php do_action( 'get_footer' ); ?>
-		<?php get_component( 'footer', false, array( 'brand' => skye_brand_model() ) ); ?>
+		<?php get_component( 'footer', false, array( 'brand' => skye_brand_model(), 'sidebar_html' => skye_footer_sidebar_html() ) ); ?>
 		<?php wp_footer(); ?>
 	</body>
 </html>
