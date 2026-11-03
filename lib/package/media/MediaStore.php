@@ -29,6 +29,7 @@ class MediaStore {
 	const FILES_KEY = '_skye_webp_files';
 	const FAILURE_KEY = '_skye_webp_failure';
 	const DELETING_KEY = '_skye_webp_deleting';
+	const RETIREMENT_KEY = 'skye_webp_retirement';
 	const LOCK_OPTION = 'skye_webp_worker_lock';
 	const LOCK_TTL = 600;
 	const RETENTION = 86400;
@@ -759,19 +760,7 @@ class MediaStore {
 		if ( ! is_array( $metadata['skye_webp'] ?? null ) ) {
 			return true;
 		}
-		$directory = dirname( is_string( $metadata['file'] ?? null ) ? $metadata['file'] : '' );
-		$sizes = is_array( $metadata['skye_webp']['sizes'] ?? null ) ? $metadata['skye_webp']['sizes'] : array();
-		$entries = array_merge( array( $metadata['skye_webp']['full'] ?? array() ), $sizes );
-		$paths = array();
-		foreach ( $entries as $entry ) {
-			if ( ! is_array( $entry ) || ! is_string( $entry['file'] ?? null ) ) {
-				continue;
-			}
-			$relative = ( '.' === $directory ? '' : $directory . '/' ) . ( $entry['file'] ?? '' );
-			if ( self::owned_path( $attachment_id, $relative ) ) {
-				$paths[$relative] = time();
-			}
-		}
+		$paths = array_fill_keys( self::published_paths( $attachment_id, $metadata ), time() );
 		for ( $attempt = 0; $paths && $attempt < 3; $attempt++ ) {
 			$row = self::inventory_row( $attachment_id );
 			// Uninventoried legacy outputs cannot be removed by our cleanup worker.
@@ -795,6 +784,91 @@ class MediaStore {
 			}
 		}
 		return ! $paths;
+	}
+
+
+	/**
+	 * Keep an in-flight retention deadline atomic with a successful native edit.
+	 *
+	 * An inventory failure must not veto Core's edit or expose an old sidecar to
+	 * early cleanup. The fallback deadlines travel in the same native metadata
+	 * row as that edit, so either the old published namespace or the new deadline
+	 * remains durable. Later native writes carry these small own-ID records.
+	 *
+	 * @param int $attachment_id Existing attachment being edited.
+	 * @param array $previous Complete native metadata before the edit.
+	 * @param array $incoming Proposed native metadata, otherwise left unchanged.
+	 * @return array Incoming metadata with conservative own retirement deadlines.
+	 * @since 3.0.0
+	 */
+	public static function preserve_retirement( $attachment_id, array $previous, array $incoming ) {
+		$times = self::retirement_times( $attachment_id, $previous );
+		foreach ( self::retirement_times( $attachment_id, $incoming ) as $relative => $retired_at ) {
+			$times[$relative] = max( $times[$relative] ?? 0, $retired_at );
+		}
+		if ( ! empty( $previous['skye_webp'] ) && ! self::retire( $attachment_id, $previous ) ) {
+			foreach ( self::published_paths( $attachment_id, $previous ) as $relative ) {
+				$times[$relative] = max( $times[$relative] ?? 0, time() );
+			}
+		}
+		if ( $times ) {
+			$incoming[self::RETIREMENT_KEY] = $times;
+		} else {
+			unset( $incoming[self::RETIREMENT_KEY] );
+		}
+		return $incoming;
+	}
+
+	/**
+	 * Normalize only this attachment's fallback native-metadata retirement times.
+	 *
+	 * Corrupt timestamps for known owned paths retain those files conservatively
+	 * instead of treating unproven data as an already expired cleanup deadline.
+	 *
+	 * @param int $attachment_id Attachment owning the accepted output names.
+	 * @param array $metadata Native metadata with optional own retirement records.
+	 * @return array<string,int> Safe uploads-relative paths and retirement times.
+	 * @since 3.0.0
+	 */
+	private static function retirement_times( $attachment_id, array $metadata ) {
+		$records = $metadata[self::RETIREMENT_KEY] ?? array();
+		$times = array();
+		foreach ( is_array( $records ) ? $records : array() as $relative => $retired_at ) {
+			if ( ! is_string( $relative ) || ! self::owned_path( $attachment_id, $relative ) ) {
+				continue;
+			}
+			$valid = is_int( $retired_at ) || ( is_string( $retired_at ) && ctype_digit( $retired_at ) );
+			$times[$relative] = $valid && (int) $retired_at >= 0 ? (int) $retired_at : PHP_INT_MAX;
+		}
+		return $times;
+	}
+
+	/**
+	 * List only inventoried-name candidates from one published namespace.
+	 *
+	 * Both normal retirement and its atomic metadata fallback share the same
+	 * strict ownership boundary; legacy or foreign attachment files stay outside.
+	 *
+	 * @param int $attachment_id Attachment owning these generated output names.
+	 * @param array $metadata Native metadata and optional WebP namespace.
+	 * @return string[] Unique safe uploads-relative output paths.
+	 * @since 3.0.0
+	 */
+	private static function published_paths( $attachment_id, array $metadata ) {
+		$directory = dirname( is_string( $metadata['file'] ?? null ) ? $metadata['file'] : '' );
+		$webp = is_array( $metadata['skye_webp'] ?? null ) ? $metadata['skye_webp'] : array();
+		$sizes = is_array( $webp['sizes'] ?? null ) ? $webp['sizes'] : array();
+		$paths = array();
+		foreach ( array_merge( array( $webp['full'] ?? array() ), $sizes ) as $entry ) {
+			if ( ! is_array( $entry ) || ! is_string( $entry['file'] ?? null ) ) {
+				continue;
+			}
+			$relative = ( '.' === $directory ? '' : $directory . '/' ) . $entry['file'];
+			if ( self::owned_path( $attachment_id, $relative ) ) {
+				$paths[$relative] = true;
+			}
+		}
+		return array_keys( $paths );
 	}
 
 	/**
@@ -931,6 +1005,10 @@ class MediaStore {
 		if ( ! is_array( $files ) || '' !== $wpdb->last_error ) {
 			return true;
 		}
+		if ( ! $all && isset( $metadata[self::RETIREMENT_KEY] ) && ! is_array( $metadata[self::RETIREMENT_KEY] ) ) {
+			return true;
+		}
+		$retirement = self::retirement_times( $attachment_id, is_array( $metadata ) ? $metadata : array() );
 		$waiting = false;
 		$removed = array();
 		foreach ( $files as $relative => $retired_at ) {
@@ -952,6 +1030,9 @@ class MediaStore {
 			// provably unpublished current failures are removed by NativeSizes.
 			if ( ! $all && self::native_path( $attachment_id, $relative ) ) {
 				continue;
+			}
+			if ( ! $all ) {
+				$retired_at = max( (int) $retired_at, $retirement[$relative] ?? 0 );
 			}
 			if ( ! $all && (int) $retired_at + self::RETENTION > time() ) {
 				$waiting = true;

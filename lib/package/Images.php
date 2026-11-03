@@ -50,8 +50,8 @@ class Images {
 		self::reset_webp_cache();
 		if ( is_array( $metadata ) && ! Media\MediaStore::is_publishing( $attachment_id ) ) {
 			$previous = wp_get_attachment_metadata( $attachment_id, true );
-			if ( is_array( $previous ) && ! empty( $previous['skye_webp'] ) ) {
-				Media\MediaStore::retire( $attachment_id, $previous );
+			if ( is_array( $previous ) ) {
+				$metadata = Media\MediaStore::preserve_retirement( $attachment_id, $previous, $metadata );
 			}
 			unset( $metadata['skye_webp'] );
 		}
@@ -277,10 +277,10 @@ class Images {
 				return $html;
 			}
 		}
-		if ( ! function_exists( 'get_component_html' ) ) {
+		if ( ! function_exists( 'skye_component_html' ) ) {
 			return $html;
 		}
-		$picture = get_component_html( 'media', 'picture', array( 'native_image' => $html, 'webp_source' => $source, 'sizes' => $sizes ) );
+		$picture = skye_component_html( 'media', 'picture', array( 'native_image' => $html, 'webp_source' => $source, 'sizes' => $sizes ) );
 		return trim( $picture ) !== '' ? $picture : $html;
 	}
 

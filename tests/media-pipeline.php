@@ -2761,6 +2761,72 @@ namespace {
 		}
 	}
 
+
+	/**
+	 * Preserve in-flight URLs when a successful native edit outlives ledger failure.
+	 *
+	 * The native edit must succeed while its fallback retention deadline becomes
+	 * durable in the same metadata row. Real cleanup then honors that deadline,
+	 * carries it through later edits and rejects unknown corrupt expiry values.
+	 *
+	 * @return void
+	 * @since 3.0.0
+	 */
+	function skye_media_test_retirement_failure() {
+		global $wpdb;
+		foreach ( array( 'read', 'write' ) as $index => $mode ) {
+			$id = 903 + $index;
+			$snapshot = skye_media_test_snapshot( $id, 'image/png', 0 );
+			skye_media_check( WebpGenerator::process( $id, $snapshot['revision'], 3, 6 )['status'] === 'complete', 'Retirement-failure fixture begins with an actual published WebP.' );
+			MediaStore::release();
+			$before = wp_get_attachment_metadata( $id, true );
+			$relative = dirname( $before['file'] ) . '/' . $before['skye_webp']['full']['file'];
+			$path = $GLOBALS['directory'] . '/uploads/' . $relative;
+			$files = get_post_meta( $id, MediaStore::FILES_KEY, true );
+			$files[$relative] = 0;
+			update_post_meta( $id, MediaStore::FILES_KEY, $files );
+			$incoming = $before;
+			$incoming['image_meta']['caption'] = 'Native edit must succeed';
+			if ( 'read' === $mode ) {
+				$wpdb->fail_inventory_read = true;
+			} else {
+				$wpdb->fail_inventory_writes = 3;
+			}
+			skye_media_check( (bool) wp_update_attachment_metadata( $id, $incoming ), 'The native edit succeeds despite retirement-inventory ' . $mode . ' failure.' );
+			$after = wp_get_attachment_metadata( $id, true );
+			skye_media_check( empty( $after['skye_webp'] ) && $after['image_meta']['caption'] === 'Native edit must succeed' && ( $after[MediaStore::RETIREMENT_KEY][$relative] ?? 0 ) >= time() - 1, 'The same native metadata write stores the edit and a conservative own-ID deadline.' );
+			skye_media_check( get_post_meta( $id, MediaStore::FILES_KEY, true )[$relative] === 0, 'The failure actually leaves an old inventory timestamp; the regression does not fake a successful ledger write.' );
+			MediaStore::acquire();
+			skye_media_check( MediaStore::cleanup( $id ) && is_file( $path ), 'Immediate real cleanup cannot delete an old sidecar inside its newly protected retention window.' );
+			MediaStore::release();
+			unset( $incoming['skye_webp'], $incoming[MediaStore::RETIREMENT_KEY] );
+			$incoming['image_meta']['caption'] = 'Second native edit';
+			wp_update_attachment_metadata( $id, $incoming );
+			skye_media_check( wp_get_attachment_metadata( $id, true )[MediaStore::RETIREMENT_KEY] === $after[MediaStore::RETIREMENT_KEY], 'A later native write that omits own fields still carries the durable fallback deadlines.' );
+			$GLOBALS['skye_media_clock'] = time() + MediaStore::RETENTION + 2;
+			MediaStore::acquire();
+			skye_media_check( ! MediaStore::cleanup( $id ) && ! is_file( $path ) && is_file( get_attached_file( $id, true ) ), 'After the full fallback interval cleanup removes only the owned retired output and preserves the native original.' );
+			MediaStore::release();
+		}
+		$snapshot = skye_media_test_snapshot( 905, 'image/png', 0 );
+		WebpGenerator::process( 905, $snapshot['revision'], 3, 6 );
+		MediaStore::release();
+		$metadata = wp_get_attachment_metadata( 905, true );
+		$relative = dirname( $metadata['file'] ) . '/' . $metadata['skye_webp']['full']['file'];
+		$path = $GLOBALS['directory'] . '/uploads/' . $relative;
+		$files = get_post_meta( 905, MediaStore::FILES_KEY, true );
+		$files[$relative] = 0;
+		update_post_meta( 905, MediaStore::FILES_KEY, $files );
+		unset( $metadata['skye_webp'] );
+		$metadata[MediaStore::RETIREMENT_KEY] = array( $relative => 'unproven expiry' );
+		update_post_meta( 905, '_wp_attachment_metadata', $metadata );
+		$GLOBALS['skye_media_clock'] = time() + 3 * MediaStore::RETENTION;
+		MediaStore::acquire();
+		skye_media_check( MediaStore::cleanup( 905 ) && is_file( $path ), 'An invalid own expiry cannot be interpreted as permission for early deletion.' );
+		MediaStore::release();
+		unset( $GLOBALS['skye_media_clock'] );
+	}
+
 	/**
 	 * Inject an unverified native srcset candidate at Core's public output boundary.
 	 *
@@ -2860,6 +2926,9 @@ namespace {
 	$before_checks = $checks;
 	skye_media_test_size_changes( $pipeline );
 	$groups['configured_size_changes'] = $checks - $before_checks;
+	$before_checks = $checks;
+	skye_media_test_retirement_failure();
+	$groups['native_retirement_failure'] = $checks - $before_checks;
 	$before_checks = $checks;
 	skye_media_test_presentation( $images );
 	$groups['presentation_fallback'] = $checks - $before_checks;
