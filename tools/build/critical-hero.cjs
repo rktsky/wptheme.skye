@@ -131,7 +131,7 @@ function headerSelectors(selector, configuration) {
  * Preserve original wrappers/order while excluding proven inactive branches.
  *
  * Font faces, keyframes and unknown at-rules remain intact at this stage. Only
- * media/supports wrappers recurse, and only genuinely empty wrappers disappear.
+ * conditional and layer blocks recurse; ordering statements remain byte-preserved.
  *
  * @param {Object} container Native PostCSS root or media/supports container.
  * @param {Object} configuration Validated explicit header configuration.
@@ -154,7 +154,7 @@ function filterRules(container, configuration) {
 			} else {
 				node.remove();
 			}
-		} else if (node.type === 'atrule' && /^(media|supports|layer|container)$/i.test(node.name)) {
+		} else if (node.type === 'atrule' && node.nodes && /^(media|supports|layer|container)$/i.test(node.name)) {
 			filterRules(node, configuration);
 			if (!node.nodes || !node.nodes.length) {
 				node.remove();

@@ -30,7 +30,12 @@ test('critical extraction filters nested layer rules but preserves uncertain con
 	assert.ok(critical.includes('.nav'));
 	assert.ok(!critical.includes('.unrelated'));
 	assert.ok(critical.includes('@container'));
+	const ordered = deriveCritical('@layer utilities,components;@layer components{.nav{display:block}}', 'fixture.css', config);
+	assert.ok(ordered.startsWith('@layer utilities,components;'), 'Global cascade ordering statements must survive extraction.');
 	assert.deepEqual(classesFromSource('<header class="nav <?php echo $state; ?> fixed">'), ['fixed','nav']);
+	assert.deepEqual(classesFromSource('<nav class="navbar md:navbar-expand">'), ['md:navbar-expand','navbar']);
+	const responsive = deriveCritical('.md\\:navbar-expand{display:flex}', 'fixture.css', {...config, classes:['md:navbar-expand']});
+	assert.ok(responsive.includes('display:flex'), 'Bootstrap 6 responsive class syntax survives discovery and selector filtering.');
 });
 
 /** Wait for an observed output contract, with a bounded failure rather than a timing assumption. */
@@ -61,6 +66,9 @@ test('clean locked assets, failed source and source-watch recovery preserve immu
 		for (const license of manifest._licenses) assert.ok((await fs.stat(path.join(fixture, 'dist', license))).size > 0);
 		assert.ok(!Object.keys(manifest).some(name => name.includes('.gitkeep') || name.includes('.DS_Store')));
 		assert.ok(manifest._performance.critical.sources.every(source => /^[a-f0-9]{64}$/.test(source.sha256)));
+		for (const model of ['lib/presentation.php', 'lib/rocketsky/helpers.php', 'lib/titles.php', 'lib/routing.php']) {
+			assert.ok(manifest._performance.critical.sources.some(source => source.path === model), 'Bind the actual first-viewport renderer: ' + model);
+		}
 		assert.match(manifest._performance.critical.build_hash, /^[a-f0-9]{64}$/);
 		assert.ok((await fs.stat(path.join(fixture,'dist',manifest['main.js']))).size > 0);
 		assert.ok((await fs.stat(path.join(fixture,'dist',manifest['main-mobile.css']))).size < (await fs.stat(path.join(fixture,'dist',manifest['main.css']))).size);
@@ -79,6 +87,7 @@ test('clean locked assets, failed source and source-watch recovery preserve immu
 		await assert.rejects(build(fixture));
 		delete config.styles['escape.css'];
 		await fs.writeFile(configFile, JSON.stringify(config));
+		await fs.unlink(path.join(fixture, 'assets/escape')); // Restore valid source inputs before observing source changes.
 		watcher = await watchBuild(fixture);
 		await new Promise(resolve => watcher.once('ready', resolve));
 		const header = path.join(fixture,'components/header/build-test.php');
