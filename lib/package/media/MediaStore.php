@@ -917,37 +917,25 @@ class MediaStore {
 	}
 
 	/**
-	 * Remove only inventoried own-ID outputs after retirement or permanent deletion.
+	 * Read one cleanup snapshot without inspecting files or mutating metadata.
 	 *
-	 * Core originals/subsizes and currently published or resumable outputs are
-	 * protected. Own native files are retained until permanent deletion to cover
-	 * Core's metadata-before-backup ordering; ambiguous native crash outputs share
-	 * that conservative lifetime. No glob, other attachment or legacy file is deleted.
-	 * Ordinary cleanup requires the worker lease; permanent deletion instead
-	 * requires a fresh tombstone/missing-post check. Inventory pruning uses fresh
-	 * compare-and-swap and removes only paths actually deleted by this invocation.
+	 * Actual deletion and bounded scheduler recovery share native, published and
+	 * resumable protection lists. SQL failures stay retryable; corrupt ownership
+	 * data remains unproven and cannot authorize deletion or block later IDs.
 	 *
-	 * @param int  $attachment_id Attachment owning the inventory.
-	 * @param bool $all Whether the attachment is being permanently deleted.
-	 * @return bool Whether delayed cleanup is still needed.
+	 * @param int $attachment_id Attachment owning the inventory.
+	 * @param bool $all Whether Core is permanently deleting this attachment.
+	 * @return array|false|null State, false for a database error, null for corrupt ownership.
 	 * @since 3.0.0
 	 */
-	public static function cleanup( $attachment_id, $all = false ) {
+	private static function cleanup_state( $attachment_id, $all ) {
 		global $wpdb;
-		if ( ( ! $all && ! self::owns_lock() ) || ( $all && ! self::deleted( array( 'attachment_id' => $attachment_id ) ) ) ) {
-			return true;
-		}
-		$uploads = wp_get_upload_dir();
-		$base = realpath( $uploads['basedir'] );
-		if ( false === $base ) {
-			return true;
-		}
 		$raw = $wpdb->get_var( $wpdb->prepare(
 			"SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = %d
 			AND meta_key = '_wp_attachment_metadata' ORDER BY meta_id ASC LIMIT 1", $attachment_id
 		) );
 		if ( '' !== $wpdb->last_error ) {
-			return true;
+			return false;
 		}
 		$metadata = maybe_unserialize( $raw );
 		$metadata = is_array( $metadata ) ? $metadata : array();
@@ -969,7 +957,7 @@ class MediaStore {
 			AND meta_key = '_wp_attachment_backup_sizes' ORDER BY meta_id ASC LIMIT 1", $attachment_id
 		) );
 		if ( '' !== $wpdb->last_error ) {
-			return true;
+			return false;
 		}
 		$backups = maybe_unserialize( $backup_raw );
 		if ( ! $all && is_array( $backups ) ) {
@@ -988,7 +976,7 @@ class MediaStore {
 				$attachment_id, self::PROGRESS_KEY
 			) );
 			if ( '' !== $wpdb->last_error ) {
-				return true;
+				return false;
 			}
 			$progress = maybe_unserialize( $raw );
 			$progress = is_array( $progress ) ? $progress : array();
@@ -1002,13 +990,82 @@ class MediaStore {
 		// Read retirement times after metadata: an invalidation retires before Core saves its changed row.
 		$row = self::inventory_row( $attachment_id );
 		$files = $row ? maybe_unserialize( $row['meta_value'] ) : array();
-		if ( ! is_array( $files ) || '' !== $wpdb->last_error ) {
-			return true;
+		if ( '' !== $wpdb->last_error ) {
+			return false;
+		}
+		if ( ! is_array( $files ) ) {
+			return null;
 		}
 		if ( ! $all && isset( $metadata[self::RETIREMENT_KEY] ) && ! is_array( $metadata[self::RETIREMENT_KEY] ) ) {
-			return true;
+			return null;
 		}
 		$retirement = self::retirement_times( $attachment_id, is_array( $metadata ) ? $metadata : array() );
+		return array( 'keep' => $keep, 'files' => $files, 'retirement' => $retirement );
+	}
+
+	/**
+	 * Detect unprotected owned sidecars for background scheduler recovery only.
+	 *
+	 * Published, resumable and native outputs require no extra cleanup event.
+	 * This reads at most one attachment inventory and never touches its files.
+	 * Unknown corrupt ownership is preserved; database failures retry that ID.
+	 *
+	 * @param int $attachment_id Attachment owning the durable inventory.
+	 * @return bool|null Whether sidecars need cleanup, or null for a retryable read/lease failure.
+	 * @since 3.0.0
+	 */
+	public static function cleanup_required( $attachment_id ) {
+		if ( ! self::owns_lock() ) {
+			return null;
+		}
+		$state = self::cleanup_state( $attachment_id, false );
+		if ( false === $state ) {
+			return null;
+		}
+		if ( ! is_array( $state ) ) {
+			return false;
+		}
+		foreach ( $state['files'] as $relative => $retired_at ) {
+			if ( self::owned_path( $attachment_id, $relative ) && ! self::native_path( $attachment_id, $relative ) &&
+				! in_array( $relative, $state['keep'], true ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Remove only inventoried own-ID outputs after retirement or permanent deletion.
+	 *
+	 * Core originals/subsizes and currently published or resumable outputs are
+	 * protected. Own native files are retained until permanent deletion to cover
+	 * Core's metadata-before-backup ordering; ambiguous native crash outputs share
+	 * that conservative lifetime. No glob, other attachment or legacy file is deleted.
+	 * Ordinary cleanup requires the worker lease; permanent deletion instead
+	 * requires a fresh tombstone/missing-post check. Inventory pruning uses fresh
+	 * compare-and-swap and removes only paths actually deleted by this invocation.
+	 *
+	 * @param int  $attachment_id Attachment owning the inventory.
+	 * @param bool $all Whether the attachment is being permanently deleted.
+	 * @return bool Whether delayed cleanup is still needed.
+	 * @since 3.0.0
+	 */
+	public static function cleanup( $attachment_id, $all = false ) {
+		if ( ( ! $all && ! self::owns_lock() ) || ( $all && ! self::deleted( array( 'attachment_id' => $attachment_id ) ) ) ) {
+			return true;
+		}
+		$uploads = wp_get_upload_dir();
+		$base = realpath( $uploads['basedir'] );
+		if ( false === $base ) {
+			return true;
+		}
+		$state = self::cleanup_state( $attachment_id, $all );
+		if ( ! is_array( $state ) ) {
+			return true;
+		}
+		$keep = $state['keep'];
+		$files = $state['files'];
+		$retirement = $state['retirement'];
 		$waiting = false;
 		$removed = array();
 		foreach ( $files as $relative => $retired_at ) {

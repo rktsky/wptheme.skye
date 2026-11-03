@@ -27,10 +27,12 @@ class MediaPipeline {
 	const VERSION_OPTION = 'skye_webp_pipeline_version';
 	const STATE_OPTION = 'skye_webp_pipeline_scan';
 	const SIZES_OPTION = 'skye_webp_registered_sizes';
+	const CLEANUP_STATE_OPTION = 'skye_webp_cleanup_scan';
 	const WORK_HOOK = 'skye_media_webp_work';
 	const DISCOVER_HOOK = 'skye_media_webp_discover';
 	const RECOVER_HOOK = 'skye_media_webp_recover';
 	const CLEANUP_HOOK = 'skye_media_webp_cleanup';
+	const CLEANUP_DISCOVER_HOOK = 'skye_media_webp_cleanup_discover';
 
 	/** @var bool Whether this media-write request needs one scheduler update. */
 	private $schedule = false;
@@ -54,6 +56,7 @@ class MediaPipeline {
 		add_action( self::DISCOVER_HOOK, array( $this, 'discover' ) );
 		add_action( self::RECOVER_HOOK, array( $this, 'recover' ) );
 		add_action( self::CLEANUP_HOOK, array( $this, 'cleanup' ) );
+		add_action( self::CLEANUP_DISCOVER_HOOK, array( $this, 'cleanup_discover' ) );
 		add_action( 'switch_theme', array( $this, 'stop' ) );
 	}
 
@@ -85,7 +88,7 @@ class MediaPipeline {
 			return;
 		}
 		$stopped = true;
-		foreach ( array( self::WORK_HOOK, self::DISCOVER_HOOK, self::RECOVER_HOOK, self::CLEANUP_HOOK ) as $hook ) {
+		foreach ( array( self::WORK_HOOK, self::DISCOVER_HOOK, self::RECOVER_HOOK, self::CLEANUP_HOOK, self::CLEANUP_DISCOVER_HOOK ) as $hook ) {
 			if ( false === wp_unschedule_hook( $hook ) ) {
 				$stopped = false;
 			}
@@ -455,8 +458,8 @@ class MediaPipeline {
 				) );
 			}
 		}
-		if ( MediaStore::cleanup( $id ) && ! wp_next_scheduled( self::CLEANUP_HOOK, array( $id ) ) ) {
-			wp_schedule_single_event( time() + MediaStore::RETENTION, self::CLEANUP_HOOK, array( $id ) );
+		if ( MediaStore::cleanup( $id ) ) {
+			$this->schedule_cleanup( $id, time() + MediaStore::RETENTION );
 		}
 	}
 
@@ -495,6 +498,80 @@ class MediaPipeline {
 		// Continue past the last ID even after the initial scan, recovering a new
 		// upload whose enqueue was interrupted without rescanning older media.
 		$this->schedule_event( self::DISCOVER_HOOK, time() + 2 );
+		$this->schedule_event( self::CLEANUP_DISCOVER_HOOK, time() + 2 );
+	}
+
+	/**
+	 * Recover lost cleanup events from bounded durable ownership inventories.
+	 *
+	 * Only background recovery visits these rows. A six-second soft budget and
+	 * twenty-ID keyset batches bound each pass. Published, resumable and native
+	 * outputs need no cleanup event; retired sidecars reuse the ordinary guarded
+	 * cleanup path. Scheduling/read failures stop before that ID. Completed passes
+	 * reset the nonautoload cursor for the next hourly cycle without busy looping.
+	 *
+	 * @return void
+	 * @since 3.0.0
+	 */
+	public function cleanup_discover() {
+		if ( ! self::enabled() ) {
+			return;
+		}
+		if ( ! MediaStore::acquire() ) {
+			$this->schedule_event( self::CLEANUP_DISCOVER_HOOK, time() + 60 );
+			return;
+		}
+		global $wpdb;
+		$deadline = microtime( true ) + 6;
+		try {
+			$cursor = (int) get_option( self::CLEANUP_STATE_OPTION, 0 );
+			$ids = $wpdb->get_col( $wpdb->prepare(
+				"SELECT DISTINCT p.ID FROM {$wpdb->postmeta} i JOIN {$wpdb->posts} p ON p.ID = i.post_id
+				LEFT JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s
+				WHERE i.meta_key = %s AND p.post_type = 'attachment' AND p.post_status <> 'trash'
+				AND d.meta_id IS NULL AND p.ID > %d ORDER BY p.ID ASC LIMIT 20",
+				MediaStore::DELETING_KEY, MediaStore::FILES_KEY, $cursor
+			) );
+			if ( ! is_array( $ids ) || '' !== $wpdb->last_error ) {
+				$this->schedule_event( self::CLEANUP_DISCOVER_HOOK, time() + 60 );
+				return;
+			}
+			$complete = count( $ids ) < 20;
+			foreach ( $ids as $id ) {
+				if ( microtime( true ) >= $deadline ) {
+					$complete = false;
+					break;
+				}
+				$required = MediaStore::cleanup_required( (int) $id );
+				if ( null === $required || ( $required && ! $this->schedule_cleanup( (int) $id, time() + 5 ) ) ) {
+					$complete = false;
+					break;
+				}
+				$cursor = (int) $id;
+			}
+			update_option( self::CLEANUP_STATE_OPTION, $complete ? 0 : $cursor, false );
+			if ( ! $complete ) {
+				$this->schedule_event( self::CLEANUP_DISCOVER_HOOK, time() + 30 );
+			}
+		} finally {
+			MediaStore::release();
+		}
+	}
+
+	/**
+	 * Acknowledge one native cleanup event without duplicating an existing timer.
+	 *
+	 * Its durable ownership inventory allows background rediscovery after native
+	 * scheduling fails, so no optimistic scheduler result can lose the sidecars.
+	 *
+	 * @param int $attachment_id Attachment owning retired files.
+	 * @param int $when Earliest requested execution timestamp.
+	 * @return bool Whether its existing event or new native schedule is confirmed.
+	 * @since 3.0.0
+	 */
+	private function schedule_cleanup( $attachment_id, $when ) {
+		return false !== wp_next_scheduled( self::CLEANUP_HOOK, array( $attachment_id ) ) ||
+			true === wp_schedule_single_event( $when, self::CLEANUP_HOOK, array( $attachment_id ), true );
 	}
 
 	/**
@@ -510,12 +587,12 @@ class MediaPipeline {
 		}
 		$attachment_id = (int) $attachment_id;
 		if ( ! MediaStore::acquire() ) {
-			wp_schedule_single_event( time() + 60, self::CLEANUP_HOOK, array( $attachment_id ) );
+			$this->schedule_cleanup( $attachment_id, time() + 60 );
 			return;
 		}
 		try {
 			if ( MediaStore::cleanup( $attachment_id ) ) {
-				wp_schedule_single_event( time() + MediaStore::RETENTION, self::CLEANUP_HOOK, array( $attachment_id ) );
+				$this->schedule_cleanup( $attachment_id, time() + MediaStore::RETENTION );
 			}
 		} finally {
 			MediaStore::release();

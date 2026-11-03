@@ -145,6 +145,8 @@ namespace {
 		public $after_query = null;
 		/** @var bool Inject one migration-state SQL write failure for recovery tests. */
 		public $fail_scan_write = false;
+		/** @var bool Fail one cleanup cursor write to verify repeatable acknowledgement. */
+		public $fail_cleanup_scan_write = false;
 		/** @var bool Fail one installation-marker write before any event is created. */
 		public $fail_version_write = false;
 		/** @var bool Fail one ownership-inventory read without pretending no row exists. */
@@ -219,6 +221,11 @@ namespace {
 			if ( $this->fail_scan_write && str_contains( $query, 'skye_webp_pipeline_scan' ) && preg_match( '/^\s*(?:INSERT|UPDATE)\b/i', $query ) ) {
 				$this->fail_scan_write = false;
 				$this->last_error = 'Synthetic migration-state write failure';
+				return false;
+			}
+			if ( $this->fail_cleanup_scan_write && str_contains( $query, 'skye_webp_cleanup_scan' ) && preg_match( '/^\s*(?:INSERT|UPDATE)\b/i', $query ) ) {
+				$this->fail_cleanup_scan_write = false;
+				$this->last_error = 'Synthetic cleanup cursor write failure';
 				return false;
 			}
 			$failed_id = (int) ( $this->fail_enqueue['id'] ?? 0 );
@@ -695,6 +702,7 @@ namespace {
 		$wpdb->fail_inventory_read = false;
 		$wpdb->fail_inventory_writes = 0;
 		$wpdb->fail_enqueue = array();
+		$wpdb->fail_cleanup_scan_write = false;
 		$wpdb->query( 'DELETE FROM wp_options' );
 		$wpdb->query( 'DELETE FROM wp_postmeta' );
 		$wpdb->query( 'DELETE FROM wp_posts' );
@@ -1824,6 +1832,123 @@ namespace {
 			skye_media_check( _get_cron_array() === $before_cron && wp_get_attachment_metadata( $id, true ) === $before_metadata, 'Rendering changes neither Cron nor attachment metadata.' );
 		}
 		remove_filter( 'pre_wp_get_loading_optimization_attributes', 'skye_media_test_loading' );
+	}
+
+	/**
+	 * Refuse cleanup scheduling while preserving the real native Cron datastore.
+	 *
+	 * @param mixed $pre Previous native short-circuit result.
+	 * @param object $event Actual native event about to be persisted.
+	 * @param bool $wp_error Whether detailed native failures were requested.
+	 * @return mixed Previous result or a controlled native cleanup failure.
+	 * @since 3.0.0
+	 */
+	function skye_media_test_cleanup_schedule_failure( $pre, $event, $wp_error ) {
+		return $event->hook === MediaPipeline::CLEANUP_HOOK ? new WP_Error( 'fixture_cleanup_schedule', 'Synthetic cleanup scheduling failure.' ) : $pre;
+	}
+
+	/**
+	 * Recover retired sidecars after native scheduling fails or its event is lost.
+	 *
+	 * Real inventory/metadata reads prove that published and resumable files need
+	 * no new event. The keyset pass remains bounded and never inspects image files.
+	 *
+	 * @param MediaPipeline $pipeline Actual production scheduler.
+	 * @return void
+	 * @since 3.0.0
+	 */
+	function skye_media_test_cleanup_recovery( $pipeline ) {
+		global $wpdb;
+		$snapshot = skye_media_test_snapshot( 906, 'image/png', 0 );
+		$hashes = skye_media_test_hashes( $snapshot );
+		skye_media_check( WebpGenerator::process( 906, $snapshot['revision'], 3, 6 )['status'] === 'complete', 'Cleanup recovery begins with a real published sidecar.' );
+		MediaStore::release();
+		$metadata = wp_get_attachment_metadata( 906, true );
+		wp_update_attachment_metadata( 906, $metadata );
+		$revision = get_post_meta( 906, MediaStore::PENDING_KEY, true );
+		$settle = new ReflectionMethod( $pipeline, 'settle' );
+		add_filter( 'pre_schedule_event', 'skye_media_test_cleanup_schedule_failure', 10, 3 );
+		try {
+			MediaStore::acquire();
+			$settle->invoke( $pipeline, 906, $revision, array( 'status' => 'complete' ) );
+			MediaStore::release();
+			skye_media_check( get_post_meta( 906, MediaStore::PENDING_KEY, true ) === '' && wp_next_scheduled( MediaPipeline::CLEANUP_HOOK, array( 906 ) ) === false, 'A native scheduling failure occurs after the actual job is settled.' );
+			$pipeline->recover();
+			skye_media_check( wp_next_scheduled( MediaPipeline::CLEANUP_DISCOVER_HOOK ) !== false, 'Hourly recovery restores a metadata-only cleanup discovery event.' );
+			$GLOBALS['skye_media_frontend'] = true;
+			$pipeline->cleanup_discover();
+			unset( $GLOBALS['skye_media_frontend'] );
+			skye_media_check( (int) get_option( MediaPipeline::CLEANUP_STATE_OPTION ) === 0 && wp_next_scheduled( MediaPipeline::CLEANUP_HOOK, array( 906 ) ) === false, 'A repeated scheduling failure cannot acknowledge the retired attachment.' );
+		} finally {
+			unset( $GLOBALS['skye_media_frontend'] );
+			remove_filter( 'pre_schedule_event', 'skye_media_test_cleanup_schedule_failure' );
+			MediaStore::release();
+		}
+		$GLOBALS['skye_media_frontend'] = true;
+		$pipeline->cleanup_discover();
+		unset( $GLOBALS['skye_media_frontend'] );
+		skye_media_check( wp_next_scheduled( MediaPipeline::CLEANUP_HOOK, array( 906 ) ) !== false && count( skye_media_test_outputs( 906 ) ) === 1, 'Metadata-only recovery repairs the missing event without deleting the retained file.' );
+		$when = wp_next_scheduled( MediaPipeline::CLEANUP_HOOK, array( 906 ) );
+		$pipeline->cleanup_discover();
+		skye_media_check( count( skye_media_test_events( MediaPipeline::CLEANUP_HOOK ) ) === 1 && wp_next_scheduled( MediaPipeline::CLEANUP_HOOK, array( 906 ) ) === $when, 'An acknowledged native cleanup timer is retained without duplication or postponement.' );
+		wp_unschedule_hook( MediaPipeline::CLEANUP_HOOK );
+		$pipeline->cleanup_discover();
+		skye_media_check( wp_next_scheduled( MediaPipeline::CLEANUP_HOOK, array( 906 ) ) !== false, 'A subsequently lost cleanup event is rediscovered from durable ownership alone.' );
+		$pipeline->cleanup( 906 );
+		skye_media_check( count( skye_media_test_outputs( 906 ) ) === 1, 'Recovered cleanup still honors the full retirement interval.' );
+		$GLOBALS['skye_media_clock'] = time() + MediaStore::RETENTION + 2;
+		$pipeline->cleanup( 906 );
+		unset( $GLOBALS['skye_media_clock'] );
+		skye_media_check( skye_media_test_outputs( 906 ) === array(), 'The recovered ordinary cleanup later removes the expired owned sidecar.' );
+		skye_media_test_sources_unchanged( $hashes );
+
+		skye_media_test_reset();
+		foreach ( range( 9100, 9120 ) as $id ) {
+			$metadata = skye_media_test_attachment( $id, 'image/jpeg', 0 );
+			$metadata['skye_webp'] = skye_media_test_manifest( array( 'metadata' => $metadata, 'attachment_id' => $id ) );
+			update_post_meta( $id, '_wp_attachment_metadata', $metadata );
+			$relative = dirname( $metadata['file'] ) . '/' . $metadata['skye_webp']['full']['file'];
+			update_post_meta( $id, MediaStore::FILES_KEY, array( $relative => 0 ) );
+		}
+		$files = get_post_meta( 9100, MediaStore::FILES_KEY, true );
+		$files['2026/11/old-skye-native-9100-v1-0123456789ab.jpg'] = 0;
+		update_post_meta( 9100, MediaStore::FILES_KEY, $files );
+		update_post_meta( 9101, MediaStore::FILES_KEY, 'unproven inventory' );
+		foreach ( array( 9102, 9103 ) as $id ) {
+			$metadata = wp_get_attachment_metadata( $id, true );
+			$entry = $metadata['skye_webp']['full'];
+			unset( $metadata['skye_webp'] );
+			update_post_meta( $id, '_wp_attachment_metadata', $metadata );
+			if ( 9102 === $id ) {
+				update_post_meta( $id, MediaStore::PROGRESS_KEY, array( 'entries' => array( 'full' => $entry ) ) );
+			} else {
+				update_post_meta( $id, '_wp_attachment_backup_sizes', array( 'full-orig' => $entry ) );
+			}
+		}
+		$before = count( $wpdb->queries );
+		$GLOBALS['skye_media_frontend'] = true;
+		$pipeline->cleanup_discover();
+		unset( $GLOBALS['skye_media_frontend'] );
+		$queries = array_slice( $wpdb->queries, $before );
+		$reads = 0;
+		foreach ( $queries as $query ) {
+			$reads += str_contains( $query, "meta_key = '_wp_attachment_metadata'" ) ? 1 : 0;
+		}
+		skye_media_check( (int) get_option( MediaPipeline::CLEANUP_STATE_OPTION ) === 9119 && $reads === 20, 'One recovery pass reads exactly twenty inventories and persists its keyset cursor.' );
+		skye_media_check( skye_media_test_events( MediaPipeline::CLEANUP_HOOK ) === array(), 'Published, resumable, native and backup files plus corrupt unproven inventory never create redundant cleanup timers.' );
+		wp_unschedule_hook( MediaPipeline::CLEANUP_DISCOVER_HOOK );
+		$pipeline->cleanup_discover();
+		skye_media_check( (int) get_option( MediaPipeline::CLEANUP_STATE_OPTION ) === 0 && skye_media_test_events( MediaPipeline::CLEANUP_DISCOVER_HOOK ) === array(), 'The final partial batch resets for a future hourly cycle without an endless follow-up loop.' );
+		$wpdb->fail_inventory_read = true;
+		$pipeline->cleanup_discover();
+		skye_media_check( ! $wpdb->fail_inventory_read && (int) get_option( MediaPipeline::CLEANUP_STATE_OPTION ) === 0 && wp_next_scheduled( MediaPipeline::CLEANUP_DISCOVER_HOOK ) !== false, 'A genuine inventory read error retries before acknowledging that ID.' );
+		$wpdb->fail_cleanup_scan_write = true;
+		$pipeline->cleanup_discover();
+		skye_media_check( ! $wpdb->fail_cleanup_scan_write && (int) get_option( MediaPipeline::CLEANUP_STATE_OPTION ) === 0, 'A failed cursor write leaves the previous safe checkpoint available for repetition.' );
+		$pipeline->cleanup_discover();
+		skye_media_check( (int) get_option( MediaPipeline::CLEANUP_STATE_OPTION ) === 9119 && skye_media_test_events( MediaPipeline::CLEANUP_HOOK ) === array(), 'Repeating acknowledged active inventories recovers cursor persistence without adding cleanup work.' );
+		$pipeline->stop();
+		skye_media_check( wp_next_scheduled( MediaPipeline::CLEANUP_DISCOVER_HOOK ) === false, 'Theme shutdown also removes the metadata-only recovery dispatcher.' );
 	}
 
 	/**
@@ -3006,6 +3131,9 @@ namespace {
 	$before_checks = $checks;
 	skye_media_test_scheduler( $pipeline );
 	$groups['native_scheduler'] = $checks - $before_checks;
+	$before_checks = $checks;
+	skye_media_test_cleanup_recovery( $pipeline );
+	$groups['cleanup_recovery'] = $checks - $before_checks;
 	$before_checks = $checks;
 	skye_media_test_policy( $pipeline );
 	$groups['policy_disable_resume'] = $checks - $before_checks;
