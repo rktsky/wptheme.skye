@@ -2876,6 +2876,41 @@ namespace {
 	}
 
 	/**
+	 * Observe completed native mutations without manually clearing presentation.
+	 *
+	 * Positive and negative cached results must follow direct Core APIs in the
+	 * same request, including add/delete and attached-file pointer changes.
+	 *
+	 * @return void
+	 * @since 3.0.0
+	 */
+	function skye_media_test_presentation_invalidation() {
+		$snapshot = skye_media_test_snapshot( 904, 'image/png', 0 );
+		skye_media_check( WebpGenerator::process( 904, $snapshot['revision'], 3, 6 )['status'] === 'complete', 'Cache invalidation begins with a real published native alternative.' );
+		MediaStore::release();
+		$saved = wp_get_attachment_metadata( 904, true );
+		skye_media_check( is_array( Images::webp_source( 904 ) ), 'The positive presentation result is warm before direct mutation.' );
+		$changed = $saved;
+		unset( $changed['skye_webp'] );
+		update_post_meta( 904, '_wp_attachment_metadata', $changed );
+		skye_media_check( Images::webp_source( 904 ) === false, 'A completed direct metadata update invalidates the previous positive result.' );
+		update_post_meta( 904, '_wp_attachment_metadata', $saved );
+		skye_media_check( is_array( Images::webp_source( 904 ) ), 'A direct metadata update also invalidates a previous negative result.' );
+		delete_post_meta( 904, '_wp_attachment_metadata' );
+		skye_media_check( Images::webp_source( 904 ) === false, 'Deleting native metadata cannot reuse a cached alternative.' );
+		add_post_meta( 904, '_wp_attachment_metadata', $saved, true );
+		skye_media_check( is_array( Images::webp_source( 904 ) ), 'Adding native metadata invalidates a cached missing result.' );
+		update_post_meta( 904, '_wp_attached_file', '2026/11/unknown-cache-fixture.png' );
+		skye_media_check( Images::webp_source( 904 ) === false, 'Changing the native file pointer cannot reuse the old source URL.' );
+		update_post_meta( 904, '_wp_attached_file', $saved['file'] );
+		skye_media_check( is_array( Images::webp_source( 904 ) ), 'Restoring the native file pointer makes the valid alternative visible again.' );
+		add_filter( 'wp_get_attachment_image_src', '__return_false' );
+		do_action( 'delete_attachment', 904, get_post( 904 ) );
+		skye_media_check( Images::webp_source( 904 ) === false, 'The native deletion boundary discards a cached source before subsequent image selection.' );
+		remove_filter( 'wp_get_attachment_image_src', '__return_false' );
+	}
+
+	/**
 	 * Inject an unverified native srcset candidate at Core's public output boundary.
 	 *
 	 * @param array $sources Core-calculated width candidates.
@@ -2980,6 +3015,9 @@ namespace {
 	$before_checks = $checks;
 	skye_media_test_retirement_failure();
 	$groups['native_retirement_failure'] = $checks - $before_checks;
+	$before_checks = $checks;
+	skye_media_test_presentation_invalidation();
+	$groups['presentation_invalidation'] = $checks - $before_checks;
 	$before_checks = $checks;
 	skye_media_test_presentation( $images );
 	$groups['presentation_fallback'] = $checks - $before_checks;

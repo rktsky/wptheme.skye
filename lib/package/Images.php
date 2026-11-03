@@ -33,6 +33,30 @@ class Images {
 		add_action( 'init', array( $this, 'images' ) );
 		add_filter( 'wp_get_attachment_image', array( $this, 'picture' ), 10, 5 );
 		add_filter( 'wp_update_attachment_metadata', array( $this, 'invalidate_webp' ), 10, 2 );
+		foreach ( array( 'added_post_meta', 'updated_post_meta', 'deleted_post_meta' ) as $hook ) {
+			add_action( $hook, array( $this, 'metadata_changed' ), 10, 4 );
+		}
+		add_action( 'delete_attachment', array( __CLASS__, 'reset_webp_cache' ), 10, 0 );
+	}
+
+	/**
+	 * Invalidate presentation after native metadata or file-pointer mutations.
+	 *
+	 * Direct metadata APIs do not pass through wp_update_attachment_metadata().
+	 * Their completed hooks must also invalidate positive and negative results
+	 * so another render in the same request observes the new native state.
+	 *
+	 * @param int|int[] $meta_ids Changed native metadata row IDs.
+	 * @param int $attachment_id Native object whose metadata changed.
+	 * @param string $key Changed metadata key.
+	 * @param mixed $value Native stored or deleted value.
+	 * @return void
+	 * @since 3.0.0
+	 */
+	public function metadata_changed( $meta_ids, $attachment_id, $key, $value ) {
+		if ( in_array( $key, array( '_wp_attachment_metadata', '_wp_attached_file' ), true ) ) {
+			self::reset_webp_cache();
+		}
 	}
 
 	/**
