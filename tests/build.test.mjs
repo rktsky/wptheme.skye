@@ -46,12 +46,21 @@ test('clean locked assets, failed source and source-watch recovery preserve immu
 	const fixture = await fs.mkdtemp(path.join(os.tmpdir(), 'skye-build-test-'));
 	let watcher;
 	try {
-		for (const name of ['assets', 'components', 'tools/build', 'node_modules']) {
+		for (const name of ['assets', 'components', 'lib', 'tools/build', 'node_modules']) {
 			await fs.cp(path.join(root, name), path.join(fixture, name), { recursive: true });
 		}
 		await fs.copyFile(path.join(root, 'base.php'), path.join(fixture, 'base.php'));
+		const initialConfigFile = path.join(fixture, 'assets/manifest.json');
+		const initialConfig = JSON.parse(await fs.readFile(initialConfigFile, 'utf8'));
+		initialConfig.performance.icons = ['solid/arrow-right'];
+		await fs.writeFile(initialConfigFile, JSON.stringify(initialConfig));
 		const manifest = await build(fixture);
 		assert.equal(manifest._performance.version, 1);
+		assert.equal(manifest._licenses.length, 2);
+		assert.ok(manifest._performance.icons['solid/arrow-right'].paths.length > 0);
+		for (const license of manifest._licenses) assert.ok((await fs.stat(path.join(fixture, 'dist', license))).size > 0);
+		assert.ok(!Object.keys(manifest).some(name => name.includes('.gitkeep') || name.includes('.DS_Store')));
+		assert.ok(manifest._performance.critical.sources.every(source => /^[a-f0-9]{64}$/.test(source.sha256)));
 		assert.match(manifest._performance.critical.build_hash, /^[a-f0-9]{64}$/);
 		assert.ok((await fs.stat(path.join(fixture,'dist',manifest['main.js']))).size > 0);
 		assert.ok((await fs.stat(path.join(fixture,'dist',manifest['main-mobile.css']))).size < (await fs.stat(path.join(fixture,'dist',manifest['main.css']))).size);
@@ -75,6 +84,9 @@ test('clean locked assets, failed source and source-watch recovery preserve immu
 		const header = path.join(fixture,'components/header/build-test.php');
 		await fs.writeFile(header, '<?php /** Build discovery fixture. */ ?><div class="skye-new-header-state"></div>');
 		await until(async () => JSON.parse(await fs.readFile(path.join(fixture,'dist/assets.json'),'utf8'))._performance.critical.classes.includes('skye-new-header-state'));
+		const firstHash = JSON.parse(await fs.readFile(path.join(fixture,'dist/assets.json'),'utf8'))._performance.critical.build_hash;
+		await fs.appendFile(header, '\n<?php /* A behavior-relevant source change need not introduce a new class. */ ?>');
+		await until(async () => JSON.parse(await fs.readFile(path.join(fixture,'dist/assets.json'),'utf8'))._performance.critical.build_hash !== firstHash);
 		await watcher.close();
 		watcher = null;
 		await assert.rejects(fs.stat(path.join(fixture,'.skye-build.lock')), { code:'ENOENT' });

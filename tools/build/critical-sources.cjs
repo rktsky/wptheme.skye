@@ -10,6 +10,7 @@
 
 var fs = require('fs');
 var path = require('path');
+var crypto = require('node:crypto');
 var DYNAMIC = '__SKYE_DYNAMIC_CLASS__';
 
 /**
@@ -144,6 +145,7 @@ function readConfiguration(configuration, root) {
 	var theme = fs.realpathSync(root);
 	var visited = new Set();
 	var sources = [];
+	var fingerprints = [];
 	/**
 	 * Read a single source or recursively inspect a configured PHP directory.
 	 *
@@ -173,7 +175,9 @@ function readConfiguration(configuration, root) {
 		if (fs.statSync(resolved).isDirectory()) {
 			fs.readdirSync(resolved).sort().forEach(readChild);
 		} else if (/\.php$/i.test(resolved)) {
-			sources.push(fs.readFileSync(resolved, 'utf8'));
+			var source = fs.readFileSync(resolved, 'utf8');
+			sources.push(source);
+			fingerprints.push({ path: path.relative(theme, resolved).split(path.sep).join('/'), sha256: crypto.createHash('sha256').update(source).digest('hex') });
 		}
 	}
 	/**
@@ -184,13 +188,13 @@ function readConfiguration(configuration, root) {
 	 * @since 2026-11-02
 	 */
 	function readRelative(relative) {
-		if (typeof relative !== 'string' || !relative || path.isAbsolute(relative)) {
+		if (typeof relative !== 'string' || !relative || path.isAbsolute(relative) || relative.split(/[\\/]/).includes('..')) {
 			throw new TypeError('Critical source paths must be relative theme paths.');
 		}
 		readSource(path.resolve(theme, relative));
 	}
 	configuration.source_paths.forEach(readRelative);
-	return configurationFromSources(configuration, sources);
+	return Object.assign(configurationFromSources(configuration, sources), { source_fingerprints: fingerprints });
 }
 
 /**

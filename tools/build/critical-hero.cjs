@@ -2,7 +2,7 @@
  * Derive optional first-phase header styles from the complete prefixed CSS.
  *
  * This build-only asset supplements the unchanged full/mobile stylesheets. It is
- * suitable only for the explicitly supported full-height image header; runtime
+ * eligible only for a project-verified first-viewport layout; runtime
  * code must check its expanded byte budget and retain the complete CSS fallback.
  *
  * @since 2026-11-02

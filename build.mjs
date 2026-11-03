@@ -35,6 +35,7 @@ async function files(root, relative, visited = new Set()) {
 	if (!(await fs.stat(resolved)).isDirectory()) return [resolved];
 	const result = [];
 	for (const entry of (await fs.readdir(resolved)).sort()) {
+		if (entry.startsWith('.')) continue;
 		result.push(...await files(root, path.relative(root, path.join(resolved, entry)), visited));
 	}
 	return result;
@@ -147,15 +148,17 @@ export async function build(root = defaultRoot) {
 			}
 			add(name, 'scripts', contents);
 		}
+		manifest._licenses = [];
 		for (const [provider, filename] of [['bootstrap', 'node_modules/bootstrap/LICENSE'], ['fontawesome', 'node_modules/@fortawesome/fontawesome-free/LICENSE.txt']]) {
 			const license = await fs.readFile(await inside(root, filename));
-			outputs.set(`licenses/${provider}-${hash(license).slice(0, 16)}.txt`, license);
+			const target = `licenses/${provider}-${hash(license).slice(0, 16)}.txt`;
+			outputs.set(target, license); manifest._licenses.push(target);
 		}
 		for (const font of config.performance.fonts) {
 			if (!font || typeof font.file !== 'string' || !/^fonts\/[a-zA-Z0-9_./-]+\.woff2$/.test(font.file) || !manifest[font.file]) throw new Error('Configured preload font is not a published own WOFF2 file.');
 		}
 		manifest._performance = { version: 1, mobileBreakpoint: config.performance.mobileBreakpoint,
-			critical: { id: critical.id, build_hash: hash(JSON.stringify(critical) + manifest['main.css']), sources: critical.source_paths, classes: critical.classes, css: manifest['main-critical.css'] },
+			critical: { id: critical.id, build_hash: hash(JSON.stringify(critical) + manifest['main.css']), sources: critical.source_fingerprints, classes: critical.classes, css: manifest['main-critical.css'] },
 			icons: await iconRecords(root, config.performance), fonts: config.performance.fonts };
 		for (const [relative, contents] of outputs) {
 			const target = path.join(staging, relative);
@@ -197,7 +200,7 @@ export async function watchBuild(root = defaultRoot) {
 		running = true;
 		while (queued) {
 			queued = false;
-			try { const manifest = await build(root); console.log(`Built ${Object.keys(manifest).length - 1} assets.`); }
+			try { const manifest = await build(root); console.log(`Built ${Object.values(manifest).filter(value => typeof value === 'string').length + (manifest._licenses || []).length} assets.`); }
 			catch (error) { console.error(error.message); }
 		}
 		running = false;
@@ -216,6 +219,6 @@ export async function watchBuild(root = defaultRoot) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
 	try {
 		if (process.argv.includes('--watch')) await watchBuild();
-		else { const manifest = await build(); console.log(`Built ${Object.keys(manifest).length - 1} assets atomically.`); }
+		else { const manifest = await build(); console.log(`Built ${Object.values(manifest).filter(value => typeof value === 'string').length + (manifest._licenses || []).length} assets atomically.`); }
 	} catch (error) { console.error(error.message); process.exitCode = 1; }
 }

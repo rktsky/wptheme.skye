@@ -21,25 +21,39 @@
         "collapse",
         "collapsed",
         "collapsing",
-        "show",
+        "current-menu-ancestor",
+        "current-menu-item",
+        "current-menu-parent",
+        "menu",
+        "menu-item",
+        "nav",
+        "nav-open",
         "screen-reader-text",
-        "visually-hidden",
-        "visually-hidden-focusable",
+        "show",
         "skip-link",
-        "nav-open"
+        "skye-menu-parent",
+        "skye-menu-toggle",
+        "submenu",
+        "visually-hidden",
+        "visually-hidden-focusable"
       ],
       "prefixes": [
         "navbar",
         "nav-",
-        "dropdown",
         "brand",
-        "page-header"
+        "page-header",
+        "menu",
+        "drawer",
+        "submenu"
       ],
       "source_paths": [
         "base.php",
         "components/header/",
         "components/navigation/",
-        "components/pageheader/"
+        "components/pageheader/",
+        "lib/presentation.php",
+        "lib/assets.php",
+        "lib/setup.php"
       ]
     },
     "icons": [],
