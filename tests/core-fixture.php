@@ -29,8 +29,12 @@ class CoreFixture {
 	public static $id = 7;
 	/** @var string Stored page template slug. */
 	public static $template = '';
+	/** @var array Native selectable template eligibility supplied by the fixture. */
+	public static $selectable = array( 'templates/pagebuilder.php' => 'Page Builder', 'templates/redirectchild.php' => 'First Child' );
 	/** @var string|false Current post type. */
 	public static $type = 'post';
+	/** @var array Native query variable boundary. */
+	public static $query = array();
 	/** @var mixed Optional primary-term provider result. */
 	public static $primary = false;
 
@@ -69,6 +73,14 @@ class CoreFixture {
 			case 'get_the_ID':
 			case 'get_queried_object_id':
 				return self::$id;
+			case 'wp_get_theme':
+				return new CoreTheme();
+			case 'get_post':
+				$post = new WP_Post();
+				$post->ID = $args[0];
+				return $post;
+			case 'get_query_var':
+				return self::$query[$args[0]] ?? '';
 			case 'get_post_type':
 				return self::$type;
 			case 'get_page_template_slug':
@@ -1226,5 +1238,64 @@ function get_term( ...$args ) {
  * @return mixed Controlled native term response.
  */
 function has_term( ...$args ) {
+	return CoreFixture::call( __FUNCTION__, $args );
+}
+
+/** Native theme eligibility boundary; production still decides the routing. */
+class CoreTheme {
+	/**
+	 * Supply selectable template eligibility without scanning another code tree.
+	 *
+	 * @since 3.0.0
+	 * @param WP_Post|null $post Native record used by the real template API.
+	 * @param string $post_type Native fallback type.
+	 * @return string[] Explicit registered template-name map.
+	 */
+	public function get_page_templates( $post = null, $post_type = 'page' ) {
+		return CoreFixture::$selectable;
+	}
+}
+
+/**
+ * Supply the isolated native wp_get_theme boundary to actual routing code.
+ *
+ * @since 3.0.0
+ * @param mixed ...$args Actual native routing arguments.
+ * @return mixed Controlled native routing response.
+ */
+function wp_get_theme( ...$args ) {
+	return CoreFixture::call( __FUNCTION__, $args );
+}
+
+/**
+ * Supply the isolated native get_post boundary to actual routing code.
+ *
+ * @since 3.0.0
+ * @param mixed ...$args Actual native routing arguments.
+ * @return mixed Controlled native routing response.
+ */
+function get_post( ...$args ) {
+	return CoreFixture::call( __FUNCTION__, $args );
+}
+
+/**
+ * Supply the isolated native is_post_type_archive boundary to actual query routing.
+ *
+ * @since 3.0.0
+ * @param mixed ...$args Actual native query arguments.
+ * @return mixed Controlled native query response.
+ */
+function is_post_type_archive( ...$args ) {
+	return CoreFixture::call( __FUNCTION__, $args );
+}
+
+/**
+ * Supply the isolated native get_query_var boundary to actual query routing.
+ *
+ * @since 3.0.0
+ * @param mixed ...$args Actual native query arguments.
+ * @return mixed Controlled native query response.
+ */
+function get_query_var( ...$args ) {
 	return CoreFixture::call( __FUNCTION__, $args );
 }

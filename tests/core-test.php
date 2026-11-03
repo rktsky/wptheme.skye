@@ -222,6 +222,30 @@ try {
 	core_check( CoreFixture::$theme . '/templates/pagebuilder.php' === ( new Rocketsky\Skye\Packages\Templates() )->template(), 'Selectable pagebuilder path resolves its actual template.' );
 	CoreFixture::$template = '../../outside.php';
 	core_check( CoreFixture::$theme . '/views/page.php' === ( new Rocketsky\Skye\Packages\Templates() )->template(), 'Malformed stored template slug falls back locally.' );
+	foreach ( array( 'base.php', 'index.php', 'functions.php', 'lib/package/init.php' ) as $entrypoint ) {
+		CoreFixture::$template = $entrypoint;
+		core_check( CoreFixture::$theme . '/views/page.php' === ( new Rocketsky\Skye\Packages\Templates() )->template(), 'Unregistered stored entrypoint cannot recursively include ' . $entrypoint . '.' );
+	}
+	mkdir( CoreFixture::$child . '/templates', 0700, true );
+	file_put_contents( CoreFixture::$child . '/templates/book.php', '<?php /** Template fixture; no native data access. */' );
+	CoreFixture::$selectable['templates/book.php'] = 'Book';
+	CoreFixture::$flags = array( 'is_singular' => true );
+	CoreFixture::$type = 'book';
+	CoreFixture::$template = 'templates/book.php';
+	core_check( CoreFixture::$child . '/templates/book.php' === ( new Rocketsky\Skye\Packages\Templates() )->template(), 'A registered custom singular template retains its child-theme override.' );
+	CoreFixture::$flags = array( 'is_page' => true, 'is_singular' => true );
+	CoreFixture::$type = 'page';
+	CoreFixture::$flags = array( 'is_archive' => true );
+	CoreFixture::$type = 'book';
+	$post_type_reads = core_calls( 'get_post_type' );
+	core_check( CoreFixture::$theme . '/views/archive.php' === ( new Rocketsky\Skye\Packages\Templates() )->template() && $post_type_reads === core_calls( 'get_post_type' ), 'Term/user archive identity is not misread as a post with the same numeric ID.' );
+	mkdir( CoreFixture::$child . '/views/book', 0700, true );
+	file_put_contents( CoreFixture::$child . '/views/book/archive.php', '<?php /** Native post-type archive override fixture. */' );
+	CoreFixture::$flags = array( 'is_archive' => true, 'is_post_type_archive' => true );
+	CoreFixture::$query['post_type'] = 'book';
+	core_check( CoreFixture::$child . '/views/book/archive.php' === ( new Rocketsky\Skye\Packages\Templates() )->template(), 'Actual post-type archives retain explicit type-specific child views.' );
+	CoreFixture::$flags = array( 'is_page' => true, 'is_singular' => true );
+	CoreFixture::$type = 'page';
 	CoreFixture::$template = '';
 	CoreFixture::$denied = array( 7 );
 	$before = core_calls( 'get_field' );
@@ -283,13 +307,19 @@ try {
 	core_check( 0 === core_calls( 'set_transient' ), 'Native rendering does not create persistent presentation transients.' );
 	echo 'Core regression passed (' . $checks . ' checks; ACF ' . ( defined( 'SKYE_CORE_WITHOUT_ACF' ) ? 'absent' : 'present' ) . ").\n";
 } finally {
-	foreach ( array( '/components/probe/probe.php', '/components/probe/fail.php' ) as $file ) {
+	foreach ( array( '/components/probe/probe.php', '/components/probe/fail.php', '/templates/book.php', '/views/book/archive.php' ) as $file ) {
 		if ( is_file( CoreFixture::$child . $file ) ) {
 			unlink( CoreFixture::$child . $file );
 		}
 	}
 	rmdir( CoreFixture::$child . '/components/probe' );
 	rmdir( CoreFixture::$child . '/components' );
+	if ( is_dir( CoreFixture::$child . '/views/book' ) ) {
+		rmdir( CoreFixture::$child . '/views/book' );
+	}
 	rmdir( CoreFixture::$child . '/views' );
+	if ( is_dir( CoreFixture::$child . '/templates' ) ) {
+		rmdir( CoreFixture::$child . '/templates' );
+	}
 	rmdir( CoreFixture::$child );
 }

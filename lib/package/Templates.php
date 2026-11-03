@@ -13,13 +13,18 @@ class Templates {
 	 * Capture query identity after WordPress has resolved the main request.
 	 *
 	 * No secondary content query or global post replacement is needed to route it.
+	 * Archive term/user identities must never be interpreted as post identities.
 	 *
 	 * @since 2021-02-28
 	 * @return void
 	 */
 	public function __construct() {
-		$this->ID = get_queried_object_id();
-		$this->type = get_post_type( $this->ID );
+		$this->ID = is_singular() ? get_queried_object_id() : 0;
+		$this->type = $this->ID ? get_post_type( $this->ID ) : false;
+		if ( is_post_type_archive() ) {
+			$type = get_query_var( 'post_type' );
+			$this->type = is_string( $type ) ? $type : false;
+		}
 	}
 
 	/**
@@ -42,13 +47,36 @@ class Templates {
 			return $this->find( $this->type && ! in_array( $this->type, array( 'post', 'page' ), true ) ? $this->type . '/archive' : 'archive', 'archive' );
 		}
 		if ( is_page() ) {
-			$assigned = get_page_template_slug( $this->ID );
+			$assigned = $this->assigned_template();
 			return $this->find( $assigned ?: 'page', 'page' );
 		}
 		if ( is_singular() ) {
+			$assigned = $this->assigned_template();
+			if ( $assigned ) {
+				return $this->find( $assigned, 'single' );
+			}
 			return $this->find( $this->type && ! in_array( $this->type, array( 'post', 'page' ), true ) ? $this->type . '/single' : 'single', 'single' );
 		}
 		return $this->find( 'default' );
+	}
+
+	/**
+	 * Accept only templates that WordPress exposes for the actual singular record.
+	 *
+	 * A corrupted stored slug must not include bootstrap/library entrypoints or
+	 * recursively reload base.php. The native theme API also preserves supported
+	 * custom-post templates and plugin-filtered template eligibility.
+	 *
+	 * @since 3.0.0
+	 * @return string|false Registered selectable template slug, or false.
+	 */
+	private function assigned_template() {
+		$assigned = get_page_template_slug( $this->ID );
+		if ( ! is_string( $assigned ) || '' === $assigned ) {
+			return false;
+		}
+		$templates = wp_get_theme()->get_page_templates( get_post( $this->ID ), $this->type ?: 'page' );
+		return isset( $templates[$assigned] ) ? $assigned : false;
 	}
 
 	/**
