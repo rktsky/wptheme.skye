@@ -1,17 +1,11 @@
 @use "general/foundation";
-@use "general/fonts";
 @use "general/colors";
 @use "general/global";
 @use "general/typography";
-@use "components/buttons";
 @use "components/comments";
 @use "components/forms";
 @use "components/hamburger";
 @use "components/wp-classes";
 @use "components/icons";
 @use "layouts/404" as not-found;
-@use "layouts/footer";
-@use "layouts/header";
-@use "layouts/pages";
-@use "layouts/posts";
 @use "layouts/tinymce";
