@@ -1,0 +1,13 @@
+@use "variables" as v;
+@forward "variables";
+// Bootstrap 6 exposes configuration through modules and CSS tokens.
+@use "bootstrap/scss/bootstrap" with (
+	$grid-columns: v.$grid-columns,
+	$spacer: v.$spacer,
+	$spacers: v.$spacers,
+	$root-tokens: (
+		--body-font-family: #{v.$font-family-base},
+		--body-font-size: #{v.$font-size-base},
+		--heading-font-family: #{v.$headings-font-family}
+	)
+);

@@ -1,6 +1,8 @@
-h1 { line-height: $h1-line-height; color: var(--color-text); }
-h2 { line-height: $h2-line-height; color: var(--color-text); }
-h3 { line-height: $h3-line-height; color: var(--color-text); }
-h4 { line-height: $h4-line-height; color: var(--color-text); }
-h5 { line-height: $h5-line-height; color: var(--color-text); }
-h6 { line-height: $h6-line-height; color: var(--color-text); }
+@use "variables" as v;
+h1, h2, h3, h4, h5, h6 { font-family: v.$headings-font-family; }
+h1 { line-height: v.$h1-line-height; }
+h2 { line-height: v.$h2-line-height; }
+h3 { line-height: v.$h3-line-height; }
+h4 { line-height: v.$h4-line-height; }
+h5 { line-height: v.$h5-line-height; }
+h6 { line-height: v.$h6-line-height; }

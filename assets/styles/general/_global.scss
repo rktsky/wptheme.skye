@@ -1,1 +1,9 @@
-body { @include font-smoothing(on); }
+@use "variables" as v;
+body {
+	font-family: v.$font-family-base;
+}
+img { max-width: 100%; height: auto; }
+.main { min-height: 50vh; }
+.skip-link { position: absolute; z-index: 2000; }
+body:has(.skye-no-script-navigation) .skye-js-navigation { display: none; }
+.skye-no-script-navigation ul { list-style: none; padding-inline-start: 1rem; }
