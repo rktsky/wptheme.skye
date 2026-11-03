@@ -1,0 +1,80 @@
+# Tatsächlicher Prüfnachweis
+
+Stand: 03.11.2026, Skye 3.0.0 auf dem Arbeitsbranch `refactor/skye-3`. Dieser Nachweis betrifft das integrierte Basistheme, nicht eine produktive Volksgarage-Installation. Logik, Styling und reine Formatierung sind getrennt in Git nachvollziehbar; [Herkunft](backports.md), [Migration](migration-3.md) und [Freigabe](implementation-scope.md) beschreiben den Umfang.
+
+## Lokale Umgebung
+
+macOS 14.8.3 (23J220), Apple Silicon/arm64; PHP 8.3.36 mit GD/WebP, PDO SQLite, DOM, mbstring und Tokenizer; Node 24.22.2 und npm 12.2.1. Node wurde aus dem offiziellen Distributionsverzeichnis bezogen und gegen dessen SHA-256-Liste geprüft. Produktions-PHP verwendet keine Node-/Composer-Pakete. Die separaten Qualitätswerkzeuge sind mit Composer 2.11.1 installiert und gelockt: PHP CS Fixer 3.95.27 und PHP Parser 5.9.0.
+
+Die nativen Core-Prüfungen verwenden unveränderte WordPress-Quellen 6.8.12 und 7.1.4. Vollständige Wegwerf-Installationen verwenden zusätzlich das unveränderte SQLite-Plugin 3.1.3 und phasenweise das originale Classic-Editor-Plugin 1.7.0. Archivherkunft, Prüfsummen, Eigentumsgrenzen und Wiederholung sind in [Testinstallation](testing-setup.md) dokumentiert. Mail und externe HTTP-Transporte sind gesperrt; die Browser greifen nur auf den Loopbackserver zu. ACF PRO, Redis und produktive Zugangsdaten sind nicht installiert.
+
+## Ausgeführte Prüfungen
+
+| Bereich | Tatsächlicher Lauf | Ergebnis und Aussagegrenze |
+| --- | --- | --- |
+| Architektur und Dokumentation | PHP-Parser über 86 eigene PHP-Dateien; sieben positive/negative Checker-Fixtures | Null Befunde; erkennt die implementierten Architektur-/Tagregeln. Begründung und historische Genauigkeit wurden zusätzlich anhand Herkunft und Git geprüft; Tags allein beweisen diese nicht. |
+| Format und Syntax | PHP CS Fixer über 85 Dateien; PHP-Parser; 14 JS-Syntax-/LF- und 15 Sass/CSS-LF-Prüfungen | Null vorgeschlagene Formatänderungen. Die tatsächliche Sass-Grammatik wird durch den Produktionsbuild geprüft. Kein Umformatieren fremder oder erzeugter Dateien. |
+| Komponenten und Modelle | Echter Loader und echte Templates, je 91 Aussagen mit und ohne verfügbare ACF-API | Beide isolierten Pfade grün. Core-/ACF-API-Ausgänge sind hier begrenzte Gegenstellen; echte Core-Installation wird separat geprüft. ACF-Anwesenheit wird durch begrenzte Providergegenstellen dargestellt; das ersetzt keine echte ACF-PRO-Integration. |
+| Security | 41 Aussagen gegen die tatsächlichen Theme-Callbacks über die echte Core-Hookengine | Beide Core-Versionen grün; begrenzte Rechte-/Optionsgegenstellen prüfen verweigerte Saves, Classic-Switch-Suppression, Multisite-Optionsgrenzen, Favicon-Abwesenheit und gezielte Cacheinvalidierung nach nativen Optionsänderungen. Kein Penetrationstest oder vollständiger Plugin-Audit. |
+| Assets und Performance | 35 Asset-, 46 Strategie-, 51 Empty-Style-, 99 Formular- und 27 Critical-/Preload-Aussagen je Core-Version | Native Register, Parser, Abhängigkeiten und Serializer; unbekannte und beschädigte Verträge behalten ihren Fallback. Gravity Forms und Members werden an ihren begrenzten API-Grenzen geprüft, nicht als installierte Vollprodukte. |
+| Medien | 525 Aussagen je Core-Version gegen Produktionsklassen, tatsächlichen Komponentenloader, SQLite-Prädikate und echten GD/WebP-Encoder | Native Quellen bleiben erhalten; vollständige kleinere Alternativen, Fehler, CAS/Leases, Aufbewahrung, Cron und Wiederaufnahme geprüft. Der finale Lauf prüft auch verlorene Discovery-/Cleanup-Termine und native Cacheinvalidierung; Umfang und offene Hostingprüfung in [Medien](media.md). |
+| PHP-Gesamtlauf | Alle zehn ausdrücklich klassifizierten Programme, je in frischem Prozess | Auf PHP 8.3.36 mit Core 6.8.12 und 7.1.4 jeweils ohne fehlgeschlagenen Prozess. Keine dynamischen Skipfilter. |
+| Build, Watch, Browserloader und Export | Acht Node-Tests, darunter echte Kompilierung, Watch-Neuerkennung, absichtlicher Quellfehler und Wiederaufnahme, 70 Loader-Aussagen und vier Exportregressionen | Acht bestanden, null übersprungen. Letzter gültiger Build bleibt nach Fehler unverändert. Die Exportregression verwendet ein eigenes Wegwerf-Gitrepository. |
+| Native Installation | Beide vollständigen WordPress-Versionen, wiederholbares Setup, Themeaktivierung ohne ACF/Redis, danach originales Classic-Editor-Plugin mit konkurrierenden Präferenzen | Native Editor-/Widgetentscheidungen, sichere Manifeste/Pfade, unveränderte Plugin-Templates und keine öffentliche Datenmigration geprüft. Je sechs zusätzliche Aussagen prüfen den tatsächlichen nativen Footer-Widgetrenderer mit aktiver/leerer Sidebar ohne gespeicherte Widgetänderung. SQLite ist kein MySQL-/MariaDB-Nachweis. |
+| Direkter HTTP-Zugriff | Sechs Standalone-PHP-Prüfprogramme über einen separaten lokalen Server | Je HTTP 403; der normale Testrouter verweigert Entwicklungsdateien zusätzlich. Releaseexport entfernt Tests und Tools vollständig. |
+| Abhängigkeiten | Saubere Installation aus npm-Lockfile, npm-/Composer-Audit | Je null bekannte Sicherheitsmeldungen am Prüfdatum. Zeitgebundener Nachweis, keine Zusage über künftig unbekannte Lücken. |
+
+Der Formatter meldet beim Aufruf aus dem Theme-Root die fehlende dortige `composer.json`. Das Theme hat absichtlich keine Composer-Runtime; das Manifest liegt ausschliesslich unter `tools/coding-standards/`. Die aktivierten Regeln verändern Whitespace und Klammerstruktur, keine PHP-Sprachfeatures. Der Hinweis wird nicht als Testfehler oder als unterdrückter Fehler dargestellt.
+
+## Tatsächliche Browserläufe
+
+Echte Headless-Browser auf macOS, gesteuert durch die separat vorhandene Playwright-Laufzeit 1.62.1. Die Produktionsseite enthält diese Laufzeit nicht. Die normale Suite prüft zehn Routen bei 320, 390, 768 und 1440 CSS-Pixeln: Start, Seite, Unterseite, Beitrag, lange Inhalte, gespeicherte Blockinhalte, Passwortschutz, Suche mit/ohne Ergebnis und 404. Hinzu kommen native Navigation, Drawer-/Menütastatur, Fokus/Skip-Link, No-JS, Ressourcenfehler/-dubletten und verweigerte Entwicklungspfade.
+
+| Browser | Tatsächlich geprüft | Ergebnis |
+| --- | --- | --- |
+| Google Chrome 155.0.8059.40 | 40 Routen-/Viewportfälle; zusätzlich Touch-Emulation 390×844 und 844×390 | 196 registrierte Prüfpunkte bestanden. Touch-Emulation ist kein iPhone-/Android-Test. |
+| Playwright Firefox 153.0 | 40 Routen-/Viewportfälle, Tastatur und No-JS | 192 registrierte Prüfpunkte bestanden. Keine Firefox-Touch-Geräteabnahme. |
+
+Die Suite prüft horizontale Menüpositionen tatsächlich über ihre Geometrie. Dadurch wurde die Bootstrap-6-Kollision zwischen nativen WordPress-`menu-item`-LI-Klassen und gleichnamigen Bootstrap-Bedienelementen sichtbar und behoben. Ein ungetrennter 240-Zeichen-Inhalt überschritt bei 320 Pixeln vorher die Inhaltsbreite; der separate Stylingfix verhindert diesen Überlauf. Screenshots der vollständigen Standardansichten, nach Tastaturbedienung und ohne JavaScript wurden lokal erzeugt und die Standardansichten visuell geprüft. Die jetzt nativ ausgegebenen Footer-Widgets waren in den tatsächlichen Browseransichten sichtbar; leere Sidebars sind zusätzlich durch die native Site-Suite geprüft.
+
+Der zusätzliche positive Critical-Test verwendet eine ausdrücklich begrenzte synthetische Seite: kein beliebiger Bodyinhalt im ersten Viewport, Footer unterhalb davon, Systemfont. Bei 390 und 1440 Pixeln hält der Browser die vollständige CSS-Antwort bis nach `DOMContentLoaded` zurück. Chrome 155 und Firefox 153 bestanden je 31 Aussagen zu sichtbarer Geometrie/Typografie, einmaliger Übertragung, spätem Opt-out und No-JS. Die temporäre MU-Fixture wird nur in der eigenen lokalen Wegwerf-Site installiert, überschreibt nichts und wird im Abschlussblock entfernt. Der Screenshot vor CSS-Freigabe deaktiviert nur Playwrights Hilfswartezeit auf Fonts: Firefox wartet dabei auf die absichtlich gehaltene CSS-Antwort. Der Helper lässt dafür ausschliesslich den geprüften Systemfont-Vertrag ohne `@font-face`/`@import` zu und stellt die Prozesseinstellung wieder her; tatsächliche CSS-, Geometrie- und Typografieprüfungen bleiben aktiv. Dieser Test bestätigt keinen unbekannten Projekt-Viewport.
+
+Die zusätzlich für macOS 14 erhältliche eingefrorene Playwright-WebKit-Ausgabe liess sich mit dieser Laufzeit nicht verwenden: `Page.overrideSetting` verweigerte `PushAPIEnabled` bereits vor dem ersten Seitenaufruf. Normal- und Critical-Versuch sind deshalb keine bestandenen WebKit-Läufe. Die isolierte Fixture und eigenen Prozesse wurden danach entfernt; Safari-/iOS-Abnahme bleibt offen.
+
+## Reproduzieren und Protokolle
+
+Voraussetzungen und Installation der Prüflaufzeiten sind oben und in [Testinstallation](testing-setup.md) beschrieben. Nach dem gelockten Installieren der Qualitätswerkzeuge und Buildabhängigkeiten:
+
+```sh
+composer install --working-dir=tools/coding-standards --no-interaction --prefer-dist --no-scripts
+composer audit --working-dir=tools/coding-standards --no-interaction
+npm ci --ignore-scripts
+npm audit --audit-level=moderate
+npm run lint:js
+npm run lint:style
+php tools/coding-standards/check.php
+php tools/coding-standards/vendor/bin/php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
+npm run build
+node --test tests/build.test.mjs tests/critical-loader.test.cjs tests/release.test.mjs
+SKYE_WORDPRESS_CORE=/absoluter/pfad/wordpress php tools/testing/run.php
+```
+
+Die zweite Core-Version braucht einen eigenen expliziten Gesamtlauf. Die vollständig gestartete native Site zusätzlich mit `SKYE_SITE_ROOT=/absoluter/pfad/site/wordpress php tests/core-sidebar-native.php` sowie `tests/site-verify.php` vor und nach `--activate-classic-plugin` prüfen. Nach Start ihres lokalen Servers:
+
+```sh
+SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium node tests/browser.cjs
+SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium node tests/browser-critical.cjs
+```
+
+`SKYE_PLAYWRIGHT_MODULE` benennt die separate Playwright-Installation, `SKYE_BROWSER_EXECUTABLE` bei Bedarf die tatsächlich geprüfte Browserdatei. Firefox/WebKit werden ausdrücklich über `SKYE_BROWSER` gewählt. Keine parallelen Critical-Läufe in derselben Site: Die MU-Fixture wird exklusiv angelegt. Fehlende Voraussetzungen ergeben einen Fehler, keinen stillen Skip.
+
+Nicht eingecheckte lokale Rohprotokolle und Fixture-Daten liegen unter `.git/runtime/`: `php-tests/<lauf>/`, `browser-<engine>/result.json` samt Screenshots, `browser-critical-<engine>/result.json` und Setup-/Auditprotokolle. Sie enthalten lokale Installationspfade und gehören nicht ins öffentliche Theme. Die JSON-Ergebnisse nennen die tatsächlich verwendete Core-/PHP-/Browserversion; die Assertionzahl ist keine Prozentangabe zur Codeabdeckung. Der [Releaseexport](release.md) erfasst den sauberen Commit, Inventar und Nutzdatei-Digests in `release.json`; ein Export ist keine bereits erfolgte Veröffentlichung.
+
+## Offene Abnahmegrenzen
+
+- Die konfigurierte GitHub-Actions-Matrix wurde hier nicht auf GitHub ausgeführt: PHP 8.5 sowie aktuelle Linux-Engines mit Playwright 1.64.1 sind dadurch noch nicht als bestanden belegt.
+- Native Safari-Versionen auf macOS/iPhone/iPad, Edge auf Windows und Chrome auf physischen Android-Geräten stehen aus; ebenso vollständige Notebook-/Tablet-/Touch-, Zoom- und virtuelle-Tastatur-Abnahme. Playwright-WebKit ersetzt keinen dieser Nachweise.
+- MySQL-/InnoDB-Mehrprozessbetrieb, reales Hosting-Cron, Imagick, externer Redis-Provider und aktive ACF-PRO-/Gravity-Forms-/Members-Produkte müssen bei der jeweiligen Projektintegration geprüft werden. Die native SQLite-Site belegt keine produktive Serverkonfiguration.
+- Keine generischen Lighthouse-Scores oder prozentualen Ladezeiten werden behauptet. Rohgrössen stehen in [Performance](performance.md); Medienfixturewerte in [Medien](media.md). Eine unbekannte Route erhält ohne vollständigen geprüften Critical-Vertrag den nativen Fallback.
+
+Diese Grenzen werden nicht durch erfolgreich konfigurierte Workflows, schmale Desktopansichten oder frühere Volksgarage-Messungen ersetzt. Es wurden keine produktiven Inhalte, Kundendateien, Mails, Zahlungen oder externen Fachaktionen verändert.

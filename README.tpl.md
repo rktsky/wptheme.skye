@@ -1,26 +1,15 @@
-# wptheme.REPLACE
+# Projektname
 
-## Description:
+Abgeleitet von Skye 3, Ausgangscommit und Übernahmedatum hier festhalten.
 
-Dieses Theme wird für die Projekt Website REPLACE.com von REPLACE eingesetzt.
+## Betrieb
 
-## Version: dev
+Projekt-URL, WordPress-/PHP-Laufzeiten, optionale Plugins und Verantwortliche dokumentieren. ACF PRO und Redis separat installieren und aktualisieren; keine Zugangsdaten oder Lizenzen einchecken.
 
-## Person Responsible
+## Entwicklung
 
-REPLACE @REPLACE
+`npm ci`, `npm run build`, `npm run watch`; projektbezogene Konfiguration und erforderliche zusätzliche Befehle ergänzen. Skye-Standards und getrennte Logik-/Styling-Commits gelten weiter.
 
-## Contributors
+## Projektverträge und Nachweise
 
-* REPLACE @REPLACE
-
-## Functionality
-
-## Changelog
-
-### 0.1.0 2017-00-00
-
-* Layout: Example for layout work
-* Feature: Example for new features
-* Bugfix: Example for fixed bugs
-* General: Example for general activities like README or sth
+ACF-Komponenten, Bildgrössen, aktivierte Performance-Verträge, Medien-/Cronbetrieb, Migrationen, Prüfungen und offene Geräteabnahmen konkret beschreiben. Keine unverändert übernommenen Skye-Prüfergebnisse als Projektabnahme ausgeben.

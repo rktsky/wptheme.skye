@@ -6,6 +6,8 @@ Am 03.11.2026 hat der Projekteigentümer erklärt:
 
 Grundlage: Audit gegen Skye `4e4f2d8`, Portal `de041627` und abgeschlossene Website `6fecb117`. Die uncommitteten Website-Designexperimente sind keine Backportquelle.
 
+Die nachfolgende ausdrückliche Vorgabe des Projekteigentümers legt Bootstrap auf **6 Alpha** fest; umgesetzt wird `6.0.0-alpha.1` mit eigenen Migrationsprüfungen. Ein stiller Wechsel zurück auf V5 oder eine stabile V6 ist kein Teil dieser Freigabe.
+
 Der Umfang umfasst Standards/Dokumentation, Sicherheitskorrekturen, explizite Komponenten-/Datenverträge, funktionierende Standardansichten, zwingende klassische Bearbeitung, native Assetabhängigkeiten, reproduzierbaren Build, automatische allgemeine Mobile-/Critical-CSS-/Medienoptimierungen, gezielte Entfernung veralteter Paketkopien und Release-/Migrationsnachweise.
 
 Die frühere Einschränkung der Critical-/Mobile-CSS-Backports ist aufgehoben: Wiederverwendbare Build- und Auslieferungsmechanik gehört hinein; die konkreten Volksgarage-Inventare, Fonts, Glyphen und Geometrieannahmen nicht. Die Medienpipeline gehört zum Lieferumfang, ihre Aktivierung richtet sich nach den unterstützten Formaten und der Projektkonfiguration.

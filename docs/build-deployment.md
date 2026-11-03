@@ -2,7 +2,7 @@
 
 ## Laufzeiten und Installation
 
-Der Build ist auf Node 24 LTS (`>=24.15.0 <25`) und npm 12 festgelegt, mit `npm@12.2.1` als Paketmanager. Lokal geprüft: Node 24.22.1, npm 12.2.1. Produktions-PHP braucht weder Node noch npm, wenn die erzeugten Assets mit veröffentlicht werden.
+Der Build ist auf Node 24 LTS (`>=24.15.0 <25`) und npm 12 festgelegt, mit `npm@12.2.1` als Paketmanager. Lokal geprüft: Node 24.22.2, npm 12.2.1. Produktions-PHP braucht weder Node noch npm, wenn die erzeugten Assets mit veröffentlicht werden.
 
 ```sh
 npm ci
@@ -50,4 +50,4 @@ Der zusätzliche echte Browserlauf `tests/browser-critical.cjs` setzt die unter 
 SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium node tests/browser-critical.cjs
 ```
 
-`SKYE_PLAYWRIGHT_MODULE` kann auf die isolierte Playwright-Installation zeigen; `SKYE_BROWSER_EXECUTABLE` benennt bei Bedarf einen ausdrücklich verwendeten Browser. Standardmässig wird der jeweilige Playwright-Browser verwendet. Die Fixture wird ausschliesslich unter `.git/runtime/` in einer lokalen Umgebung vorübergehend installiert; bestehende Dateien werden nie überschrieben. Sie prüft einen inhaltsleeren, bewusst begrenzten ersten Viewport mit echter verzögerter CSS-Antwort, keinen beliebigen Projektinhalt. Ergebnisse und Ansichten stehen unter `.git/runtime/browser-critical-<engine>/`. Lokal tatsächlich ausgeführt: Chrome 155.0.8059.40 auf macOS, 390/1440 CSS-Pixel, 31 erfolgreiche Assertions einschliesslich No-JS und spätem Opt-out. Firefox/WebKit können mit derselben Umgebung gewählt werden; ihre Ausführung ist getrennt nachzuweisen.
+`SKYE_PLAYWRIGHT_MODULE` kann auf die isolierte Playwright-Installation zeigen; `SKYE_BROWSER_EXECUTABLE` benennt bei Bedarf einen ausdrücklich verwendeten Browser. Standardmässig wird der jeweilige Playwright-Browser verwendet. Die Fixture wird ausschliesslich unter `.git/runtime/` in einer lokalen Umgebung vorübergehend installiert; bestehende Dateien werden nie überschrieben. Sie prüft einen inhaltsleeren, bewusst begrenzten ersten Viewport mit echter verzögerter CSS-Antwort, keinen beliebigen Projektinhalt. Ergebnisse und Ansichten stehen unter `.git/runtime/browser-critical-<engine>/`. Lokal tatsächlich ausgeführt: Chrome 155.0.8059.40 und Firefox 153.0 auf macOS, je 390/1440 CSS-Pixel und 31 erfolgreiche Assertions einschliesslich No-JS und spätem Opt-out. Für die Aufnahme vor CSS-Freigabe umgeht der Test ausschliesslich Playwrights zusätzliche Font-Wartezeit unter einem geprüften Systemfont-Vertrag ohne `@font-face`/`@import`; Seiten- und Geometrieprüfungen bleiben aktiv. WebKit ist getrennt nachzuweisen; der lokal eingefrorene macOS-14-Driver scheiterte vor dem Seitenaufruf, siehe [Prüfungen](testing.md).
