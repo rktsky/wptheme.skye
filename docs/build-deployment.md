@@ -43,3 +43,11 @@ Offizielle Grundlagen, geprüft am 03.11.2026: [Bootstrap 6 Migration](https://g
 ## Tatsächliche Prüfung dieses Stands
 
 `tests/build.test.mjs` prüft echte Kompilierung, unveränderte letzte Veröffentlichung nach absichtlich fehlerhafter Quelle, Pfadverweigerung, Quellenneuerkennung im echten Watch sowie konservative Media-/Layer-/Critical-Ableitung. `tests/critical-loader.test.cjs` führt 70 Bereitschafts-/Fehler-/Doppelaufrufprüfungen gegen die tatsächlichen Browserprogramme in isolierten DOM-Gegenstellen aus. Browser-/Geräteabnahme wird getrennt im globalen Prüfnachweis dokumentiert; diese Programme sind keine echten Geräte.
+
+Der zusätzliche echte Browserlauf `tests/browser-critical.cjs` setzt die unter [testing-setup.md](testing-setup.md) erstellte isolierte Site, ihren laufenden Loopbackserver und die separat installierte Playwright-Testlaufzeit voraus:
+
+```sh
+SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium node tests/browser-critical.cjs
+```
+
+`SKYE_PLAYWRIGHT_MODULE` kann auf die isolierte Playwright-Installation zeigen; `SKYE_BROWSER_EXECUTABLE` benennt bei Bedarf einen ausdrücklich verwendeten Browser. Standardmässig wird der jeweilige Playwright-Browser verwendet. Die Fixture wird ausschliesslich unter `.git/runtime/` in einer lokalen Umgebung vorübergehend installiert; bestehende Dateien werden nie überschrieben. Sie prüft einen inhaltsleeren, bewusst begrenzten ersten Viewport mit echter verzögerter CSS-Antwort, keinen beliebigen Projektinhalt. Ergebnisse und Ansichten stehen unter `.git/runtime/browser-critical-<engine>/`. Lokal tatsächlich ausgeführt: Chrome 155.0.8059.40 auf macOS, 390/1440 CSS-Pixel, 31 erfolgreiche Assertions einschliesslich No-JS und spätem Opt-out. Firefox/WebKit können mit derselben Umgebung gewählt werden; ihre Ausführung ist getrennt nachzuweisen.

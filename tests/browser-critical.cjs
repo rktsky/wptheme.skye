@@ -1,0 +1,103 @@
+/** Check the actual positive critical path in a disposable loopback WordPress/browser fixture. */
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const playwright = require(process.env.SKYE_PLAYWRIGHT_MODULE || 'playwright');
+const root = path.resolve(__dirname, '..');
+const origin = process.env.SKYE_TEST_ORIGIN || 'http://127.0.0.1:8973';
+const site = fs.realpathSync(process.env.SKYE_SITE_ROOT || path.join(root, '.git/runtime/site/wordpress'));
+const target = path.join(site, 'wp-content/mu-plugins/skye-critical-browser.php');
+const source = fs.readFileSync(path.join(__dirname, 'critical-site-fixture.php'));
+const engine = process.env.SKYE_BROWSER || 'chromium';
+assert.ok(['chromium', 'firefox', 'webkit'].includes(engine), 'Use a known Playwright browser engine.');
+const output = path.join(root, '.git/runtime/browser-critical-' + engine);
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'dist/assets.json')));
+const fixture = JSON.parse(fs.readFileSync(path.join(root, '.git/runtime/site-fixture.json')));
+const fullSuffix = '/dist/' + manifest['main.css'];
+const mobileSuffix = '/dist/' + manifest['main-mobile.css'];
+const originURL = new URL(origin);
+assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(originURL.hostname), 'Only loopback browser fixtures are allowed.');
+assert.ok(site.startsWith(path.join(root, '.git/runtime') + path.sep), 'Only the disposable runtime site may receive this fixture.');
+assert.ok(!fs.existsSync(target), 'Never overwrite an existing MU plugin.');
+fs.mkdirSync(output, {recursive: true});
+
+async function run() {
+	fs.writeFileSync(target, source, {mode: 0o600, flag: 'wx'});
+	let browser;
+	const result = {engine, platform: process.platform, wordpress: fixture.wordpress, checks: 0, cases: []};
+	try {
+		const options = {headless: true};
+		if (process.env.SKYE_BROWSER_EXECUTABLE) options.executablePath = process.env.SKYE_BROWSER_EXECUTABLE;
+		browser = await playwright[engine].launch(options);
+		result.version = browser.version();
+		for (const width of [390, 1440]) {
+			const context = await browser.newContext({viewport: {width, height: 844}});
+			let release;
+			const held = new Promise(resolve => { release = resolve; });
+			const requests = [];
+			await context.route('**/*', async route => {
+				const url = route.request().url();
+				if (!url.startsWith(origin + '/')) return route.abort();
+				requests.push(url);
+				if (url.endsWith(fullSuffix)) await held;
+				return route.continue();
+			});
+			const page = await context.newPage();
+			const errors = [];
+			page.on('pageerror', error => errors.push(error.message));
+			try {
+				await page.goto(origin + '/?page_id=' + fixture.about + '&skye_critical_browser=positive', {waitUntil: 'domcontentloaded'});
+				assert.ok(await page.locator('[id="skye/css-critical-inline-css"]').count(), 'The positive page uses the actual generated critical bytes.');
+				assert.equal(await page.locator('link[data-skye-after-paint="1"]').count(), 1, 'Exactly one complete native style is pending.');
+				assert.ok(requests.some(url => url.endsWith(fullSuffix)), 'The complete native stylesheet request is in flight.');
+				const before = await page.evaluate(() => {
+					const heading = document.querySelector('h1');
+					const box = heading.getBoundingClientRect();
+					return {x:box.x, y:box.y, width:box.width, height:box.height, font:getComputedStyle(heading).fontSize, footer:document.querySelector('footer').getBoundingClientRect().top, viewport:innerHeight};
+				});
+				assert.ok(before.footer >= before.viewport, 'The controlled viewport excludes arbitrary footer content.');
+				if (width === 1440) {
+					const positions = await page.locator('.navbar-nav > li').evaluateAll(items => items.map(item => item.getBoundingClientRect().y));
+					assert.ok(positions.every(y => Math.abs(y - positions[0]) < 1), 'Visible desktop siblings occupy one horizontal row, not merely a flex container.');
+				}
+				await page.screenshot({path:path.join(output, 'pending-' + width + '.png')});
+				release();
+				await page.evaluate(() => window.skyeCriticalStyles.ready);
+				await page.waitForLoadState('networkidle');
+				const after = await page.locator('h1').boundingBox();
+				for (const key of ['x','y','width','height']) assert.ok(Math.abs(before[key] - after[key]) < 1, 'Critical/full heading geometry stays stable: ' + key);
+				assert.equal(await page.locator('h1').evaluate(node => getComputedStyle(node).fontSize), before.font, 'Typography stays stable.');
+				assert.equal(await page.locator('link[rel="stylesheet"]').evaluateAll((links, suffix) => links.filter(link => link.href.endsWith(suffix)).length, fullSuffix), 1, 'The native complete stylesheet exists exactly once after promotion.');
+				assert.equal(requests.filter(url => url.endsWith(fullSuffix)).length, 1, 'Native preload promotion downloads one complete CSS URL.');
+				assert.equal(requests.filter(url => url.endsWith(mobileSuffix)).length, 0, 'The promoted mobile alias does not trigger a second complete download.');
+				assert.deepEqual(errors, [], 'The positive path has no JavaScript exception.');
+				await page.screenshot({path:path.join(output, 'complete-' + width + '.png')});
+				result.checks += width === 1440 ? 14 : 13;
+				result.cases.push({name:'delayed-complete-css',width,requests:requests.filter(url=>url.includes('/dist/')),before,after});
+			} finally { release(); await context.close(); }
+		}
+		const normal = await browser.newContext();
+		await normal.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
+		const page = await normal.newPage();
+		await page.goto(origin + '/?page_id=' + fixture.about + '&skye_critical_browser=late-optout', {waitUntil:'networkidle'});
+		assert.equal(await page.locator('link[data-skye-after-paint]').count(), 0, 'A late refusal keeps native blocking link output.');
+		assert.equal(await page.locator('[id="skye/css-critical-inline-css"]').count(), 0, 'A refused request prints no critical alias.');
+		result.checks += 2;
+		await normal.close();
+		const nojs = await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});
+		await nojs.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
+		const nojsPage = await nojs.newPage();
+		await nojsPage.goto(origin + '/?page_id=' + fixture.about + '&skye_critical_browser=positive', {waitUntil:'networkidle'});
+		assert.ok(await nojsPage.locator('link[rel="stylesheet"]').count(), 'No-JavaScript receives the real native stylesheet fallback.');
+		assert.ok(await nojsPage.locator('.skye-no-script-navigation a').first().isVisible(), 'No-JavaScript navigation remains usable on the admitted test viewport.');
+		result.checks += 2;
+		await nojs.close();
+		fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result,null,2)+'\n');
+		console.log(JSON.stringify({status:'pass',...result},null,2));
+	} finally {
+		if (browser) await browser.close();
+		if (fs.existsSync(target) && fs.readFileSync(target).equals(source)) fs.unlinkSync(target);
+	}
+}
+run().catch(error => { console.error(error); process.exitCode = 1; });
