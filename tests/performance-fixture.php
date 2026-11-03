@@ -76,12 +76,15 @@ namespace {
 	define( 'WPINC', 'wp-includes' );
 	define( 'WP_DEBUG', false );
 	foreach ( array(
-		'version.php', 'compat.php', 'plugin.php', 'load.php', 'class-wp-error.php', 'class-wp-post.php', 'functions.php',
+		'version.php', 'compat.php', 'plugin.php', 'load.php', 'class-wp-error.php', 'class-wp-post.php', 'functions.php', 'theme.php',
 		'compat-utf8.php', 'utf8.php', 'http.php', 'general-template.php', 'formatting.php', 'kses.php', 'script-loader.php', 'class-wp-token-map.php',
 		'html-api/html5-named-character-references.php', 'html-api/class-wp-html-attribute-token.php',
 		'html-api/class-wp-html-span.php', 'html-api/class-wp-html-text-replacement.php',
 		'html-api/class-wp-html-decoder.php', 'html-api/class-wp-html-tag-processor.php',
 	) as $file ) {
+		if ( in_array( $file, array( 'compat-utf8.php', 'utf8.php', 'class-wp-token-map.php' ), true ) && ! is_file( ABSPATH . WPINC . '/' . $file ) ) {
+			continue;
+		}
 		require_once ABSPATH . WPINC . '/' . $file;
 	}
 	/**
