@@ -78,9 +78,13 @@ add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\assets', 100 );
  */
 function preload_resources( $resources ) {
 	$resources = is_array( $resources ) ? $resources : array();
-	$hints = array_merge( Assets\font_preloads(), apply_filters( 'skye_preload_resources', array() ) );
+	$configured = apply_filters( 'skye_preload_resources', array() );
+	$hints = array_merge( Assets\font_preloads(), is_array( $configured ) ? $configured : array() );
 	foreach ( $hints as $hint ) {
 		if ( ! is_array( $hint ) || ! in_array( $hint['as'] ?? '', array( 'font', 'image', 'style' ), true ) ) {
+			continue;
+		}
+		if ( ( isset( $hint['imagesrcset'] ) && ! is_string( $hint['imagesrcset'] ) ) || ( isset( $hint['imagesizes'] ) && ! is_string( $hint['imagesizes'] ) ) ) {
 			continue;
 		}
 		if ( ( $hint['as'] ?? '' ) === 'image' && ! empty( $hint['imagesrcset'] ) ) {

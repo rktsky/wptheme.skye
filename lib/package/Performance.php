@@ -45,7 +45,10 @@ class Performance {
 				! preg_match( '/^[1-9][0-9]*$/D', (string) $form['id'] ) ) {
 				continue;
 			}
-			$id = (int) $form['id'];
+			$id = filter_var( $form['id'], FILTER_VALIDATE_INT, array( 'options' => array( 'min_range' => 1 ) ) );
+			if ( $id === false || ( isset( $form['ajax'] ) && ! is_bool( $form['ajax'] ) ) ) {
+				continue;
+			}
 			$ajax = ( $form['ajax'] ?? false ) === true;
 			$key = $id . ':' . (int) $ajax;
 			if ( ! isset( $seen[$key] ) ) {

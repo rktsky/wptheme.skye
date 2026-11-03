@@ -30,6 +30,10 @@ class FormControls {
 		add_filter( 'gform_field_content', array( $this, 'gravityforms' ), 20, 5 );
 		add_filter( 'comment_form_fields', array( $this, 'comments' ), 20 );
 		add_filter( 'get_search_form', array( $this, 'search' ), 20 );
+		add_filter( 'comment_form_submit_button', array( $this, 'submit_button' ), 20 );
+		add_filter( 'gform_submit_button', array( $this, 'submit_button' ), 20 );
+		add_filter( 'gform_next_button', array( $this, 'submit_button' ), 20 );
+		add_filter( 'gform_previous_button', array( $this, 'submit_button' ), 20 );
 	}
 
 	/**
@@ -98,6 +102,23 @@ class FormControls {
 	}
 
 	/**
+	 * Apply Bootstrap 6 button classes to a native renderer's actual submitter.
+	 *
+	 * This replaces old Sass selector expansion without recreating a button's
+	 * nonce, value, action, provider attributes or accessibility label.
+	 *
+	 * @since 3.0.0
+	 * @param string $html Native button/input markup.
+	 * @return string Original markup with only eligible CSS classes supplemented.
+	 */
+	public function submit_button( $html ) {
+		if ( is_admin() && ! wp_doing_ajax() ) {
+			return $html;
+		}
+		return $this->controls( $html, 'submit' );
+	}
+
+	/**
 	 * Add a class using the native parser without rebuilding provider markup.
 	 *
 	 * Explicit input types preserve the old attribute-selector contract. Selects
@@ -107,7 +128,7 @@ class FormControls {
 	 *
 	 * @see https://developer.wordpress.org/reference/classes/wp_html_tag_processor/add_class/
 	 * @param string $html Provider HTML fragment, returned unchanged if invalid.
-	 * @param string $mode One of gravityforms, comments or search.
+	 * @param string $mode One of gravityforms, comments, search or submit.
 	 * @return string HTML with only eligible class attributes updated.
 	 * @since 3.0.0
 	 */
@@ -119,6 +140,14 @@ class FormControls {
 		$tags = new \WP_HTML_Tag_Processor( $html );
 		while ( $tags->next_tag() ) {
 			$tag = $tags->get_tag();
+			if ( $mode === 'submit' || ( $mode === 'search' && $tags->has_class( 'search-submit' ) ) ) {
+				if ( in_array( $tag, array( 'INPUT', 'BUTTON' ), true ) ) {
+					$tags->add_class( 'btn' );
+					$tags->add_class( 'btn-solid' );
+					$tags->add_class( 'theme-primary' );
+				}
+				continue;
+			}
 			if ( $mode === 'search' ) {
 				if ( $tag === 'INPUT' && $tags->has_class( 'search-field' ) ) {
 					$tags->add_class( 'form-control' );

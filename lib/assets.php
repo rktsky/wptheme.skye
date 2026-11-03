@@ -17,8 +17,8 @@ class JsonManifest {
 	 */
 	public function __construct( $manifest_path ) {
 		if ( is_string( $manifest_path ) && is_file( $manifest_path ) && is_readable( $manifest_path ) && filesize( $manifest_path ) <= 1048576 ) {
-			$contents = file_get_contents( $manifest_path );
-			$data = is_string( $contents ) ? json_decode( $contents, true ) : null;
+			$contents = file_get_contents( $manifest_path, false, null, 0, 1048577 );
+			$data = is_string( $contents ) && strlen( $contents ) <= 1048576 ? json_decode( $contents, true ) : null;
 			if ( is_array( $data ) ) {
 				$this->manifest = $data;
 			}
@@ -78,7 +78,7 @@ function relative_path( $filename ) {
 		in_array( '..', explode( '/', $filename ), true ) || str_contains( $filename, '//' ) ) {
 		return '';
 	}
-	return ltrim( $filename, './' );
+	return preg_replace( '~^(?:\./)+~', '', $filename );
 }
 
 /**
@@ -164,7 +164,7 @@ function asset_uri( $filename ) {
 /**
  * Return the source-tree path for callers that explicitly require original assets.
  *
- * @since 2021-02-28
+ * @since 2015-11-11
  * @param string $filename Relative path inside assets/.
  * @return string Absolute source path, or an empty refusal.
  */
@@ -226,7 +226,11 @@ function stylesheet_variants() {
  */
 function font_preloads() {
 	$result = array();
-	foreach ( performance_manifest()['fonts'] ?? array() as $font ) {
+	$fonts = performance_manifest()['fonts'] ?? array();
+	if ( ! is_array( $fonts ) ) {
+		return $result;
+	}
+	foreach ( $fonts as $font ) {
 		if ( ! is_array( $font ) || ! is_string( $font['file'] ?? null ) || ! str_starts_with( $font['file'], 'fonts/' ) || relative_path( $font['file'] ) === '' ) {
 			continue;
 		}

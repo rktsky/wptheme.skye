@@ -47,16 +47,7 @@ class Icons {
 			self::$fallback = true;
 			wp_enqueue_style( 'skye/fontawesome' );
 		}
-		$level = ob_get_level();
-		ob_start();
-		try {
-			get_component( 'icons', 'glyph', array( 'glyph' => $glyph ) );
-			return (string) ob_get_contents();
-		} finally {
-			while ( ob_get_level() > $level ) {
-				ob_end_clean();
-			}
-		}
+		return skye_component_html( 'icons', 'glyph', array( 'glyph' => $glyph ) );
 	}
 
 	/**

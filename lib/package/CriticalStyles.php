@@ -645,23 +645,18 @@ class CriticalStyles {
 				return $tag;
 			}
 		}
+		$names = $parser->get_attribute_names_with_prefix( '' );
+		if ( ! is_array( $names ) || array_diff( $names, array( 'id', 'rel', 'href', 'type', 'media' ) ) ) {
+			return $tag;
+		}
 		$parser->set_attribute( 'rel', 'preload' );
 		$parser->set_attribute( 'as', 'style' );
 		$parser->set_attribute( 'data-skye-after-paint', '1' );
 		if ( $parser->next_tag() ) {
 			return $tag;
 		}
-		$level = ob_get_level();
-		ob_start();
-		try {
-			$rendered = get_component( 'assets', 'stylesheet', array( 'preload_html' => $parser->get_updated_html(), 'stylesheet_html' => $tag ) );
-			$html = ob_get_contents();
-			return $rendered && is_string( $html ) && $html !== '' ? $html : $tag;
-		} finally {
-			while ( ob_get_level() > $level ) {
-				ob_end_clean();
-			}
-		}
+		$html = skye_component_html( 'assets', 'stylesheet', array( 'preload_html' => $parser->get_updated_html(), 'stylesheet_html' => $tag ) );
+		return $html !== '' ? $html : $tag;
 	}
 
 	/**
