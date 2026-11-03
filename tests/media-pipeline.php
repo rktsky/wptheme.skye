@@ -151,6 +151,8 @@ namespace {
 		public $fail_inventory_read = false;
 		/** @var int Fail the next ownership-inventory CAS writes. */
 		public $fail_inventory_writes = 0;
+		/** @var array{id?:int,verb?:string} Fail one real pending-row write for discovery recovery. */
+		public $fail_enqueue = array();
 		public $queries = [];
 
 		/**
@@ -217,6 +219,15 @@ namespace {
 			if ( $this->fail_scan_write && str_contains( $query, 'skye_webp_pipeline_scan' ) && preg_match( '/^\s*(?:INSERT|UPDATE)\b/i', $query ) ) {
 				$this->fail_scan_write = false;
 				$this->last_error = 'Synthetic migration-state write failure';
+				return false;
+			}
+			$failed_id = (int) ( $this->fail_enqueue['id'] ?? 0 );
+			$failed_verb = $this->fail_enqueue['verb'] ?? '';
+			if ( $failed_id > 0 && in_array( $failed_verb, array( 'INSERT', 'UPDATE' ), true ) &&
+				str_contains( $query, "'_skye_webp_pending'" ) && preg_match( '/^\s*' . $failed_verb . '\b/i', $query ) &&
+				preg_match( '/\bp\.ID\s*=\s*' . $failed_id . '\b/', $query ) ) {
+				$this->fail_enqueue = array();
+				$this->last_error = 'Synthetic durable enqueue write failure';
 				return false;
 			}
 			if ( str_contains( $query, "'_skye_webp_files'" ) ) {
@@ -683,6 +694,7 @@ namespace {
 		$wpdb->after_query = null;
 		$wpdb->fail_inventory_read = false;
 		$wpdb->fail_inventory_writes = 0;
+		$wpdb->fail_enqueue = array();
 		$wpdb->query( 'DELETE FROM wp_options' );
 		$wpdb->query( 'DELETE FROM wp_postmeta' );
 		$wpdb->query( 'DELETE FROM wp_posts' );
@@ -1429,6 +1441,40 @@ namespace {
 		$pipeline->discover();
 		skye_media_check( $wpdb->num_queries <= $before + 1 && skye_media_test_pending_count() === 45, 'A completed cursor performs at most one empty ID-after probe without rehydrating the discovered library.' );
 		skye_media_check( count( skye_media_test_events( MediaPipeline::WORK_HOOK ) ) === 1, 'A large discovered library still uses a single dispatcher event.' );
+	}
+
+	/**
+	 * Keep discovery retryable until the current candidate has durable queued work.
+	 *
+	 * A failed middle write must not move the cursor past an unrecorded image.
+	 * Later passes preserve acknowledged identities and bypass native tombstones.
+	 *
+	 * @param MediaPipeline $pipeline Actual current production scheduler.
+	 * @return void
+	 * @since 3.0.0
+	 */
+	function skye_media_test_discovery_recovery( $pipeline ) {
+		global $wpdb;
+		foreach ( array( 'UPDATE', 'INSERT' ) as $verb ) {
+			skye_media_test_reset();
+			foreach ( range( 690, 693 ) as $id ) {
+				skye_media_test_attachment( $id, 'image/jpeg', 0 );
+			}
+			update_post_meta( 692, MediaStore::DELETING_KEY, 1 );
+			$wpdb->fail_enqueue = array( 'id' => 691, 'verb' => $verb );
+			$pipeline->discover();
+			$state = get_option( MediaPipeline::STATE_OPTION );
+			$acknowledged = get_post_meta( 690, MediaStore::PENDING_KEY, true );
+			skye_media_check( $wpdb->fail_enqueue === array(), 'The actual discovery path reaches the injected ' . $verb . ' failure.' );
+			skye_media_check( $state['cursor'] === 690 && ! $state['complete'], 'A failed enqueue persists only the last acknowledged ID and leaves discovery incomplete.' );
+			skye_media_check( $acknowledged !== '' && skye_media_test_pending_count() === 1 && get_post_meta( 693, MediaStore::PENDING_KEY, true ) === '', 'A failed middle candidate stops the batch without dropping earlier durable work.' );
+			skye_media_check( wp_next_scheduled( MediaPipeline::DISCOVER_HOOK ) !== false, 'The incomplete batch receives a normal discovery retry event.' );
+			$pipeline->discover();
+			$state = get_option( MediaPipeline::STATE_OPTION );
+			skye_media_check( $state['cursor'] === 693 && $state['complete'] && skye_media_test_pending_count() === 3, 'The next pass recovers the failed image and every later eligible candidate.' );
+			skye_media_check( get_post_meta( 690, MediaStore::PENDING_KEY, true ) === $acknowledged && get_post_meta( 692, MediaStore::PENDING_KEY, true ) === '', 'Recovery preserves the earlier identity and excludes native deleting markers.' );
+			skye_media_check( skye_media_test_outputs( 691 ) === array(), 'Recovery creates durable work without performing image conversion in discovery.' );
+		}
 	}
 
 	/**
@@ -2895,6 +2941,9 @@ namespace {
 	$before_checks = $checks;
 	skye_media_test_pipeline( $pipeline );
 	$groups['native_pipeline'] = $checks - $before_checks;
+	$before_checks = $checks;
+	skye_media_test_discovery_recovery( $pipeline );
+	$groups['discovery_recovery'] = $checks - $before_checks;
 	$before_checks = $checks;
 	skye_media_test_native_backfill( $pipeline );
 	$groups['additive_native_backfill'] = $checks - $before_checks;

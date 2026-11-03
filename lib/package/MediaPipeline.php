@@ -244,29 +244,33 @@ class MediaPipeline {
 	 *
 	 * New uploads/edits receive higher worker priority than the automatic backfill.
 	 * Original formats outside JPEG/PNG and deleting attachments are untouched.
+	 * Discovery may advance only after a successful acknowledgement; a failed
+	 * database write or changed eligibility leaves that candidate retryable.
 	 *
 	 * @param int  $attachment_id Native attachment ID.
 	 * @param bool $backfill Whether this is lower-priority library discovery.
-	 * @return void
+	 * @return bool Whether this candidate has a durable job or an existing backfill job.
 	 * @since 3.0.0
 	 */
 	public function queue( $attachment_id, $backfill = false ) {
 		if ( ! self::enabled() ) {
-			return;
+			return false;
 		}
 		$attachment_id = (int) $attachment_id;
 		if ( $attachment_id < 1 || 'attachment' !== get_post_type( $attachment_id ) || 'trash' === get_post_status( $attachment_id )
 			|| ! in_array( get_post_mime_type( $attachment_id ), array( 'image/jpeg', 'image/png' ), true )
 			|| get_post_meta( $attachment_id, MediaStore::DELETING_KEY, true ) ) {
-			return;
+			return false;
 		}
 		if ( $backfill && get_post_meta( $attachment_id, MediaStore::PENDING_KEY, true ) ) {
-			return;
+			return true;
 		}
 		$value = sprintf( '%010d:%d-%s', time() + 5, $backfill ? 1 : 0, wp_generate_uuid4() );
 		if ( MediaStore::enqueue( $attachment_id, $value ) ) {
 			$this->schedule = true;
+			return true;
 		}
+		return false;
 	}
 
 	/**
@@ -316,6 +320,8 @@ class MediaPipeline {
 	 *
 	 * WP_Query has no native ID-after argument. This small prepared keyset query
 	 * reads IDs only and never hydrates content, ACF fields or original image data.
+	 * A failed enqueue stops before that ID so a later event retries it. Native
+	 * deleting markers are excluded rather than permanently blocking the cursor.
 	 *
 	 * @return void
 	 * @since 3.0.0
@@ -329,18 +335,25 @@ class MediaPipeline {
 		$state = is_array( $state ) ? $state : array();
 		$cursor = (int) ( $state['cursor'] ?? 0 );
 		$ids = $wpdb->get_col( $wpdb->prepare(
-			"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_status <> 'trash'
-			AND post_mime_type IN ('image/jpeg', 'image/png') AND ID > %d ORDER BY ID ASC LIMIT 20", $cursor
+			"SELECT p.ID FROM {$wpdb->posts} p
+			LEFT JOIN {$wpdb->postmeta} d ON d.post_id = p.ID AND d.meta_key = %s
+			WHERE p.post_type = 'attachment' AND p.post_status <> 'trash'
+			AND p.post_mime_type IN ('image/jpeg', 'image/png') AND p.ID > %d AND d.meta_id IS NULL
+			ORDER BY p.ID ASC LIMIT 20", MediaStore::DELETING_KEY, $cursor
 		) );
 		if ( ! is_array( $ids ) || $wpdb->last_error !== '' ) {
 			$this->schedule_event( self::DISCOVER_HOOK, time() + 60 );
 			return;
 		}
+		$complete = count( $ids ) < 20;
 		foreach ( $ids as $id ) {
-			$this->queue( (int) $id, true );
+			if ( ! $this->queue( (int) $id, true ) ) {
+				$complete = false;
+				break;
+			}
 			$cursor = (int) $id;
 		}
-		$state = array( 'cursor' => $cursor, 'complete' => count( $ids ) < 20, 'version' => self::VERSION );
+		$state = array( 'cursor' => $cursor, 'complete' => $complete, 'version' => self::VERSION );
 		update_option( self::STATE_OPTION, $state, false );
 		$this->flush();
 		if ( ! $state['complete'] ) {
