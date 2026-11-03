@@ -284,4 +284,31 @@ $GLOBALS['fixture_blog'] = 1;
 $GLOBALS['native_options']['theme_options_theme_logo'] = '0';
 do_action( 'switch_blog', 1, 2, 'restore' );
 security_check( '0' === $GLOBALS['theme_options']['theme_logo'], 'Restoring a blog never reuses another blog settings' );
+$writes_before_native_hooks = $GLOBALS['settings_writes'];
+foreach ( array( 'added_option', 'updated_option', 'deleted_option' ) as $hook ) {
+	security_check( 10 === has_action( $hook, 'skye_invalidate_theme_options_cache' ), 'The actual cache invalidator is registered on ' . $hook );
+	foreach ( array( 'theme_logo' => '0', 'favicon' => false, 'gmakey' => '' ) as $key => $value ) {
+		$GLOBALS['native_options'][ 'theme_options_' . $key ] = 'BEFORE_NATIVE_HOOK';
+		$GLOBALS['theme_options'] = null;
+		get_theme_options();
+		if ( 'deleted_option' === $hook ) {
+			unset( $GLOBALS['native_options'][ 'theme_options_' . $key ] );
+		} else {
+			$GLOBALS['native_options'][ 'theme_options_' . $key ] = $value;
+		}
+		if ( 'deleted_option' === $hook ) {
+			do_action( $hook, 'theme_options_' . $key );
+		} elseif ( 'added_option' === $hook ) {
+			do_action( $hook, 'theme_options_' . $key, $value );
+		} else {
+			do_action( $hook, 'theme_options_' . $key, 'BEFORE_NATIVE_HOOK', $value );
+		}
+		security_check( ( 'deleted_option' === $hook ? false : $value ) === get_theme_options()[ $key ], $hook . ' invalidates the exact ' . $key . ' read cache while preserving raw empty values' );
+	}
+	$cached_options = get_theme_options();
+	$GLOBALS['native_options']['theme_options_gmakey'] = 'UNRELATED_OPTION_MUST_NOT_REFRESH';
+	do_action( $hook, 'theme_options_gmakey_extra', 'before', 'after' );
+	security_check( $cached_options === get_theme_options(), 'Unrelated option names retain the bounded read cache on ' . $hook );
+}
+security_check( $writes_before_native_hooks === $GLOBALS['settings_writes'], 'Native cache invalidation has no favicon, transient, or policy write side effects' );
 echo 'Security passed (' . $GLOBALS['checks'] . " checks).\n";

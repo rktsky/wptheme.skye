@@ -96,6 +96,26 @@ add_action( 'init', 'get_theme_options' );
 add_action( 'switch_blog', 'get_theme_options', 10, 0 );
 
 /**
+ * Invalidate only the request read cache after a native legacy option write.
+ *
+ * Core fires these hooks after its own storage/cache update succeeds. Keeping
+ * this callback separate from ACF save handling avoids favicon synchronization
+ * or authorization side effects for independent public Options API callers.
+ *
+ * @since 3.0.0
+ * @param string $option Native option name after a successful add, update, or delete.
+ * @return void
+ */
+function skye_invalidate_theme_options_cache( $option ) {
+	if ( in_array( $option, array( 'theme_options_theme_logo', 'theme_options_favicon', 'theme_options_gmakey' ), true ) ) {
+		$GLOBALS['theme_options'] = null;
+	}
+}
+add_action( 'added_option', 'skye_invalidate_theme_options_cache', 10, 1 );
+add_action( 'updated_option', 'skye_invalidate_theme_options_cache', 10, 1 );
+add_action( 'deleted_option', 'skye_invalidate_theme_options_cache', 10, 1 );
+
+/**
  * Refresh request settings and the legacy favicon after an authorized ACF save.
  *
  * The actual storage identity replaces the unreliable admin-screen heuristic,

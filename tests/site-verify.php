@@ -73,6 +73,29 @@ unlink( $external );
 if ( metadata_exists( 'post', $article->ID, 'custom_teasertext' ) ) {
 	skye_site_check( 'UNMIGRATED_FIXTURE_VALUE' === get_post_meta( $article->ID, 'custom_teasertext', true ), 'Actual HTTP rendering does not migrate or delete stored legacy metadata' );
 }
+$option_name = 'theme_options_gmakey';
+$missing_option = new stdClass();
+$saved_option = get_option( $option_name, $missing_option );
+$icon_before_option_writes = get_option( 'site_icon', false );
+try {
+	get_theme_options();
+	update_option( $option_name, 'SKYE_NATIVE_OPTION_CACHE_FIXTURE' );
+	skye_site_check( 'SKYE_NATIVE_OPTION_CACHE_FIXTURE' === get_theme_options()['gmakey'], 'A native option write refreshes the already-loaded theme cache' );
+	update_option( $option_name, '0' );
+	skye_site_check( '0' === get_theme_options()['gmakey'], 'A native option update preserves the stored zero string' );
+	delete_option( $option_name );
+	skye_site_check( false === get_theme_options()['gmakey'], 'A native option deletion invalidates the cached value' );
+	add_option( $option_name, '' );
+	skye_site_check( '' === get_theme_options()['gmakey'], 'A native option addition preserves an intentionally empty value' );
+	skye_site_check( $icon_before_option_writes === get_option( 'site_icon', false ), 'Native option cache invalidation does not synchronize or modify the favicon' );
+} finally {
+	if ( $saved_option === $missing_option ) {
+		delete_option( $option_name );
+	} else {
+		update_option( $option_name, $saved_option );
+	}
+}
+skye_site_check( $saved_option === get_option( $option_name, $missing_option ), 'The isolated native option fixture restores the original value or absence' );
 $site_icon = get_option( 'site_icon', 0 );
 update_option( 'site_icon', 321 );
 delete_option( 'theme_options_favicon' );
