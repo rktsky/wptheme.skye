@@ -1,40 +1,13 @@
 <?php
-
-	global $news;
-
-	if( empty( $news ) )
-		$news = (object) [];
-
+/** Display a prepared post card without reading custom fields or unrelated entities. */
 ?>
-
-	<article class="article clickme">
-		<div class="image coverparent">
-			<?php echo get_the_post_thumbnail( $news->ID, 'medium', [ 'class' => 'cover' ] ); ?>
-		</div>
-		<div class="content">
-			<div class="content-inner">
-				<?php if( !empty( $news->categories ) ): ?>
-					<div class="categories">
-						<?php
-							$first = true;
-							foreach( $news->categories as $c ) {
-
-								if( $first ) {
-									$first = false;
-								} else {
-									echo ' / ';
-								} 
-
-								echo '<a href="' . get_category_link( $c ) . '">' . $c->name . '</a>';
-
-							}
-						?>
-					</div>
-				<?php endif; ?>
-				<h3 class="mt-3 mb-3"><?php echo $news->post_title; ?></h3>
-				<div class="meta"><?php get_component( 'news', 'meta' ); ?></div>
-				<div class="teaser mt-4 mb-4 col-12"><?php echo get_excerpt( $news->ID ); ?></div>
-				<a class="ct-arrow alone" href="<?php echo get_permalink( $news->ID ); ?>"><?php echo _x( 'Mehr lesen', 'read more for post teaser ', 'skye' ); ?></a>
-			</div>
-		</div>
-	</article>
+<article class="article mb-4">
+	<?php if ( '' !== $article['image'] ) : ?>
+		<div class="entry-image"><?php echo $article['image']; ?></div>
+	<?php endif; ?>
+	<h2 class="entry-title"><a href="<?php echo esc_url( $article['url'] ); ?>"><?php echo esc_html( $article['title'] ); ?></a></h2>
+	<?php get_component( 'posts', 'meta', array( 'article' => $article ) ); ?>
+	<?php if ( '' !== $article['excerpt'] ) : ?>
+		<p class="entry-summary"><?php echo esc_html( $article['excerpt'] ); ?></p>
+	<?php endif; ?>
+</article>

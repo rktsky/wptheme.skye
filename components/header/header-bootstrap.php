@@ -1,13 +1,3 @@
-<header class="header banner">
-
-	<div class="container">
-
-		<div class="row">
-			<div class="col-12">
-				<?php get_component( 'navigation', 'navigation-bootstrap' ); ?>
-			</div>
-		</div>
-
-	</div>
-
-</header>
+<?php
+/** Preserve the named legacy entry through the shared Bootstrap 6 Alpha component. */
+get_component( 'header', false, array( 'brand' => $brand, 'navigation' => $navigation ) );

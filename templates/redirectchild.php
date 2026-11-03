@@ -1,9 +1,15 @@
 <?php
 /**
- * Template Name: Weiterleitung an erste Unterseite
+ * Template Name: Redirect to First Child
+ * Template Post Type: page
  *
- * Redirect functionality is via Hook in lib/rocketsky/rediretchild.php
- * because it needs to happen before wp_head is parsed.
- *
- * Since 30.5.2017 sva/mhm
+ * The template_redirect callback resolves a published child before output.
+ * Pages without an eligible child retain their ordinary native content.
  */
+get_component( 'page', 'header', array( 'header' => skye_page_header_model() ) );
+?>
+<div class="container py-4">
+	<?php while ( have_posts() ) : the_post(); ?>
+		<?php get_component( 'page', 'content' ); ?>
+	<?php endwhile; ?>
+</div>

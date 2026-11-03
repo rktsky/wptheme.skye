@@ -1,49 +1,13 @@
 <?php
-
-	global $data, $news, $wp_query;
-
-	if( empty( $data ) )
-		$data = (object) [];
-
-	if( is_home() )
-		$data->lead = get( 'lead', get_option( 'page_for_posts' ) );
-
-	$data->currentpage = 1;
-	if( !empty( $wp_query->query_vars[ 'paged' ] ) && $wp_query->query_vars[ 'paged' ] > 1 )
-		$data->currentpage = $wp_query->query_vars[ 'paged' ];
-
+/** Display the unchanged native archive/posts-index loop with explicit reusable cards. */
+get_component( 'page', 'header', array( 'header' => skye_page_header_model() ) );
 ?>
-
-<?php if ( have_posts() ): ?>
-
-	<?php get_component( 'page', 'header' ); ?>
-
-	<div class="container">
-		<div class="row archive archive-container">
-			<?php
-				while ( have_posts() ) {
-					the_post();
-					$news = $post;
-					?>
-					<div class="col-md-6 col-12 archive element">
-						<?php
-							get_component( 'posts', 'element' );
-						?>
-					</div>
-					<?php
-				}
-			?>
-		</div>
-	</div>
-
-<?php endif; ?>
-
-<div class="d-flex justify-content-center mb-8">
-	<div class="site-navigation">
-		<?php 
-			echo get_previous_posts_link( '<i class="fas fa-chevron-left"></i>' );
-			echo ' Seite ' . $data->currentpage . '/' . $wp_query->max_num_pages . ' ';
-			echo get_next_posts_link( '<i class="fas fa-chevron-right"></i>', $wp_query->max_num_pages );
-		?>
-	</div>
+<div class="container py-4">
+	<?php if ( ! have_posts() ) : ?>
+		<p><?php esc_html_e( 'No posts were found.', 'skye' ); ?></p>
+	<?php endif; ?>
+	<?php while ( have_posts() ) : the_post(); ?>
+		<?php get_component( 'posts', 'element', array( 'article' => skye_post_model( get_the_ID() ) ) ); ?>
+	<?php endwhile; ?>
+	<?php the_posts_navigation(); ?>
 </div>

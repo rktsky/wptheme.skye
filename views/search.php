@@ -1,26 +1,14 @@
-<div class="container">
-	<div class="row">
-		<div class="col-12">
-			<?php get_component('page-header'); ?>
-		</div>
-	</div>
-	
-	<div class="row">
-		<div class="col-12">
-	
-			<?php if (!have_posts()) : ?>
-			  <div class="alert alert-warning">
-			    <?php _e('Sorry, no results were found.', 'skye'); ?>
-			  </div>
-			  <?php get_search_form(); ?>
-			<?php endif; ?>
-			
-			<?php while (have_posts()) : the_post(); ?>
-			  <?php get_component( 'search' ); ?>
-			<?php endwhile; ?>
-			
-			<?php the_posts_navigation(); ?>
-	
-		</div>
-	</div>
+<?php
+/** Render native search results and the empty state without missing legacy components. */
+get_component( 'page', 'header', array( 'header' => skye_page_header_model() ) );
+?>
+<div class="container py-4">
+	<?php if ( ! have_posts() ) : ?>
+		<p><?php esc_html_e( 'No results were found.', 'skye' ); ?></p>
+		<?php get_search_form(); ?>
+	<?php endif; ?>
+	<?php while ( have_posts() ) : the_post(); ?>
+		<?php get_component( 'search', false, array( 'article' => skye_post_model( get_the_ID() ) ) ); ?>
+	<?php endwhile; ?>
+	<?php the_posts_navigation(); ?>
 </div>

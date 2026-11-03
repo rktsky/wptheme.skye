@@ -1,15 +1,8 @@
 <?php
-
-	global $theme_options;
-
+/** Display the shared site identity without requiring custom footer options. */
 ?>
-
-<footer class="content-info">
+<footer class="content-info py-4">
 	<div class="container">
-		<div class="row">
-			<div class="col-12">
-				<?php get_component( 'header', 'brand' ); ?>
-			</div>
-		</div>
+		<?php get_component( 'header', 'brand', array( 'brand' => $brand ) ); ?>
 	</div>
 </footer>

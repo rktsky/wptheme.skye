@@ -1,18 +1,12 @@
 <?php
-
-	// preparing data
-	global $theme_options;
-
-	$logo = false;
-
-	if( is_array( $theme_options ) && !empty( $theme_options['theme_logo'] ) )
-		$logo = $theme_options['theme_logo'];
-
+/** Display the prepared native/custom-field site identity; all stored values are escaped. */
 ?>
-
-	<a class="brand" href="<?= esc_url(home_url('/')); ?>" aria-label="Zurück zur Startseite">
-		<div class="d-flex align-items-center">
-			<img class="brandlogo" alt="logo" src="<?php echo $logo; ?>" width="326" height="17.208">
-		</div>
-	</a>
-	
+<a class="navbar-brand" href="<?php echo esc_url( $brand['url'] ); ?>">
+	<?php if ( '' !== $brand['image'] ) : ?>
+		<?php echo $brand['image']; ?>
+	<?php elseif ( '' !== $brand['logo'] ) : ?>
+		<img src="<?php echo esc_url( $brand['logo'] ); ?>" alt="<?php echo esc_attr( $brand['name'] ); ?>" decoding="async">
+	<?php else : ?>
+		<?php echo esc_html( $brand['name'] ); ?>
+	<?php endif; ?>
+</a>

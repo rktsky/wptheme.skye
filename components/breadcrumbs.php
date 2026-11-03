@@ -1,5 +1,3 @@
 <?php
-	if ( function_exists( 'yoast_breadcrumb' ) ) {
-		yoast_breadcrumb();
-	}
-?>
+/** Display markup serialized by the optional native breadcrumb provider. */
+echo $breadcrumb_html;

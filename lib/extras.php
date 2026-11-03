@@ -1,28 +1,34 @@
 <?php
-
+/** Native presentation filters and the shared classic-theme view models. */
 namespace Rocketsky\Skye\Extras;
 
-use Rocketsky\Skye\Setup;
+require_once __DIR__ . '/presentation.php';
 
 /**
- * Add <body> classes
+ * Add a sanitized singular slug without altering native body classes.
+ *
+ * @since 2015-11-11
+ * @param string[] $classes Native body classes.
+ * @return string[] Native classes plus the singular post slug when appropriate.
  */
-function body_class($classes) {
-	// Add page slug if it doesn't exist
-	if (is_single() || is_page() && !is_front_page()) {
-		if (!in_array(basename(get_permalink()), $classes)) {
-			$classes[] = basename(get_permalink());
+function body_class( $classes ) {
+	if ( is_singular() && ! is_front_page() ) {
+		$slug = sanitize_html_class( get_post_field( 'post_name', get_queried_object_id() ) );
+		if ( '' !== $slug && ! in_array( $slug, $classes, true ) ) {
+			$classes[] = $slug;
 		}
 	}
-
 	return $classes;
 }
-add_filter('body_class', __NAMESPACE__ . '\\body_class');
+add_filter( 'body_class', __NAMESPACE__ . '\\body_class' );
 
 /**
- * Clean up the_excerpt()
+ * Keep native excerpt trimming textual; cards provide their own accessible link.
+ *
+ * @since 2015-11-11
+ * @return string Plain ellipsis without a second embedded read-more link.
  */
 function excerpt_more() {
-	return ' &hellip; <a href="' . get_permalink() . '">' . __('Continued', 'skye') . '</a>';
+	return '…';
 }
-add_filter('excerpt_more', __NAMESPACE__ . '\\excerpt_more');
+add_filter( 'excerpt_more', __NAMESPACE__ . '\\excerpt_more' );

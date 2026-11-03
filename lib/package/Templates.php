@@ -1,184 +1,93 @@
 <?php
-
+/** Resolve child-overridable classic theme views without querying legacy archive records. */
 namespace Rocketsky\Skye\Packages;
 
-/**
- * Templates Engine
- *
- * @author  Christoph Ackermann <acki@rocketsky.ch>
- * @version 1.0
- */
+/** Keep the existing views/components architecture behind native query routing. */
 class Templates {
-
-	private $base = 'views/';
-	private $default = 'default';
-	private $type = false;
+	/** @var int Current queried post identity; archives may have no post. */
 	private $ID = 0;
+	/** @var string|false Current queried post type. */
+	private $type = false;
 
 	/**
-	 * Hooks the removeMetaBox action.
+	 * Capture query identity after WordPress has resolved the main request.
 	 *
+	 * No secondary content query or global post replacement is needed to route it.
+	 *
+	 * @since 2021-02-28
 	 * @return void
 	 */
 	public function __construct() {
-
-		global $wp_query;
-
 		$this->ID = get_queried_object_id();
 		$this->type = get_post_type( $this->ID );
-
 	}
 
+	/**
+	 * Resolve the actual query with complete generic fallbacks.
+	 *
+	 * The posts index precedes front-page handling so a latest-posts homepage keeps
+	 * its archive loop. Custom post views remain child-overridable by type.
+	 *
+	 * @since 2021-02-28
+	 * @return string Absolute local template path, or an empty string if absent.
+	 */
 	public function template() {
-
-		global $wp_query;
-
-		if( is_404() )
-			return $this->get_404();
-
-		if( is_archive() )
-			return $this->get_archive();
-
-		if( is_front_page() )
-			return $this->get_page();
-
-		if( is_home() )
-			return $this->get_archive();
-
-		if( is_page() )
-			return $this->get_page();
-
-		if( is_search() )
-			return $this->get_search();
-
-		if( is_single() )
-			return $this->get_single();
-
-		return $this->get_default();
-
-	}
-
-	public function get_archive_site( $posttype ) {
-
-		$return = false;
-
-		$ct_archive = get_posts( [
-			'post_type' => 'ct-archive',
-			'meta_query' => [
-				[
-					'key' => 'archive_posttype',
-					'value' => $posttype,
-				],
-			],
-		] );
-
-		if( !empty( $ct_archive ) ) {
-			$return = $ct_archive[0];
+		if ( is_404() ) {
+			return $this->find( '404' );
 		}
-
-		return $return;
-
-	}
-
-	private function locate( $name = 'default' ) {
-
-		return locate_template( $name . '.php' );
-
-	}
-
-	private function get_404( $name = '404' ) {
-
-		return $this->find( $name, '404' );
-
-	}
-
-	private function get_archive( $name = 'archive' ) {
-
-		$archive = $this->get_archive_site( $this->type );
-
-		if( !empty( $archive->ID ) ) {
-
-			global $post;
-			$post = $archive;
-
-			if( !empty( get_page_template_slug( $archive->ID ) ) )
-				return $this->find( get_page_template_slug( $archive->ID ), 'page' );
-
+		if ( is_search() ) {
+			return $this->find( 'search' );
 		}
-
-		if( $this->type !== 'post' && $this->type !== 'page' ) {
-			$name = $this->type . '/' . $name;
+		if ( is_home() || is_archive() ) {
+			return $this->find( $this->type && ! in_array( $this->type, array( 'post', 'page' ), true ) ? $this->type . '/archive' : 'archive', 'archive' );
 		}
-
-		return $this->find( $name, 'archive' );
-
-	}
-
-	private function get_default() {
-
+		if ( is_page() ) {
+			$assigned = get_page_template_slug( $this->ID );
+			return $this->find( $assigned ?: 'page', 'page' );
+		}
+		if ( is_singular() ) {
+			return $this->find( $this->type && ! in_array( $this->type, array( 'post', 'page' ), true ) ? $this->type . '/single' : 'single', 'single' );
+		}
 		return $this->find( 'default' );
-
 	}
 
-	private function get_page( $name = 'page' ) {
-
-		$path = pathinfo( get_page_template_slug( $this->ID ) );
-		$template = '';
-
-		if( !empty( $path[ 'dirname' ] ) )
-			$template .= $path[ 'dirname' ] . '/';
-
-		if( !empty( $path[ 'filename' ] ) )
-			$template .= $path[ 'filename' ];
-
-		if( !empty( $template ) )
-			$name = $template;
-
-		return $this->find( $name, 'page' );
-
+	/**
+	 * Preserve explicit archive-page integration without the old ct-archive query.
+	 *
+	 * Projects that need a content record can supply one through the documented
+	 * filter; generic archive rendering never changes the main loop's global post.
+	 *
+	 * @since 2021-02-28
+	 * @param string $posttype Native post type.
+	 * @return \WP_Post|false Explicit published archive record, or false.
+	 */
+	public function get_archive_site( $posttype ) {
+		$archive = apply_filters( 'skye_archive_page', false, $posttype );
+		return $archive instanceof \WP_Post && 'publish' === $archive->post_status ? $archive : false;
 	}
 
-	private function get_single( $name = 'single' ) {
-
-		if( $this->type !== 'post' && $this->type !== 'page' ) {
-			$name = $this->type . '/' . $name;
-		}
-
-		return $this->find( $name, 'single' );
-
-	}
-
-	private function get_search( $name = 'search' ) {
-
-		return $this->find( $name, 'search' );
-
-	}
-
+	/**
+	 * Find a safe relative view or assigned template with an existing final fallback.
+	 *
+	 * Stored template slugs cannot traverse directories or include arbitrary files.
+	 * locate_template() retains the native child-before-parent resolution order.
+	 *
+	 * @since 2021-02-28
+	 * @param string $name Relative view or selectable template path.
+	 * @param string|false $fallback Generic view used for an absent specialised one.
+	 * @return string Absolute local template path, or an empty string.
+	 */
 	private function find( $name, $fallback = false ) {
-
-		$name = str_replace( '.php', '', $name );
-
-		// Try to get our views template file
-		$locate = $this->locate( $this->base . $name );
-
-		// Try to get basic template if the view doesn't exists
-		if( empty( $locate ) )
-			$locate = $this->locate( $name );
-
-		// Try to fall back to WordPress default if another name is given
-		if( empty( $locate ) && $fallback !== false  )
-			$locate = $this->locate( $fallback );
-
-		// Try to fall back to views
-		if( empty( $locate ) && $fallback !== false )
-			$locate = $this->locate( $this->base . $fallback );
-
-		// Try to fall back to views default
-		if( empty( $locate ) )
-			$locate = $this->locate( $this->base . $this->default );
-
-		return $locate;
-
+		$name = preg_replace( '/\.php$/D', '', (string) $name );
+		$candidates = array();
+		if ( preg_match( '~^[a-zA-Z0-9_-]+(?:/[a-zA-Z0-9_-]+)*$~D', $name ) ) {
+			$candidates[] = 'views/' . $name . '.php';
+			$candidates[] = $name . '.php';
+		}
+		if ( is_string( $fallback ) && preg_match( '/^[a-zA-Z0-9_-]+$/D', $fallback ) ) {
+			$candidates[] = 'views/' . $fallback . '.php';
+		}
+		$candidates[] = 'views/default.php';
+		return locate_template( array_unique( $candidates ), false, false );
 	}
-
 }

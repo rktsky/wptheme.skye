@@ -1,13 +1,6 @@
+<?php
+/** Display the shared header from explicitly prepared site identity and navigation. */
+?>
 <header class="header banner">
-
-	<div class="container">
-
-		<div class="row">
-			<div class="col-12">
-				<?php get_component( 'navigation' ); ?>
-			</div>
-		</div>
-
-	</div>
-
+	<?php get_component( 'navigation', false, array( 'brand' => $brand, 'navigation' => $navigation ) ); ?>
 </header>
