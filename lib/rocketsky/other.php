@@ -1,9 +1,2 @@
 <?php
-
-function ct_allow_webp( $mime ) {
-
-	$mime[ 'webp' ] = 'image/webp';
-	return $mime;
-
-}
-add_filter( 'mime_types', 'ct_allow_webp' );
+/** Native WordPress handles WebP MIME support; no additional MIME bypass is installed. */

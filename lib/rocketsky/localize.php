@@ -1,18 +1,21 @@
 <?php
+/** Expose optional presentation configuration only after the real theme handle exists. */
 
 namespace Rocketsky\Skye\Localize;
 
 /**
- * Localize dat script
- * You can add own domains and values
+ * Attach explicitly requested script data without a default unused AJAX payload.
+ *
+ * The legacy entry point remains callable; no nonce, credential or arbitrary
+ * application object is automatically copied to the browser.
+ *
+ * @since 2025-06-16
+ * @return void
  */
 function ct_localize_scripts() {
-	wp_localize_script( 'skye/js', 'projectsAjax', array(
-		'url' => admin_url( 'admin-ajax.php' )
-	));
+	$data = apply_filters( 'skye_script_data', array() );
+	if ( is_array( $data ) && $data && wp_script_is( 'skye/js', 'registered' ) ) {
+		wp_localize_script( 'skye/js', 'skyeTheme', $data );
+	}
 }
-
-// Execute it after script is registered
-add_action('wp_loaded', __NAMESPACE__ . '\\ct_localize_scripts')
-
-?>
+add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\ct_localize_scripts', 110 );
