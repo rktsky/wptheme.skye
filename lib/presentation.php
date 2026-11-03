@@ -138,9 +138,11 @@ function skye_navigation_args( $location = 'primary_navigation' ) {
 }
 
 /**
- * Add Bootstrap classes while preserving WordPress current and ancestor classes.
+ * Adapt native list-item classes to Bootstrap 6 without losing native state.
  *
- * Only explicitly marked theme menus receive these presentation classes.
+ * Core uses menu-item on LI elements, while Bootstrap 6 reserves that class for
+ * full-width interactive controls. Only marked theme menus replace the exact
+ * base class; current/ancestor/provider classes remain native and unchanged.
  *
  * @since 3.0.0
  * @param string[] $classes Native menu-item classes.
@@ -152,6 +154,11 @@ function skye_navigation_args( $location = 'primary_navigation' ) {
 function skye_navigation_item_classes( $classes, $item, $args, $depth ) {
 	if ( empty( $args->skye_bootstrap ) ) {
 		return $classes;
+	}
+	foreach ( $classes as $index => $class ) {
+		if ( 'menu-item' === $class ) {
+			$classes[$index] = 'skye-menu-item';
+		}
 	}
 	$classes[] = 0 === $depth ? 'nav-item' : 'menu-item-container';
 	if ( in_array( 'menu-item-has-children', $classes, true ) ) {

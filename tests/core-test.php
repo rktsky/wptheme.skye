@@ -200,6 +200,15 @@ try {
 	$classes = skye_navigation_item_classes( array( 'current-menu-item' ), $item, $args, 0 );
 	core_check( in_array( 'current-menu-item', $classes, true ) && in_array( 'nav-item', $classes, true ), 'Native current state is preserved by Bootstrap presentation.' );
 	core_check( array( 'foreign' ) === skye_navigation_item_classes( array( 'foreign' ), $item, $other_args, 0 ), 'Unmarked plugin menus retain their native classes.' );
+	$native_classes = array( 'menu-item', 'menu-item-type-post_type', 'current-menu-item', 'current-menu-ancestor', 'menu-item-has-children' );
+	$marked_classes = skye_navigation_item_classes( $native_classes, $item, $args, 0 );
+	core_check( ! in_array( 'menu-item', $marked_classes, true ) && in_array( 'skye-menu-item', $marked_classes, true ), 'Owned LI does not inherit Bootstrap6 full-width interactive menu-item styling.' );
+	core_check( ! array_diff( array( 'menu-item-type-post_type', 'current-menu-item', 'current-menu-ancestor', 'menu-item-has-children' ), $marked_classes ), 'Exact base-class replacement retains native state and provider selectors.' );
+	$nested_classes = skye_navigation_item_classes( $native_classes, $item, $args, 1 );
+	core_check( ! in_array( 'menu-item', $nested_classes, true ) && in_array( 'skye-menu-item', $nested_classes, true ), 'Owned nested LI uses the same non-conflicting base class.' );
+	core_check( $native_classes === skye_navigation_item_classes( $native_classes, $item, $other_args, 0 ), 'Unmarked native/plugin menus preserve the original LI class contract.' );
+	$nested_attributes = skye_navigation_link_attributes( array(), $item, $args, 1 );
+	core_check( 'menu-item' === trim( $nested_attributes['class'] ), 'Actual submenu links retain Bootstrap6 interactive menu-item styling.' );
 	$attrs = skye_navigation_link_attributes( array( 'aria-current' => 'page' ), $item, $args, 0 );
 	core_check( 'page' === $attrs['aria-current'] && str_contains( $attrs['class'], 'nav-link' ), 'Native aria-current survives Bootstrap link classes.' );
 	$toggle = skye_navigation_dropdown_toggle( '<a href="/parent">Parent</a>', $item, 0, $args );
