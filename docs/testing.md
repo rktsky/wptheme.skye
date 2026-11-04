@@ -1,6 +1,6 @@
 # Tatsächlicher Prüfnachweis
 
-Stand: 03.11.2026, Skye 3.0.0 auf dem Arbeitsbranch `refactor/skye-3`. Dieser Nachweis betrifft das integrierte Basistheme, nicht eine produktive Volksgarage-Installation. Logik, Styling und reine Formatierung sind getrennt in Git nachvollziehbar; [Herkunft](backports.md), [Migration](migration-3.md) und [Freigabe](implementation-scope.md) beschreiben den Umfang.
+Stand: 04.11.2026, Skye 3.0.0 auf dem Arbeitsbranch `refactor/skye-3`. Dieser Nachweis betrifft das integrierte Basistheme, nicht eine produktive Volksgarage-Installation. Logik, Styling und reine Formatierung sind getrennt in Git nachvollziehbar; [Herkunft](backports.md), [Migration](migration-3.md) und [Freigabe](implementation-scope.md) beschreiben den Umfang.
 
 ## Lokale Umgebung
 
@@ -13,7 +13,7 @@ Die nativen Core-Prüfungen verwenden unveränderte WordPress-Quellen 6.8.12 und
 | Bereich | Tatsächlicher Lauf | Ergebnis und Aussagegrenze |
 | --- | --- | --- |
 | Architektur und Dokumentation | PHP-Parser über 86 eigene PHP-Dateien; sieben positive/negative Checker-Fixtures | Null Befunde; erkennt die implementierten Architektur-/Tagregeln. Begründung und historische Genauigkeit wurden zusätzlich anhand Herkunft und Git geprüft; Tags allein beweisen diese nicht. |
-| Format und Syntax | PHP CS Fixer über 85 Dateien; PHP-Parser; 14 JS-Syntax-/LF- und 15 Sass/CSS-LF-Prüfungen | Null vorgeschlagene Formatänderungen. Die tatsächliche Sass-Grammatik wird durch den Produktionsbuild geprüft. Kein Umformatieren fremder oder erzeugter Dateien. |
+| Format und Syntax | PHP CS Fixer über 85 Dateien; PHP-Parser; 15 JS-Syntax-/LF- und 15 Sass/CSS-LF-Prüfungen | Null vorgeschlagene Formatänderungen. Die tatsächliche Sass-Grammatik wird durch den Produktionsbuild geprüft. Kein Umformatieren fremder oder erzeugter Dateien. |
 | Komponenten und Modelle | Echter Loader und echte Templates, je 91 Aussagen mit und ohne verfügbare ACF-API | Beide isolierten Pfade grün. Core-/ACF-API-Ausgänge sind hier begrenzte Gegenstellen; echte Core-Installation wird separat geprüft. ACF-Anwesenheit wird durch begrenzte Providergegenstellen dargestellt; das ersetzt keine echte ACF-PRO-Integration. |
 | Security | 41 Aussagen gegen die tatsächlichen Theme-Callbacks über die echte Core-Hookengine | Beide Core-Versionen grün; begrenzte Rechte-/Optionsgegenstellen prüfen verweigerte Saves, Classic-Switch-Suppression, Multisite-Optionsgrenzen, Favicon-Abwesenheit und gezielte Cacheinvalidierung nach nativen Optionsänderungen. Kein Penetrationstest oder vollständiger Plugin-Audit. |
 | Assets und Performance | 35 Asset-, 46 Strategie-, 51 Empty-Style-, 99 Formular- und 27 Critical-/Preload-Aussagen je Core-Version | Native Register, Parser, Abhängigkeiten und Serializer; unbekannte und beschädigte Verträge behalten ihren Fallback. Gravity Forms und Members werden an ihren begrenzten API-Grenzen geprüft, nicht als installierte Vollprodukte. |
@@ -40,6 +40,17 @@ Die Suite prüft horizontale Menüpositionen tatsächlich über ihre Geometrie. 
 Der zusätzliche positive Critical-Test verwendet eine ausdrücklich begrenzte synthetische Seite: kein beliebiger Bodyinhalt im ersten Viewport, Footer unterhalb davon, Systemfont. Bei 390 und 1440 Pixeln hält der Browser die vollständige CSS-Antwort bis nach `DOMContentLoaded` zurück. Chrome 155 und Firefox 153 bestanden je 31 Aussagen zu sichtbarer Geometrie/Typografie, einmaliger Übertragung, spätem Opt-out und No-JS. Die temporäre MU-Fixture wird nur in der eigenen lokalen Wegwerf-Site installiert, überschreibt nichts und wird im Abschlussblock entfernt. Der Screenshot vor CSS-Freigabe deaktiviert nur Playwrights Hilfswartezeit auf Fonts: Firefox wartet dabei auf die absichtlich gehaltene CSS-Antwort. Der Helper lässt dafür ausschliesslich den geprüften Systemfont-Vertrag ohne `@font-face`/`@import` zu und stellt die Prozesseinstellung wieder her; tatsächliche CSS-, Geometrie- und Typografieprüfungen bleiben aktiv. Dieser Test bestätigt keinen unbekannten Projekt-Viewport.
 
 Die zusätzlich für macOS 14 erhältliche eingefrorene Playwright-WebKit-Ausgabe liess sich mit dieser Laufzeit nicht verwenden: `Page.overrideSetting` verweigerte `PushAPIEnabled` bereits vor dem ersten Seitenaufruf. Normal- und Critical-Versuch sind deshalb keine bestandenen WebKit-Läufe. Die isolierte Fixture und eigenen Prozesse wurden danach entfernt; Safari-/iOS-Abnahme bleibt offen.
+
+## GitHub Actions im Originalrepository
+
+Am 04.11.2026 wurde `refactor/skye-3` auf ausdrücklichen Auftrag nach `rktsky/wptheme.skye` gepusht. Die tatsächlichen Hosted-Läufe sind vom vorstehenden lokalen macOS-Nachweis zu unterscheiden.
+
+- [Erster Lauf, `0a9b298`](https://github.com/rktsky/wptheme.skye/actions/runs/41786012128): Build/Release, PHP 8.3 mit Core 7.1.4 und Chromium/Firefox erfolgreich; die übrigen PHP-Kombinationen und WebKit fehlgeschlagen.
+- [Zweiter Lauf, `8dddb9c`](https://github.com/rktsky/wptheme.skye/actions/runs/41786557501): dieselben erfolgreichen Bereiche; Standalone-Fehler unter Core 6.8.12 bzw. PHP 8.5 und der WebKit-Lauf werden weiter untersucht. Ein erfolgreicher Gesamtstand wird damit noch nicht behauptet.
+
+Eigene wirkungslose `imagedestroy()`-Aufrufe wurden entfernt. Der SQLite-Testadapter nutzt ab PHP 8.4 `Pdo\Sqlite::createFunction()`; die ältere native API bleibt gezielt auf der Mindestlaufzeit PHP 8.3. Die vier vollständig ausgeführten CI-Paare sind jetzt PHP 8.3/8.4 mit WordPress 6.8.12 und PHP 8.3/8.5 mit WordPress 7.1.4. WordPress 6.8 unterstützt PHP 8.5 laut [offizieller Core-Matrix](https://make.wordpress.org/core/handbook/references/php-compatibility-and-wordpress-versions/) nicht. Diese Kombination wird nicht durch Originalpatches, Warnunterdrückung oder still übersprungene Tests scheinbar grün gemacht.
+
+Begrenzte native GitHub-Fehlerannotationen enthalten nun die tatsächliche PHP-/Browserdiagnose, wenn ein Test fehlschlägt. Die vollständigen Joblogs und fehlschlagenden Exitcodes bleiben erhalten. Dies ermöglicht die Diagnose über öffentliche Checkdaten auch dann, wenn die Logdownload-API eine zusätzliche Anmeldung verlangt. Die eng angegebenen PHP-/Browserartefakte schliessen ihre versteckten Testpfade ausdrücklich ein; keine vollständige `.git`-Struktur, Sitekonfiguration oder Datenbank wird hochgeladen. Quellen: [GitHub Workflow Commands](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#setting-an-error-message), [PHP 8.5 Deprecations](https://www.php.net/manual/en/migration85.deprecated.php).
 
 ## Reproduzieren und Protokolle
 
@@ -72,7 +83,7 @@ Nicht eingecheckte lokale Rohprotokolle und Fixture-Daten liegen unter `.git/run
 
 ## Offene Abnahmegrenzen
 
-- Die konfigurierte GitHub-Actions-Matrix wurde hier nicht auf GitHub ausgeführt: PHP 8.5 sowie aktuelle Linux-Engines mit Playwright 1.64.1 sind dadurch noch nicht als bestanden belegt.
+- Die Hosted-Integration ist erst mit einem insgesamt erfolgreichen oben verlinkten Lauf belegt. Die bisher fehlgeschlagenen PHP-/WebKit-Fälle bleiben bis zu ihrer tatsächlichen Korrektur offen; ein konfigurierter Job ersetzt diesen Nachweis nicht.
 - Native Safari-Versionen auf macOS/iPhone/iPad, Edge auf Windows und Chrome auf physischen Android-Geräten stehen aus; ebenso vollständige Notebook-/Tablet-/Touch-, Zoom- und virtuelle-Tastatur-Abnahme. Playwright-WebKit ersetzt keinen dieser Nachweise.
 - MySQL-/InnoDB-Mehrprozessbetrieb, reales Hosting-Cron, Imagick, externer Redis-Provider und aktive ACF-PRO-/Gravity-Forms-/Members-Produkte müssen bei der jeweiligen Projektintegration geprüft werden. Die native SQLite-Site belegt keine produktive Serverkonfiguration.
 - Keine generischen Lighthouse-Scores oder prozentualen Ladezeiten werden behauptet. Rohgrössen stehen in [Performance](performance.md); Medienfixturewerte in [Medien](media.md). Eine unbekannte Route erhält ohne vollständigen geprüften Critical-Vertrag den nativen Fallback.

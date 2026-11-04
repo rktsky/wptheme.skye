@@ -12,6 +12,8 @@ Der Umfang umfasst Standards/Dokumentation, Sicherheitskorrekturen, explizite Ko
 
 Die frühere Einschränkung der Critical-/Mobile-CSS-Backports ist aufgehoben: Wiederverwendbare Build- und Auslieferungsmechanik gehört hinein; die konkreten Volksgarage-Inventare, Fonts, Glyphen und Geometrieannahmen nicht. Die Medienpipeline gehört zum Lieferumfang, ihre Aktivierung richtet sich nach den unterstützten Formaten und der Projektkonfiguration.
 
-Redis und ACF PRO werden nicht eingebettet. Ihre separate Einrichtung und Lizenz-/Updateverwaltung werden dokumentiert. Keine Installation oder Änderung an produktiven Volksgarage-Systemen, kein Push/Release ist beauftragt. WordPress und beibehaltene Drittanbieterdateien bleiben unverändert.
+Redis und ACF PRO werden nicht eingebettet. Ihre separate Einrichtung und Lizenz-/Updateverwaltung werden dokumentiert. Die ursprüngliche Freigabe enthält keine Installation oder Änderung an produktiven Volksgarage-Systemen und keinen Push bzw. veröffentlichten Release. WordPress und beibehaltene Drittanbieterdateien bleiben unverändert.
 
 Logik, Styling und reine Formatierung werden getrennt committet. Jeder Arbeitsschritt nennt tatsächliche Prüfungen und offene Grenzen. Die Umsetzung ist erst nach Integration und gezielten Regressionen abgeschlossen; frühere Websiteprüfungen ersetzen keine Skye-Prüfung.
+
+Am 04.11.2026 hat der Projekteigentümer zusätzlich den Push ins Skye-Originalrepository, die vollständige Ausführung der GitHub-Actions-Prüfungen und die direkte Behebung allfälliger Fehler beauftragt. Der Arbeitsbranch `refactor/skye-3` wird dafür in `rktsky/wptheme.skye` veröffentlicht; die Prüfergebnisse werden nach tatsächlicher Ausführung nachgeführt. WordPress- und Drittanbieter-Originaldateien bleiben auch bei CI-Kompatibilitätsfehlern unverändert.
