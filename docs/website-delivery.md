@@ -59,8 +59,12 @@ Core druckt vorhandene eigene Inline-Regeln weiterhin separat dahinter.
 
 Es findet weder eine Auswahl von Selektoren noch eine Critical-CSS-Schätzung
 statt. Gewöhnliche `url()`-Werte werden gegen die kanonische Quelldatei
-aufgelöst; Daten- und Fragment-URLs bleiben erhalten. Imports, escaped Funktionen
-oder URLs, `image()`/`image-set()`, fehlerhafte Kommentare/Strings und
+aufgelöst; Daten- und Fragment-URLs bleiben erhalten. `image-set()` und
+`-webkit-image-set()` unterstützen bis zu 16 explizite `url()`-Kandidaten mit
+positiver Dichte in `x`, `dppx`, `dpi` oder `dpcm`; Reihenfolge und Dichtetokens
+bleiben unverändert. Bare Strings, `type()`, verschachtelte Bilder und Kommentare
+innerhalb dieser Listen behalten den vollständigen nativen Link. Imports,
+escaped Funktionen oder URLs, `image()`, fehlerhafte Kommentare/Strings und
 HTML-Schliesstokens sind nicht unterstützt und behalten den ursprünglichen
 Link. Fremde Linkattribute, SRI, alternative/bedingte/RTL-Varianten und bereits
 veränderte native Tags behalten ebenfalls den Link. Die vorhandene

@@ -45,6 +45,7 @@ $cases = array(
 	array( 'performance-form-controls.php' ),
 	array( 'performance-critical.php' ),
 	array( 'performance-static-delivery.php' ),
+	array( 'full-css-image-set.php' ),
 	array( 'environment-mail.php' ),
 	array( 'mobile-navigation-native.php' ),
 );

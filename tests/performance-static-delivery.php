@@ -74,7 +74,7 @@ namespace {
 	mkdir( $GLOBALS['perf_child'], 0700 );
 	file_put_contents( $GLOBALS['perf_child'] . '/one.js', 'window.one = 1;' );
 	file_put_contents( $GLOBALS['perf_child'] . '/two.js', 'window.two = window.one + 1;' );
-	$css_source = '/* license */@font-face{font-family:Own;src:url("../font.woff2")} .all{color:red} @media(print){.all{color:black}}';
+	$css_source = '/* license */@font-face{font-family:Own;src:url("../font.woff2")} .all{color:red;background-image:image-set(url("./one.webp") 1x,url("../two.webp") 2x)} @media(print){.all{color:black}}';
 	file_put_contents( $GLOBALS['perf_child'] . '/all.css', $css_source );
 	$before_hash = hash_file( 'sha256', $GLOBALS['perf_child'] . '/one.js' );
 
@@ -149,14 +149,24 @@ namespace {
 		$GLOBALS['perf_context'] = array();
 		$rebased = FullCss::rebase( $css_source, 'https://example.test/child/all.css' );
 		perf_check( str_contains( $rebased, 'url("https://example.test/font.woff2")' ) && str_contains( $rebased, '@media(print)' ) && str_contains( $rebased, '/* license */' ), 'Complete CSS retains license/rules/media and resolves its relative URLs.' );
+		perf_check( str_contains( $rebased, 'image-set(url("https://example.test/child/one.webp") 1x,url("https://example.test/two.webp") 2x)' ), 'The complete source, derivative cache and native serializer retain both rebased image-set candidates.' );
 		foreach ( array( '@import "other.css";', 'x{background:url("bad\\ path")}', '/* unclosed', 'x{content:"unclosed}', 'x{background:url(invalid space.png)}', 'x{background:url(invalid"quote.png)}', 'x{background:image-set("relative.webp" 1x)}', 'x{background:u\\72l(relative.png)}', '@\\69mport "x.css";', '</STYLE><script>x</script>' ) as $bad ) {
 			perf_check( FullCss::rebase( $bad, 'https://example.test/child/all.css' ) === false, 'Unsupported CSS retains native delivery.' );
 		}
 		$source = LocalAssets::read( 'https://example.test/child/all.css', 'css' );
+		$legacy_key = hash( 'sha256', $source['sha256'] . '|' . $source['url'] . '|canonical-v1' );
+		$legacy_bytes = '/* derivative from an earlier CSS grammar */';
+		$legacy_hash = hash( 'sha256', $legacy_bytes );
+		$cache_directory = $GLOBALS['delivery_fixture'] . '/uploads/skye-static-assets';
+		$legacy_file = $cache_directory . '/style-' . $legacy_hash . '.css';
+		$legacy_manifest = $cache_directory . '/style-source-' . $legacy_key . '.json';
+		file_put_contents( $legacy_file, $legacy_bytes );
+		file_put_contents( $legacy_manifest, wp_json_encode( array( 'version' => 1, 'file' => basename( $legacy_file ), 'sha256' => $legacy_hash, 'bytes' => strlen( $legacy_bytes ) ) ) );
 		perf_check( $source && LocalAssets::inline_css( $source ) === $rebased && LocalAssets::inline_css( $source ) === $rebased, 'Real CSS cache round-trip preserves complete derivative bytes.' );
-		$css_files = glob( $GLOBALS['delivery_fixture'] . '/uploads/skye-static-assets/style-*.css' );
-		file_put_contents( $css_files[0], 'corrupt' );
-		perf_check( LocalAssets::inline_css( $source ) === $rebased && file_get_contents( $css_files[0] ) === $rebased, 'Hash mismatch repairs only the owned derivative, never the source.' );
+		perf_check( file_get_contents( $legacy_file ) === $legacy_bytes && is_file( $legacy_manifest ), 'The new grammar never reuses or removes an older valid derivative.' );
+		$css_file = $cache_directory . '/style-' . hash( 'sha256', $rebased ) . '.css';
+		file_put_contents( $css_file, 'corrupt' );
+		perf_check( LocalAssets::inline_css( $source ) === $rebased && file_get_contents( $css_file ) === $rebased, 'Hash mismatch repairs only the owned derivative, never the source.' );
 		$GLOBALS['wp_styles'] = new WP_Styles();
 		wp_styles()->base_url = 'https://example.test';
 		wp_enqueue_style( 'delivery-css', $source['url'], array(), null, 'print' );
