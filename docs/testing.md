@@ -4,7 +4,7 @@ Stand: 04.11.2026, Skye 3.0.0 auf dem Arbeitsbranch `refactor/skye-3`. Dieser Na
 
 ## Lokale Umgebung
 
-macOS 14.8.3 (23J220), Apple Silicon/arm64; PHP 8.3.36 mit GD/WebP, PDO SQLite, DOM, mbstring und Tokenizer; Node 24.22.2 und npm 12.2.1. Node wurde aus dem offiziellen Distributionsverzeichnis bezogen und gegen dessen SHA-256-Liste geprüft. Produktions-PHP verwendet keine Node-/Composer-Pakete. Die separaten Qualitätswerkzeuge sind mit Composer 2.11.1 installiert und gelockt: PHP CS Fixer 3.95.27 und PHP Parser 5.9.0.
+macOS 14.8.3 (23J220), Apple Silicon/arm64; PHP 8.3.36 mit GD/WebP, PDO SQLite, DOM, mbstring und Tokenizer. Der ursprüngliche Prüfstand verwendete Node 24.22.2/npm 12.2.1. Die CentOS-Anpassung baut mit dem offiziellen Node-14.21.3-Darwin-x64-Binary unter Rosetta und npm 6.14.18; die modernen Testharnesses laufen davon getrennt mit Node 24. Node wurde aus dem offiziellen Distributionsverzeichnis bezogen und gegen dessen SHA-256-Liste geprüft. Produktions-PHP verwendet keine Node-/Composer-Pakete. Die separaten Qualitätswerkzeuge sind mit Composer 2.11.1 installiert und gelockt: PHP CS Fixer 3.95.27 und PHP Parser 5.9.0.
 
 Die nativen Core-Prüfungen verwenden unveränderte WordPress-Quellen 6.8.12 und 7.1.4. Vollständige Wegwerf-Installationen verwenden zusätzlich das unveränderte SQLite-Plugin 3.1.3 und phasenweise das originale Classic-Editor-Plugin 1.7.0. Archivherkunft, Prüfsummen, Eigentumsgrenzen und Wiederholung sind in [Testinstallation](testing-setup.md) dokumentiert. Mail und externe HTTP-Transporte sind gesperrt; die Browser greifen nur auf den Loopbackserver zu. ACF PRO, Redis und produktive Zugangsdaten sind nicht installiert.
 
@@ -13,7 +13,7 @@ Die nativen Core-Prüfungen verwenden unveränderte WordPress-Quellen 6.8.12 und
 | Bereich | Tatsächlicher Lauf | Ergebnis und Aussagegrenze |
 | --- | --- | --- |
 | Architektur und Dokumentation | PHP-Parser über 86 eigene PHP-Dateien; sieben positive/negative Checker-Fixtures | Null Befunde; erkennt die implementierten Architektur-/Tagregeln. Begründung und historische Genauigkeit wurden zusätzlich anhand Herkunft und Git geprüft; Tags allein beweisen diese nicht. |
-| Format und Syntax | PHP CS Fixer über 85 Dateien; PHP-Parser; 15 JS-Syntax-/LF- und 15 Sass/CSS-LF-Prüfungen | Null vorgeschlagene Formatänderungen. Die tatsächliche Sass-Grammatik wird durch den Produktionsbuild geprüft. Kein Umformatieren fremder oder erzeugter Dateien. |
+| Format und Syntax | PHP CS Fixer über 85 Dateien; PHP-Parser; 16 JS-Syntax-/LF- und 15 Sass/CSS-LF-Prüfungen | Null vorgeschlagene Formatänderungen. Die tatsächliche Sass-Grammatik wird durch den Produktionsbuild geprüft. Kein Umformatieren fremder oder erzeugter Dateien. |
 | Komponenten und Modelle | Echter Loader und echte Templates, je 91 Aussagen mit und ohne verfügbare ACF-API | Beide isolierten Pfade grün. Core-/ACF-API-Ausgänge sind hier begrenzte Gegenstellen; echte Core-Installation wird separat geprüft. ACF-Anwesenheit wird durch begrenzte Providergegenstellen dargestellt; das ersetzt keine echte ACF-PRO-Integration. |
 | Security | 41 Aussagen gegen die tatsächlichen Theme-Callbacks über die echte Core-Hookengine | Beide Core-Versionen grün; begrenzte Rechte-/Optionsgegenstellen prüfen verweigerte Saves, Classic-Switch-Suppression, Multisite-Optionsgrenzen, Favicon-Abwesenheit und gezielte Cacheinvalidierung nach nativen Optionsänderungen. Kein Penetrationstest oder vollständiger Plugin-Audit. |
 | Assets und Performance | 35 Asset-, 46 Strategie-, 51 Empty-Style-, 99 Formular- und 27 Critical-/Preload-Aussagen je Core-Version | Native Register, Parser, Abhängigkeiten und Serializer; unbekannte und beschädigte Verträge behalten ihren Fallback. Gravity Forms und Members werden an ihren begrenzten API-Grenzen geprüft, nicht als installierte Vollprodukte. |
@@ -43,7 +43,7 @@ Die zusätzlich für macOS 14 erhältliche eingefrorene Playwright-WebKit-Ausgab
 
 ## GitHub Actions im Originalrepository
 
-Der Branch `refactor/skye-3` wurde am 04.11.2026 nach `rktsky/wptheme.skye` gepusht. Der [vollständige Hosted-Lauf für `df7fb75`](https://github.com/rktsky/wptheme.skye/actions/runs/41790028997) ist mit **allen acht Jobs erfolgreich abgeschlossen**. Dieser Ubuntu-24.04-Nachweis ist vom vorstehenden lokalen macOS-Nachweis zu unterscheiden.
+Der Branch `refactor/skye-3` wurde am 04.11.2026 nach `rktsky/wptheme.skye` gepusht. Der [vollständige Hosted-Lauf für `df7fb75`](https://github.com/rktsky/wptheme.skye/actions/runs/41790028997) ist als früherer Node-24-Buildstand mit **allen acht Jobs erfolgreich abgeschlossen**. Dieser Ubuntu-24.04-Nachweis ist vom vorstehenden lokalen macOS-Nachweis zu unterscheiden.
 
 | Job | Tatsächlicher erfolgreicher Umfang |
 | --- | --- |
@@ -68,6 +68,21 @@ Die vorangehenden [ersten](https://github.com/rktsky/wptheme.skye/actions/runs/4
 
 Diese CI-Korrekturen betreffen Prüfwerkzeuge, Versionsdeklaration und Nachweise; der Theme-Produktionscode wurde dafür nicht geändert. Es wurden keine Tests übersprungen, Fehler unterdrückt oder WordPress-/Drittanbieter-Originaldateien gepatcht. Quellen: [GitHub Workflow Commands](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#setting-an-error-message), [PHP 8.5 Deprecations](https://www.php.net/manual/en/migration85.deprecated.php).
 
+## Direkter Build auf CentOS 7
+
+Build und Watch verwenden jetzt den Portalstand Node 14.21.3/npm 6.14.18 mit Lockfile v1 und strikter Engineprüfung. Der lokale Build erzeugt 24 Assets mit fünf Original-Lizenzen. Beide Paketaudits (npm 6 sowie ein aktuelles separates npm) melden am 04.11.2026 null bekannte Advisories; der Lockfile-Hash bleibt dabei unverändert. Die native Lightning-CSS-Bibliothek wird erst für einen tatsächlichen Build geladen, sodass reine Manifestprüfungen keine fremde Prozessorarchitektur laden müssen.
+
+Die drei Build-/Watch-Tests und vier Release-Testgruppen bestehen mit Compiler `v14.21.3` und Harness `v24.22.2`; der Release-Metadatensatz nennt die tatsächliche Compilerlaufzeit. Alle bisherigen Fehlerfälle bleiben aktiv. Die vollständige CSS-Layerreihenfolge bleibt nach der Optimierung in Full-, Mobile- und Critical-CSS gleich: `colors, config, root, reboot, layout, content, forms, components, custom, helpers, utilities`. Der Critical-Auszug liegt weiter unter seinem 96-KiB-Budget. Der direkte Node-14-Loaderlauf besteht alle 70 Assertions.
+
+Ein zusätzlicher GitHub-Job führt eine frische npm-6-Installation sowie den echten Build und Watch im digestgebundenen originalen CentOS-7.9-Userland aus. Er prüft glibc 2.17, Sourcefehler mit unveränderter letzter Ausgabe, Wiederaufnahme, neue PHP-/Assetdateien und SIGTERM während eines Builds. Node und native CSS-Bibliothek bleiben unveränderte Herstellerdateien; Systembibliotheken werden nicht ersetzt. Der Dockercontainer teilt den Kernel des Ubuntu-Hosts. Der tatsächliche Hosted-Nachweis dieses neuen Jobs wird nach seinem ersten erfolgreichen Lauf ergänzt.
+
+| Originaldatei | Geprüfte Voraussetzung |
+| --- | --- |
+| Node 14.21.3 Linux x64 | Archiv-SHA-256 `05c08a107c50572ab39ce9e8663a2a2d696b5d262d5bd6f98d84b997ce932d9a`; tatsächliches ELF benötigt höchstens GLIBC 2.17, GLIBCXX 3.4.18 und CXXABI 1.3.5 |
+| Lightning CSS 1.31.1 Linux x64 GNU | npm-Integrität geprüft; Binary-SHA-256 `751bc92429f1f1c70e330c01dcdc274d478def6f9a93ae0b14a98b6919f171a4`; höchstens GLIBC 2.14, keine libstdc++-Symbole |
+
+Die tatsächlichen Node-14-Compilerprozesse und ihre Version werden von den modernen Build-/Release-Testharnesses getrennt ausgewiesen. Ein erfolgreicher Node-24-Testprozess allein gilt nicht als Node-14- oder CentOS-Nachweis. Ein Test auf einem realen CentOS-7-Host mit dessen Kernel bleibt vom Containerlauf zu unterscheiden.
+
 ## Reproduzieren und Protokolle
 
 Voraussetzungen und Installation der Prüflaufzeiten sind oben und in [Testinstallation](testing-setup.md) beschrieben. Nach dem gelockten Installieren der Qualitätswerkzeuge und Buildabhängigkeiten:
@@ -82,7 +97,7 @@ npm run lint:style
 php tools/coding-standards/check.php
 php tools/coding-standards/vendor/bin/php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
 npm run build
-node --test tests/build.test.mjs tests/critical-loader.test.cjs tests/release.test.mjs
+SKYE_BUILD_NODE=/absoluter/pfad/node14 /absoluter/pfad/node24 --test tests/build.test.mjs tests/critical-loader.test.cjs tests/release.test.mjs
 SKYE_WORDPRESS_CORE=/absoluter/pfad/wordpress php tools/testing/run.php
 ```
 

@@ -19,7 +19,7 @@ Skye 3 übernimmt die allgemeinen Performanceverfahren der abgeschlossenen Arbei
 | Website `259d546`, `fe30ff2` | Konfigurierbare responsive Bildhinweise und konservative eigene Fontpreloads am Body-Einstieg | Keine Markenfonts, kein fester Fontcount; fremde Hinweise/Attribute und unklare Ressourcen bleiben unverändert |
 | Website `f91849b` | Alias für nachweislich leere lokale GF-Styles | Kanonische Quelle, reguläre lesbare Nicht-Symlink-Datei und native Metadaten geprüft; kein blindes Dequeue |
 | Website `d2a658c`, `1a9cef1` | Vertraute installierte Iconmodelle mit explizitem Subset-Vertrag und vollständigem Fallback | Kein Kopieren der sieben lizenzierten Volksgarage-Glyphen; eigene freie Providerquellen |
-| Portal sicherer Build | Vollständige Ausgabe in einem temporären Ziel, Fehlergrenzen und Rückkehr zum vorherigen Stand | Portal-Node-14-Betriebsfestlegung nicht übernommen; eigene aktuelle gelockte Toolchain |
+| Portal sicherer Build | Vollständige Ausgabe in einem temporären Ziel, Fehlergrenzen und Rückkehr zum vorherigen Stand | Node 14.21.3/npm 6.14.18 für direkte CentOS-7-Builds; gelockte Abhängigkeiten und separate moderne Prüfharnesses |
 
 ## Zusätzliche Fehlerbehebungen aus der Skye-Prüfung
 

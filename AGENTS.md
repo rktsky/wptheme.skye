@@ -12,7 +12,7 @@ Vor Änderungen [docs/coding-standards.md](docs/coding-standards.md) lesen.
 - DRY anhand wirklicher Aufrufer und gleicher Verträge; Performance, Daten- und Rechtebegrenzung von Beginn an prüfen.
 - Classic Editor ist verbindlich. Gutenberg ist keine angebotene Alternative. Native öffentliche Schnittstellen und Regressionen statt Core-Patches verwenden.
 - Alle generell übertragbaren abgeschlossenen Website-Performanceverbesserungen integrieren, einschliesslich automatischem Mobile-/Critical-CSS und Medienpipeline. Projektspezifische Ergebnisse neu erzeugen; unbekannte Fälle behalten vollständigen nativen Fallback.
-- Bootstrap erhalten. Abhängigkeiten nur mit belegtem Nutzen, Herkunft, Lizenz und Sicherheits-/Ladebedarf; Lockfiles pflegen. Fremdcode und generierte Dateien nicht umformatieren.
+- Bootstrap erhalten. Build und Watch müssen direkt auf CentOS 7 mit Node 14.21.3/npm 6.14.18 funktionieren; moderne Prüfharnesses separat halten. Abhängigkeiten nur mit belegtem Nutzen, Herkunft, Lizenz und Sicherheits-/Ladebedarf; Lockfiles pflegen. Fremdcode und generierte Dateien nicht umformatieren.
 - Redis und ACF PRO bleiben separate Originalpakete. Keine Geheimnisse einchecken, keine stillen Server-/Plugininstallationen, kein konkurrierender Object-Cache.
 - Echte Funktionen/Templates und Fehlerfälle testen. Browser-/Geräteabdeckung ehrlich dokumentieren; Emulation ist kein echter Gerätetest. Keine produktiven Nachrichten, Zahlungen, Kalender- oder Druckaktionen in Tests.
 - Die direkte Änderung des eigenen Skye-Quellrepos wurde am 03.11.2026 für den dokumentierten Umfang freigegeben. Das erlaubt keine Änderungen an WordPress-, Plugin- oder sonstigen Drittanbieter-Originalen.

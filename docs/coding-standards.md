@@ -91,8 +91,10 @@ Keine zweite parallele Layout- oder Komponentenwelt schaffen.
 
 Keine in den aktuellen stabilen PHP-/WordPress-Versionen deprecated APIs neu
 einsetzen. Mindestlaufzeit und tatsächliche Server-/Testlaufzeiten abgleichen;
-erforderliche Laufzeitänderungen konkret abstimmen. Die Portal-Pins Node 14.21.3
-und npm 6 sind Betriebsbedingungen des Portals, keine allgemeine Skye-Vorgabe.
+erforderliche Laufzeitänderungen konkret abstimmen. Build und Watch müssen auf
+den bestehenden CentOS-7-Systemen mit Node 14.21.3 und npm 6.14.18 laufen.
+Moderne Testwerkzeuge dürfen davon getrennt in der CI laufen; sie dürfen
+keine neue Laufzeit auf dem Buildserver voraussetzen.
 
 Libraries nur mit belegtem Nutzen ergänzen. Vorhandene Lösungen, direkte und
 transitive Abhängigkeiten, Herkunft, Lizenz, Pflege, Sicherheitslage und echten

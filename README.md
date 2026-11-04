@@ -6,13 +6,13 @@ Skye 3 ist ein klassisches WordPress-Basistheme mit **Bootstrap 6.0.0-alpha.1**.
 
 - PHP ab 8.3; lokal geprüft mit PHP 8.3.36.
 - WordPress ab 6.8.12; native Regressionen und Integrationsstände sind in [Prüfungen](docs/testing.md) aufgeführt. WordPress 6.8 unterstützt PHP 8.3/8.4, PHP 8.5 wird mit WordPress 7.1.4 geprüft; die Laufzeiten müssen auch zu Core passen.
-- Node 24 LTS und npm 12.2.1 für Entwicklung/Build; exakte Anforderungen und Locks in `package.json` und `package-lock.json`.
+- Build und Watch: Node 14.21.3 und npm 6.14.18 für die bestehenden CentOS-7-Systeme. Die Versionen und Abhängigkeiten stehen in `.nvmrc`, `package.json` und `package-lock.json`.
 - ACF PRO und Redis bleiben eigenständige Installationsbausteine. Der Kern rendert auch ohne beide.
 
 ## Installation und Entwicklung
 
 ```sh
-npm ci
+npm ci --ignore-scripts
 npm run build
 npm run watch
 ```

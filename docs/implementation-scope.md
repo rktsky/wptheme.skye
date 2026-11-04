@@ -17,3 +17,5 @@ Redis und ACF PRO werden nicht eingebettet. Ihre separate Einrichtung und Lizenz
 Logik, Styling und reine Formatierung werden getrennt committet. Jeder Arbeitsschritt nennt tatsächliche Prüfungen und offene Grenzen. Die Umsetzung ist erst nach Integration und gezielten Regressionen abgeschlossen; frühere Websiteprüfungen ersetzen keine Skye-Prüfung.
 
 Erweiterung vom 04.11.2026: Push ins Skye-Originalrepository, vollständige GitHub-Actions-Prüfung und direkte Fehlerbehebung. Der Arbeitsbranch `refactor/skye-3` wird dafür in `rktsky/wptheme.skye` veröffentlicht; die Prüfergebnisse werden nach tatsächlicher Ausführung nachgeführt. WordPress- und Drittanbieter-Originaldateien bleiben auch bei CI-Kompatibilitätsfehlern unverändert.
+
+Für Build und Watch bleibt am 04.11.2026 der direkte Betrieb auf CentOS 7 verbindlich. Die Referenzversionen sind Node 14.21.3 und npm 6.14.18 aus dem Portal. Ein ausschliesslicher Build auf GitHub ersetzt diesen Ablauf nicht.

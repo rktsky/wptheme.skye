@@ -2,15 +2,19 @@
 
 ## Laufzeiten und Installation
 
-Der Build ist auf Node 24 LTS (`>=24.15.0 <25`) und npm 12 festgelegt, mit `npm@12.2.1` als Paketmanager. Lokal geprüft: Node 24.22.2, npm 12.2.1. Produktions-PHP braucht weder Node noch npm, wenn die erzeugten Assets mit veröffentlicht werden.
+Build und Watch laufen mit **Node 14.21.3 und npm 6.14.18**. Das entspricht der bestehenden CentOS-7-Umgebung des Portals. `.nvmrc`, die Paketanforderungen und `.npmrc` legen diese Versionen und die strikte Prüfung der Paketanforderungen fest; `package-lock.json` verwendet das npm-6-Format v1.
 
 ```sh
-npm ci
+node --version
+npm --version
+npm ci --ignore-scripts
 npm run build
-npm run test:build
-npm run test:performance
 npm run watch
 ```
+
+Node 24 wird nur für die getrennten Browser- und Regressionstestprogramme in der CI verwendet. Es ist keine Voraussetzung für Build, Watch oder den Releaseexport auf CentOS 7. Die Testharnesses starten den eigentlichen Compiler über `SKYE_BUILD_NODE`; ihre Protokolle nennen beide Laufzeiten. Die Produktionssite lädt nur PHP und die gebauten Assets.
+
+Die offiziellen Node-14-Linux-Binaries passen zu glibc 2.17; Node 24 verlangt neuere Systembibliotheken. Der zusätzliche CI-Container prüft den Build deshalb mit dem unveränderten CentOS-7.9-Userland und dem offiziellen Node-14-Archiv. Er teilt den Kernel des Ubuntu-Runners und ersetzt keinen Test auf einem physischen CentOS-7-Host. Es werden weder glibc noch libstdc++ ersetzt. Node 14 erhält keine Upstream-Sicherheitsupdates mehr; der Kompatibilitätsstand bleibt auf die vorhandenen Buildsysteme begrenzt.
 
 Der normale Build erzeugt minifizierte, mit SHA-256 versionierte CSS-/JS-Dateien, Mobile-/Critical-CSS, die erlaubte Free-Icon-Teilmenge und `dist/assets.json`. Eigene Fonts und Bilder sowie die Original-Webfonts werden ebenfalls unveränderlich unter Inhaltsnamen veröffentlicht. Im CSS werden nur bekannte eigene relative Referenzen entsprechend zugeordnet. Die Runtime liest eine gemeinsame Manifestaufnahme pro Request. Der Critical-Vertrag bindet neben dem Klasseninventar die tatsächlichen SHA-256-Bytes sämtlicher konfigurierter PHP-Quellen; auch eine Verhaltensänderung ohne neue Klasse ändert seinen Hash. `_licenses` benennt die exakten aktuellen Lizenzdateien für den Releaseprozess. Versteckte Platzhalter werden nicht als öffentliche Assets veröffentlicht. Sie schreibt weder gespeicherte URLs noch Attachmentmetadaten um.
 
@@ -30,15 +34,19 @@ Watch beobachtet Assets, Buildwerkzeuge und die im Manifest genannten PHP-Quelle
 
 Direkte Buildpakete sind exakt im Lockfile gebunden. Bootstrap ist auf `6.0.0-alpha.1` festgelegt; öffentliche V6-APIs, Klassen und CSS-Tokens ersetzen die alten V5-Annahmen. Die Alpha-Schnittstellen können sich noch ändern; Updates brauchen erneut Menü-, Formular-, Build- und Browserregressionen. Vorhandene V5-Projektinhalte müssen nach der Migration geprüft werden.
 
-Bootstrap und Font Awesome Free liefern die vorhandenen UI-/Iconverträge, Sass kompiliert eigene Module, esbuild bündelt JavaScript, PostCSS/Autoprefixer/cssnano verarbeiten CSS, die beiden PostCSS-Parser sichern die konservative Ableitung, und Chokidar implementiert den vorhandenen Watch-Vertrag. Kein Paket führt Installationscode auf dem Webserver aus. Die Redis-/ACF-PRO-Installation ist ein separater Vorgang.
+Bootstrap und Font Awesome Free liefern UI und Icons. Sass 1.99.0 kompiliert die Styles synchron; Rollup 2.80.0 und Terser 5.51.2 bündeln und verkleinern die Browserprogramme. Lightning CSS 1.31.1 übernimmt Prefixing und Minifizierung, die PostCSS-Parser leiten Mobile-/Critical-CSS ab. Chokidar 4.0.3 beobachtet auch unter Linux neue Dateien und Unterordner. Floating UI ist eine direkte Abhängigkeit der verwendeten Bootstrap-Menüs; npm 6 installiert Peers nicht automatisch.
 
-Am 03.11.2026 lieferte `npm audit` für den Lockfile-Stand null bekannte Meldungen in allen Kategorien. Das ist ein zeitgebundener Registry-Nachweis, keine Garantie für künftig unentdeckte Fehler. Original-Lizenzen von Bootstrap und Font Awesome werden nach `dist/licenses/` übernommen; Originalpakete werden nicht verändert.
+Die Versionen wurden unter echtem Node 14 geprüft. Neuere Versionen mehrerer Buildpakete benötigen Node 18/20/24; andere ältere Kandidaten enthalten bekannte Sicherheitslücken. Der gewählte Graph vermeidet diese Kandidaten und besteht die strikte npm-6-Installation. Die native Linux-Bibliothek von Lightning CSS 1.31.1 verlangt laut geprüftem ELF höchstens GLIBC 2.14 und keine libstdc++-Symbole. Originalpakete werden unverändert verwendet.
+
+Die Browserziele entsprechen Bootstrap 6 Alpha: Safari/iOS ab 18, Chrome/Edge ab 130 und Firefox ab 132. Der Bundler erzeugt ein einzelnes Browserprogramm; eine Umwandlung auf ES2020 oder Unterstützung älterer Browser wird damit nicht zugesagt. Weitere Projektmodule müssen gegen dieselben Browserziele geprüft werden.
+
+Der Abhängigkeitsstand wird mit npm 6 und einem aktuellen separaten Auditwerkzeug geprüft. Ein sauberes Paketaudit ist ein zeitgebundener Registry-Nachweis und keine Aussage über die Wartung von CentOS 7 oder Node 14. Die tatsächlichen Ergebnisse stehen im [Prüfnachweis](testing.md). `dist/licenses/` enthält die Original-Lizenzen von Bootstrap, Font Awesome und den drei gebündelten Floating-UI-Paketen.
 
 ## Herkunft und Quellen
 
 Der neue Node-Build übernimmt die atomare Veröffentlichungsidee der abgeschlossenen Portalarbeit und die konservativen CSS-/Watch-Transformationen der abgeschlossenen Website. Gulp-/Bower-/Vinyl-Adapter sind entfernt. Herkunft der generischen Performanceverträge: `d2a658c`, `138361f`, `42df2e0`, `5f6b04d`, `948c6a3`, `7953682`, `86ce74b`, `356c624`, `259d546`, `fe30ff2`, `f91849b` und `7e08d39` im Websiteprojekt.
 
-Offizielle Grundlagen, geprüft am 03.11.2026: [Bootstrap 6 Migration](https://getbootstrap.com/docs/6.0/migration/), [Navbar](https://getbootstrap.com/docs/6.0/components/navbar/), [Sass-Module](https://sass-lang.com/documentation/at-rules/use/), [WordPress Enqueue](https://developer.wordpress.org/reference/functions/wp_enqueue_script/). Die Paketkopien werden ausschliesslich über den Paketmanager aus der Registry bezogen.
+Offizielle Grundlagen, geprüft am 03.11.2026: [Bootstrap 6 Migration](https://getbootstrap.com/docs/6.0/migration/), [Navbar](https://getbootstrap.com/docs/6.0/components/navbar/), [Browserziele](https://getbootstrap.com/docs/6.0/getting-started/browsers-devices/), [Sass-Module](https://sass-lang.com/documentation/at-rules/use/), [WordPress Enqueue](https://developer.wordpress.org/reference/functions/wp_enqueue_script/). Die Paketkopien werden ausschliesslich über den Paketmanager aus der Registry bezogen. Laufzeitquellen: [Node 14 Plattformanforderungen](https://github.com/nodejs/node/blob/v14.21.3/BUILDING.md), [Node 24 Plattformanforderungen](https://github.com/nodejs/node/blob/v24.22.2/BUILDING.md), [Node-Lebenszyklus](https://nodejs.org/en/about/previous-releases), [Lightning CSS](https://lightningcss.dev/).
 
 ## Tatsächliche Prüfung dieses Stands
 
