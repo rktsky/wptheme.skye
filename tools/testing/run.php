@@ -48,6 +48,7 @@ $cases = array(
 	array( 'full-css-image-set.php' ),
 	array( 'environment-mail.php' ),
 	array( 'mobile-navigation-native.php' ),
+	array( 'external-links-native.php' ),
 );
 $fixtures = array( 'core-fixture.php', 'performance-fixture.php', 'critical-site-fixture.php', 'server.php', 'site-fixture.php', 'site-verify.php', 'core-sidebar-native.php' );
 $known = array_unique( array_merge( array_column( $cases, 0 ), $fixtures ) );

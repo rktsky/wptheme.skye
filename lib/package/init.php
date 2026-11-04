@@ -3,7 +3,7 @@
 
 $skye_packages = array(
 	'ClassicEditing', 'Images', 'MenuCache', 'NotFound', 'Performance',
-	'FormControls', 'CriticalStyles', 'StaticDelivery', 'DeliverySettings', 'EnvironmentMail', 'MobileNavigation', 'Icons', 'Register', 'Templates',
+	'FormControls', 'CriticalStyles', 'StaticDelivery', 'DeliverySettings', 'EnvironmentMail', 'MobileNavigation', 'ExternalLinks', 'Icons', 'Register', 'Templates',
 );
 foreach ( $skye_packages as $skye_package ) {
 	require_once __DIR__ . '/' . $skye_package . '.php';
@@ -20,4 +20,5 @@ new Rocketsky\Skye\Packages\StaticDelivery();
 new Rocketsky\Skye\Packages\DeliverySettings();
 new Rocketsky\Skye\Packages\EnvironmentMail();
 new Rocketsky\Skye\Packages\MobileNavigation();
+new Rocketsky\Skye\Packages\ExternalLinks();
 new Rocketsky\Skye\Packages\Register();
