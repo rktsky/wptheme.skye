@@ -155,4 +155,3 @@ Architektur- und Stilprüfungen decken nur ihre implementierten Teilregeln ab;
 sie bestätigen keine vollständige rückwirkende Konformität. Auch der vorhandene
 Portalcode enthält noch Dokumentationslücken. Geprüfte Testprogramme, lokale
 Läufe, tatsächliche CI-Läufe und Produktionsabnahmen getrennt berichten.
-
