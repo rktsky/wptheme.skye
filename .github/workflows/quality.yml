@@ -66,8 +66,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.3', '8.5']
-        wordpress: ['6.8.12', '7.1.4']
+        include:
+          - php: '8.3'
+            wordpress: '6.8.12'
+          - php: '8.4'
+            wordpress: '6.8.12'
+          - php: '8.3'
+            wordpress: '7.1.4'
+          - php: '8.5'
+            wordpress: '7.1.4'
     env:
       SKYE_PHP_BINARY: php
       SKYE_SITE_ROOT: ${{ github.workspace }}/.git/runtime/site/wordpress
