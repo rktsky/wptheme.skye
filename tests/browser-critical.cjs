@@ -65,11 +65,43 @@ async function run() {
 			let release;
 			const held = new Promise(resolve => { release = resolve; });
 			const requests = [];
+			const stylesheetRequests = [];
+			const stylesheetRecords = new Map();
+			// Routing disables HTTP cache. Retain actual completion/failure evidence
+			// so a cancelled preload cannot be confused with two completed transfers.
+			context.on('response', response => {
+				const record = stylesheetRecords.get(response.request());
+				if (record) {
+					record.status = response.status();
+					record.cacheControl = response.headers()['cache-control'] || null;
+				}
+			});
+			context.on('requestfinished', request => {
+				const record = stylesheetRecords.get(request);
+				if (record) record.finished = true;
+			});
+			context.on('requestfailed', request => {
+				const record = stylesheetRecords.get(request);
+				if (record) {
+					record.failure = request.failure()?.errorText || 'unknown failure';
+					record.failedBeforeContinue = !record.continued;
+				}
+			});
 			await context.route('**/*', async route => {
-				const url = route.request().url();
+				const request = route.request();
+				const url = request.url();
 				if (!url.startsWith(origin + '/')) return route.abort();
 				requests.push(url);
-				if (url.endsWith(fullSuffix)) await held;
+				if (url.endsWith(fullSuffix)) {
+					if (stylesheetRequests.length < 10) {
+						const record = {resourceType:request.resourceType(),continued:false,status:null,finished:false,failure:null,failedBeforeContinue:false,cacheControl:null};
+						stylesheetRequests.push(record);
+						stylesheetRecords.set(request, record);
+					}
+					await held;
+					const record = stylesheetRecords.get(request);
+					if (record) record.continued = true;
+				}
 				return route.continue();
 			});
 			const page = await context.newPage();
@@ -98,12 +130,12 @@ async function run() {
 				for (const key of ['x','y','width','height']) assert.ok(Math.abs(before[key] - after[key]) < 1, 'Critical/full heading geometry stays stable: ' + key);
 				assert.equal(await page.locator('h1').evaluate(node => getComputedStyle(node).fontSize), before.font, 'Typography stays stable.');
 				assert.equal(await page.locator('link[rel="stylesheet"]').evaluateAll((links, suffix) => links.filter(link => link.href.endsWith(suffix)).length, fullSuffix), 1, 'The native complete stylesheet exists exactly once after promotion.');
-				assert.equal(requests.filter(url => url.endsWith(fullSuffix)).length, 1, 'Native preload promotion downloads one complete CSS URL.');
+				assert.equal(requests.filter(url => url.endsWith(fullSuffix)).length, 1, 'Native preload promotion downloads one complete CSS URL. Request outcomes: ' + JSON.stringify({engine,version:result.version,width,requests:stylesheetRequests}));
 				assert.equal(requests.filter(url => url.endsWith(mobileSuffix)).length, 0, 'The promoted mobile alias does not trigger a second complete download.');
 				assert.deepEqual(errors, [], 'The positive path has no JavaScript exception.');
 				await page.screenshot({path:path.join(output, 'complete-' + width + '.png')});
 				result.checks += width === 1440 ? 14 : 13;
-				result.cases.push({name:'delayed-complete-css',width,requests:requests.filter(url=>url.includes('/dist/')),before,after});
+				result.cases.push({name:'delayed-complete-css',width,requests:requests.filter(url=>url.includes('/dist/')),stylesheetRequests,before,after});
 			} finally { release(); await context.close(); }
 		}
 		const normal = await browser.newContext();
