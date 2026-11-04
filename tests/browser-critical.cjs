@@ -130,11 +130,20 @@ async function run() {
 				for (const key of ['x','y','width','height']) assert.ok(Math.abs(before[key] - after[key]) < 1, 'Critical/full heading geometry stays stable: ' + key);
 				assert.equal(await page.locator('h1').evaluate(node => getComputedStyle(node).fontSize), before.font, 'Typography stays stable.');
 				assert.equal(await page.locator('link[rel="stylesheet"]').evaluateAll((links, suffix) => links.filter(link => link.href.endsWith(suffix)).length, fullSuffix), 1, 'The native complete stylesheet exists exactly once after promotion.');
-				assert.equal(requests.filter(url => url.endsWith(fullSuffix)).length, 1, 'Native preload promotion downloads one complete CSS URL. Request outcomes: ' + JSON.stringify({engine,version:result.version,width,requests:stylesheetRequests}));
+				const attemptCount = requests.filter(url => url.endsWith(fullSuffix)).length;
+				const outcomes = JSON.stringify({engine,version:result.version,width,attemptCount,requests:stylesheetRequests});
+				assert.equal(stylesheetRequests.length, attemptCount, 'Every CSS attempt has a tracked outcome, including beyond the diagnostic cap. ' + outcomes);
+				const completed = stylesheetRequests.filter(record => record.resourceType === 'stylesheet' && record.continued && record.status === 200 && record.finished && record.failure === null && !record.failedBeforeContinue);
+				assert.equal(completed.length, 1, 'Exactly one complete HTTP 200 CSS transfer succeeds. ' + outcomes);
+				assert.ok(stylesheetRequests.every(record => completed.includes(record) || (record.failedBeforeContinue && record.status === null && !record.finished && typeof record.failure === 'string' && record.failure.length > 0)), 'Any other attempt was cancelled before network release without a response or completed transfer. ' + outcomes);
+				assert.ok(await page.locator('link[rel="stylesheet"]').evaluateAll((links, suffix) => {
+					const link = links.find(item => item.href.endsWith(suffix));
+					return Boolean(link && link.sheet && link.sheet.ownerNode === link && link.sheet.cssRules.length > 0);
+				}, fullSuffix), 'The original native link owns a loaded, parsed CSS stylesheet.');
 				assert.equal(requests.filter(url => url.endsWith(mobileSuffix)).length, 0, 'The promoted mobile alias does not trigger a second complete download.');
 				assert.deepEqual(errors, [], 'The positive path has no JavaScript exception.');
 				await page.screenshot({path:path.join(output, 'complete-' + width + '.png')});
-				result.checks += width === 1440 ? 14 : 13;
+				result.checks += width === 1440 ? 17 : 16;
 				result.cases.push({name:'delayed-complete-css',width,requests:requests.filter(url=>url.includes('/dist/')),stylesheetRequests,before,after});
 			} finally { release(); await context.close(); }
 		}
