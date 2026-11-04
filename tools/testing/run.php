@@ -5,6 +5,33 @@ if ( 'cli' !== PHP_SAPI ) {
 	http_response_code( 403 );
 	exit;
 }
+
+/**
+ * Surface a failed regression's actual diagnostics as one native Actions annotation.
+ *
+ * Keep the complete bytes in stderr and the artifact; only this additional UI
+ * message is UTF-8-normalized and bounded. Preserve both ends of long output so
+ * setup context and the final exception remain visible without changing status.
+ *
+ * @since 3.0.0
+ * @param string $name Explicit classified regression case name.
+ * @param string $diagnostics Complete captured native stdout/stderr bytes.
+ * @param int $code Observed subprocess exit code.
+ * @return void
+ */
+function skye_test_failure_annotation( $name, $diagnostics, $code ) {
+	if ( 'true' !== getenv( 'GITHUB_ACTIONS' ) ) {
+		return;
+	}
+	$message = 'Exit code ' . $code . ":\n" . ( '' === $diagnostics ? 'The regression emitted no diagnostic output.' : mb_scrub( $diagnostics, 'UTF-8' ) );
+	if ( strlen( $message ) > 12288 ) {
+		$message = mb_strcut( $message, 0, 8192, 'UTF-8' ) . "\n[Annotation truncated; complete output remains in the job log and test artifact.]\n" . mb_strcut( $message, -4096, null, 'UTF-8' );
+	}
+	$escapes = array( '%' => '%25', "\r" => '%0D', "\n" => '%0A' );
+	$title = strtr( $name, $escapes + array( ':' => '%3A', ',' => '%2C' ) );
+	fwrite( STDOUT, '::error title=PHP regression ' . $title . '::' . strtr( $message, $escapes ) . "\n" );
+}
+
 $root = dirname( __DIR__, 2 );
 $cases = array(
 	array( 'architecture.php' ),
@@ -48,7 +75,9 @@ foreach ( $cases as $case ) {
 	fwrite( STDOUT, $name . ': ' . ( 0 === $code ? 'PASS' : 'FAIL (' . $code . ')' ) . "\n" );
 	if ( 0 !== $code ) {
 		$failed[] = $name;
-		fwrite( STDERR, file_get_contents( $output ) );
+		$diagnostics = file_get_contents( $output );
+		fwrite( STDERR, $diagnostics );
+		skye_test_failure_annotation( $name, $diagnostics, $code );
 	}
 }
 fwrite( STDOUT, json_encode( array( 'processes' => count( $cases ), 'failed' => $failed, 'logs' => $logs ), JSON_UNESCAPED_SLASHES ) . "\n" );
