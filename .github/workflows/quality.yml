@@ -28,23 +28,32 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.22.2'
+      - name: Retain the isolated modern test harness
+        run: echo "SKYE_TEST_NODE=$(command -v node)" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '14.21.3'
           cache: npm
-      - name: Use the documented npm runtime
-        run: npm install --global npm@12.2.1
-      - name: Install and audit the locked dependency graph
+      - name: Verify the production Node and npm runtime
         run: |
-          npm ci --ignore-scripts
+          test "$(node --version)" = v14.21.3
+          test "$(npm --version)" = 6.14.18
+          test "$(npm config get engine-strict)" = true
+          echo "SKYE_BUILD_NODE=$(command -v node)" >> "$GITHUB_ENV"
+      - name: Install and audit the locked production build graph
+        run: |
+          npm ci --production=false --ignore-scripts --no-audit
           npm audit --audit-level=moderate
       - name: Compile and verify successful and failed build paths
         run: |
           npm run lint:js
           npm run lint:style
           npm run build
-          npm run test:build
-          npm run test:performance
-          node --test tests/release.test.mjs
+          "$SKYE_TEST_NODE" --test tests/build.test.mjs
+          "$SKYE_TEST_NODE" --test tests/critical-loader.test.cjs
+          "$SKYE_TEST_NODE" --test tests/release.test.mjs
       - name: Prove a clean committed release export
-        run: node tools/release.mjs "$RUNNER_TEMP/skye-release"
+        run: '"$SKYE_BUILD_NODE" tools/release.mjs "$RUNNER_TEMP/skye-release"'
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: skye-dist
@@ -56,6 +65,24 @@ jobs:
           name: skye-release-proof
           path: ${{ runner.temp }}/skye-release/release.json
           if-no-files-found: error
+          retention-days: 7
+
+  legacy-build:
+    name: Node 14 build and watch / CentOS 7 userland
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify the original CentOS 7 userland with the official Node 14 runtime
+        run: bash tools/testing/legacy-build.sh "$RUNNER_TEMP/skye-centos7-evidence"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: centos7-node14-build-watch
+          path: ${{ runner.temp }}/skye-centos7-evidence/
+          if-no-files-found: warn
           retention-days: 7
 
   php:
