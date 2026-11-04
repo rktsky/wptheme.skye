@@ -45,6 +45,10 @@ class CriticalStyles {
 	private $preparing_fonts = false;
 	/** @var bool Prevent repeated or reentrant body actions from printing another batch. */
 	private $fonts_printed = false;
+	/** @var string Native owner handle for a prepared critical or explicitly opted-in font batch. */
+	private $font_handle = '';
+	/** @var \_WP_Dependency|null Exact owner identity retained across the head/body boundary. */
+	private $font_registration;
 
 	/**
 	 * Wait for theme and provider enqueues before examining their actual handles.
@@ -69,7 +73,9 @@ class CriticalStyles {
 	 * independently of font-display. Body preloads remain ordinary HTML hints and
 	 * use the same files and CORS policy without adding that head-only barrier.
 	 * Any foreign attribute or same-URL collision keeps the original head record.
-	 * Store accepted records on the already owned native alias, never in options.
+	 * Store accepted records on their exact native registration, never in options.
+	 * Outside critical delivery, skye_font_preload_position must explicitly select
+	 * body; its default head position preserves ordinary complete-CSS behaviour.
 	 *
 	 * @see https://developer.wordpress.org/reference/hooks/wp_preload_resources/
 	 * @see https://developer.wordpress.org/reference/functions/wp_style_add_data/
@@ -78,11 +84,22 @@ class CriticalStyles {
 	 * @since 3.0.0
 	 */
 	public function defer_font_preloads( $resources ) {
-		if ( ! is_array( $resources ) || ! $resources || ! $this->enabled || $this->preparing_fonts || $this->fonts_printed ||
-			did_action( 'wp_body_open' ) || ! apply_filters( 'skye_progressive_styles', true ) ||
-			! $this->critical_registration || ( wp_styles()->registered['skye/css-critical'] ?? null ) !== $this->critical_registration ) {
+		if ( ! is_array( $resources ) || ! $resources || $this->preparing_fonts || $this->fonts_printed || did_action( 'wp_body_open' ) ) {
 			return $resources;
 		}
+		$critical = $this->enabled && apply_filters( 'skye_progressive_styles', true ) && $this->critical_registration &&
+			( wp_styles()->registered['skye/css-critical'] ?? null ) === $this->critical_registration;
+		$position = apply_filters( 'skye_font_preload_position', $critical ? 'body' : 'head' );
+		if ( $position !== 'body' || ( ! $critical && ( ! class_exists( StaticDelivery::class ) || ! StaticDelivery::public_request() ) ) ) {
+			return $resources;
+		}
+		$handle = $critical ? 'skye/css-critical' : 'skye/css';
+		$registration = wp_styles()->registered[$handle] ?? null;
+		if ( ! $registration || ( $this->font_registration && ( $this->font_registration !== $registration || $this->font_handle !== $handle ) ) ) {
+			return $resources;
+		}
+		$this->font_handle = $handle;
+		$this->font_registration = $registration;
 		$this->preparing_fonts = true;
 		try {
 			$expected = array();
@@ -108,7 +125,7 @@ class CriticalStyles {
 					$unsafe[$resource['href']] = true;
 				}
 			}
-			$pending = wp_styles()->get_data( 'skye/css-critical', self::BODY_FONT_PRELOADS );
+			$pending = wp_styles()->get_data( $this->font_handle, self::BODY_FONT_PRELOADS );
 			if ( $pending !== false && ! is_array( $pending ) ) {
 				return $resources;
 			}
@@ -128,7 +145,7 @@ class CriticalStyles {
 			}
 			if ( ! $pending ) {
 				if ( $had_pending ) {
-					wp_style_add_data( 'skye/css-critical', self::BODY_FONT_PRELOADS, array() );
+					wp_style_add_data( $this->font_handle, self::BODY_FONT_PRELOADS, array() );
 				}
 				return $resources;
 			}
@@ -136,7 +153,7 @@ class CriticalStyles {
 				! ( $component = locate_template( 'components/header/font-preloads.php', false, false ) ) || ! is_readable( $component ) ) {
 				return $resources;
 			}
-			return wp_style_add_data( 'skye/css-critical', self::BODY_FONT_PRELOADS, $pending ) ? $head : $resources;
+			return wp_style_add_data( $this->font_handle, self::BODY_FONT_PRELOADS, $pending ) ? $head : $resources;
 		} finally {
 			$this->preparing_fonts = false;
 		}
@@ -155,11 +172,11 @@ class CriticalStyles {
 	 * @since 3.0.0
 	 */
 	public function render_font_preloads() {
-		if ( $this->fonts_printed || ! $this->critical_registration ||
-			( wp_styles()->registered['skye/css-critical'] ?? null ) !== $this->critical_registration ) {
+		if ( $this->fonts_printed || ! $this->font_registration ||
+			( wp_styles()->registered[$this->font_handle] ?? null ) !== $this->font_registration ) {
 			return;
 		}
-		$pending = wp_styles()->get_data( 'skye/css-critical', self::BODY_FONT_PRELOADS );
+		$pending = wp_styles()->get_data( $this->font_handle, self::BODY_FONT_PRELOADS );
 		if ( ! is_array( $pending ) || ! $pending ) {
 			return;
 		}
@@ -167,7 +184,7 @@ class CriticalStyles {
 		try {
 			get_component( 'header', 'font-preloads', array( 'fonts' => array_values( $pending ) ) );
 		} finally {
-			wp_style_add_data( 'skye/css-critical', self::BODY_FONT_PRELOADS, array() );
+			wp_style_add_data( $this->font_handle, self::BODY_FONT_PRELOADS, array() );
 		}
 	}
 
