@@ -7,14 +7,58 @@ import os from 'node:os';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {fileURLToPath} from 'node:url';
-import {release, readReleaseAssets} from '../tools/release.mjs';
+import {readReleaseAssets} from '../tools/release.mjs';
 
 const execute = promisify(execFile);
 const source = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const compilerNode = process.env.SKYE_BUILD_NODE || process.execPath;
+const reportPrefix = '__SKYE_RELEASE_TEST__';
 const gitEnvironment = {...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_AUTHOR_NAME: 'Skye Fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid', GIT_COMMITTER_NAME: 'Skye Fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid'};
 let temporary;
 let root;
 let revision;
+let compilerVersion;
+
+/** Execute the actual fixture release compiler separately from the modern harness. */
+async function release(options) {
+	const program = `
+		import {pathToFileURL} from 'url';
+		const report = value => console.log(${JSON.stringify(reportPrefix)} + JSON.stringify({node:process.version,executable:process.execPath,...value}));
+		try {
+			const {release} = await import(pathToFileURL(process.argv[2]).href);
+			report({ok:true,result:await release(JSON.parse(process.argv[1]))});
+		} catch (error) {
+			report({ok:false,error:{name:error.name,message:error.message,code:error.code}});
+			process.exitCode = 1;
+		}
+	`;
+	let execution;
+	try {
+		execution = await execute(compilerNode, ['--input-type=module', '--eval', program, JSON.stringify(options), path.join(root, 'tools/release.mjs')], {cwd:source, env:gitEnvironment, timeout:60000, killSignal:'SIGKILL', maxBuffer:16*1024*1024});
+	} catch (error) {
+		if (!error.stdout?.split('\n').some(value => value.startsWith(reportPrefix))) throw error;
+		execution = error;
+	}
+	const line = execution.stdout.split('\n').find(value => value.startsWith(reportPrefix));
+	assert.ok(line, 'The actual release child must return a structured result.');
+	const report = JSON.parse(line.slice(reportPrefix.length));
+	assert.match(report.node, /^v[0-9]+\.[0-9]+\.[0-9]+$/);
+	if (path.isAbsolute(compilerNode)) assert.equal(await fs.realpath(report.executable), await fs.realpath(compilerNode));
+	if (compilerVersion) assert.equal(report.node, compilerVersion);
+	else {
+		compilerVersion = report.node;
+		console.log(`Release compiler ${report.node}; node:test harness ${process.version}.`);
+	}
+	if (!report.ok) {
+		assert.notEqual(execution.code, undefined, 'A release failure must exit unsuccessfully.');
+		const error = new Error(report.error.message);
+		error.name = report.error.name;
+		if (report.error.code !== undefined) error.code = report.error.code;
+		throw error;
+	}
+	assert.equal(execution.code, undefined, 'A successful release result must also exit successfully.');
+	return report.result;
+}
 
 /** Run Git only in the disposable fixture without user hooks or signing configuration. */
 async function git(...args) {
@@ -28,7 +72,7 @@ before(async () => {
 	for (const item of ['assets', 'components', 'lib', 'views', 'templates', 'tools/build', 'node_modules']) {
 		await fs.cp(path.join(source, item), path.join(root, item), {recursive: true});
 	}
-	for (const item of ['base.php', 'package.json', 'package-lock.json', '.gitattributes', 'LICENSE']) {
+	for (const item of ['base.php', 'build.mjs', 'tools/release.mjs', 'package.json', 'package-lock.json', '.gitattributes', 'LICENSE']) {
 		await fs.copyFile(path.join(source, item), path.join(root, item));
 	}
 	await fs.writeFile(path.join(root, '.gitignore'), 'node_modules/\ndist/\n.env\n');
@@ -47,7 +91,7 @@ after(async () => {
 	if (temporary) await fs.rm(temporary, {recursive: true, force: true});
 });
 
-test('clean HEAD export ships only verified current assets and licenses', {timeout: 90000}, async () => {
+test('clean HEAD export ships only verified current assets and licenses', {timeout: 180000}, async () => {
 	await fs.mkdir(path.join(root, 'dist'), {recursive: true});
 	await fs.writeFile(path.join(root, 'dist', 'stale-not-in-manifest.css'), 'Never publish a stale previous output.');
 	const output = path.join(temporary, 'release-3.0.0');
@@ -64,9 +108,13 @@ test('clean HEAD export ships only verified current assets and licenses', {timeo
 	for (const [file, bytes] of files) assert.deepEqual(await fs.readFile(path.join(output, 'dist', file)), bytes);
 	const metadata = JSON.parse(await fs.readFile(path.join(output, 'release.json'), 'utf8'));
 	assert.equal(metadata.revision, revision);
+	assert.equal(metadata.node, compilerVersion, 'The release records the actual compiler runtime.');
 	assert.equal(Object.keys(metadata.files).length, result.files);
 	assert.ok(metadata.files['dist/assets.json']);
 	assert.ok(Object.keys(metadata.files).some(file => file.startsWith('dist/licenses/bootstrap-')));
+	const manifest = JSON.parse(await fs.readFile(path.join(root, 'dist/assets.json'), 'utf8'));
+	assert.ok(Array.isArray(manifest._licenses) && manifest._licenses.length >= 2);
+	for (const license of manifest._licenses) assert.ok(metadata.files['dist/' + license], 'Every current provider license belongs to the release inventory.');
 });
 
 test('dirty, ignored, local-only export rules and unsafe output are rejected before publication', async () => {
@@ -89,7 +137,7 @@ test('dirty, ignored, local-only export rules and unsafe output are rejected bef
 	assert.equal(await fs.readFile(path.join(output, 'keep.txt'), 'utf8'), 'Keep existing user data.');
 });
 
-test('committed archive substitutions cannot change the critical sources used by the build', {timeout: 90000}, async () => {
+test('committed archive substitutions cannot change the critical sources used by the build', {timeout: 180000}, async () => {
 	const output = path.join(temporary, 'substituted');
 	try {
 		await fs.appendFile(path.join(root, 'base.php'), '\n<?php /* $Format:%H$ */ ?>\n');
