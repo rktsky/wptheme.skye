@@ -55,6 +55,7 @@
         "components/navigation/",
         "components/pageheader/",
         "lib/presentation.php",
+        "lib/package/MobileNavigation.php",
         "lib/assets.php",
         "lib/setup.php",
         "components/page/header.php",
