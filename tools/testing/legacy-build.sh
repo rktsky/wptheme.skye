@@ -100,7 +100,7 @@ docker run --rm --platform linux/amd64 --read-only \
 	--mount "type=bind,source=$evidence,target=/evidence" \
 	--env PATH=/opt/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
 	--env HOME=/work --env npm_config_cache=/work/npm-cache \
-	--env npm_config_engine_strict=true --env npm_config_ignore_scripts=true \
+	--env npm_config_engine_strict=true \
 	"${forwarded[@]}" \
 	"$image" /bin/bash -c 'set -euo pipefail; cat /etc/centos-release; /usr/bin/getconf GNU_LIBC_VERSION; ldd /opt/node/bin/node; exec /opt/node/bin/node /source/tools/testing/legacy-build.cjs /source /work /evidence' \
 	2>&1 | tee -a "$evidence/container.log"
