@@ -5,10 +5,9 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import * as sass from 'sass';
-import * as esbuild from 'esbuild';
-import postcss from 'postcss';
-import autoprefixer from 'autoprefixer';
-import cssnano from 'cssnano';
+import { rollup } from 'rollup';
+import nodeResolve from '@rollup/plugin-node-resolve';
+import { minify } from 'terser';
 import { watch } from 'chokidar';
 
 const require = createRequire(import.meta.url);
@@ -17,6 +16,37 @@ const { deriveCritical } = require('./tools/build/critical-hero.cjs');
 const { readConfiguration, classesFromSource } = require('./tools/build/critical-sources.cjs');
 const defaultRoot = path.dirname(fileURLToPath(import.meta.url));
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
+
+/**
+ * Bundle the actual browser imports without introducing an HTTP development server.
+ *
+ * The original Bootstrap/Floating UI modules provide physical ES module paths.
+ * Unexpected warnings fail publication instead of producing external globals.
+ * Output retains the syntax supported by Bootstrap 6's documented browser floor;
+ * Terser is a minifier and does not promise an ES2020 downlevel transformation.
+ *
+ * @param {string} source Absolute owned entry point inside the checked theme.
+ * @return {Promise<string>} One minified standalone browser program with legal comments.
+ * @since 3.0.0
+ */
+async function bundleScript(source) {
+	const bundle = await rollup({
+		input: source,
+		plugins: [nodeResolve({browser: true, mainFields: ['module', 'main']})],
+		onwarn: warning => { throw new Error(warning.message); },
+	});
+	try {
+		const {output} = await bundle.generate({format: 'iife'});
+		if (output.length !== 1 || output[0].type !== 'chunk' || output[0].imports.length || output[0].dynamicImports.length) {
+			throw new Error('Browser entries must produce one complete standalone program.');
+		}
+		const result = await minify(output[0].code, {ecma: 2022, compress: true, mangle: true, format: {comments: 'some'}});
+		if (typeof result.code !== 'string') throw new Error('The browser minifier produced no program.');
+		return result.code + '\n';
+	} finally {
+		await bundle.close();
+	}
+}
 
 /** Resolve owned input files and reject symlink escapes before reading bytes. */
 async function inside(root, relative) {
@@ -101,7 +131,15 @@ export async function build(root = defaultRoot) {
 		const outputs = new Map();
 		const manifest = {};
 		const critical = readConfiguration(config.performance.critical, root);
-		const optimize = css => postcss([autoprefixer({ overrideBrowserslist: ['defaults', 'Safari >= 15.4', 'iOS >= 15.4'] }), cssnano({ preset: ['default', { mergeRules: false }] })]).process(css, { from: undefined }).then(result => result.css);
+		// Load the unchanged native compiler only for an actual build, keeping pure
+		// manifest consumers independent of a different host's native architecture.
+		const {transform} = require('lightningcss');
+		const targets = {chrome: 130 << 16, edge: 130 << 16, firefox: 132 << 16, safari: 18 << 16, ios_saf: 18 << 16};
+		const optimize = css => {
+			const result = transform({filename: 'skye.css', code: Buffer.from(css), minify: true, errorRecovery: false, targets});
+			if (result.warnings.length) throw new Error(result.warnings.map(warning => warning.message).join('\n'));
+			return Buffer.from(result.code).toString();
+		};
 		const add = (name, directory, contents) => {
 			const parsed = path.parse(name);
 			const filename = `${parsed.name}-${hash(contents).slice(0, 16)}${parsed.ext}`;
@@ -127,7 +165,7 @@ export async function build(root = defaultRoot) {
 		}
 		for (const [name, entry] of Object.entries(config.styles)) {
 			const source = await inside(root, `assets/${entry}`);
-			const compiled = await sass.compileAsync(source, { loadPaths: [path.join(root, 'node_modules')], quietDeps: true, style: 'expanded' });
+			const compiled = sass.compile(source, { loadPaths: [path.join(root, 'node_modules')], quietDeps: true, style: 'compressed' });
 			const css = compiled.css.replace(/url\((["']?)(\.\.\/(?:fonts|images)\/[^)'"?]+)\1\)/g, (original, quote, url) => manifest[url.slice(3)] ? `url(${quote}../${manifest[url.slice(3)]}${quote})` : original);
 			add(name, 'styles', await optimize(css));
 			if (name === 'main.css') {
@@ -143,13 +181,18 @@ export async function build(root = defaultRoot) {
 				// GF strips newlines: only block comments may precede its native body.
 				if ((contents.match(/\/\*__SKYE_NATIVE_FORM_SCRIPT__\*\//g) || []).length !== 1 || contents.includes('//')) throw new Error('Invalid native form gate template.');
 			} else {
-				const compiled = await esbuild.build({ entryPoints: [source], bundle: true, minify: true, write: false, format: 'iife', target: ['es2020'], legalComments: 'inline', absWorkingDir: root });
-				contents = compiled.outputFiles[0].text;
+				contents = await bundleScript(source);
 			}
 			add(name, 'scripts', contents);
 		}
 		manifest._licenses = [];
-		for (const [provider, filename] of [['bootstrap', 'node_modules/bootstrap/LICENSE'], ['fontawesome', 'node_modules/@fortawesome/fontawesome-free/LICENSE.txt']]) {
+		for (const [provider, filename] of [
+			['bootstrap', 'node_modules/bootstrap/LICENSE'],
+			['fontawesome', 'node_modules/@fortawesome/fontawesome-free/LICENSE.txt'],
+			['floating-ui-core', 'node_modules/@floating-ui/core/LICENSE'],
+			['floating-ui-dom', 'node_modules/@floating-ui/dom/LICENSE'],
+			['floating-ui-utils', 'node_modules/@floating-ui/utils/LICENSE'],
+		]) {
 			const license = await fs.readFile(await inside(root, filename));
 			const target = `licenses/${provider}-${hash(license).slice(0, 16)}.txt`;
 			outputs.set(target, license); manifest._licenses.push(target);
