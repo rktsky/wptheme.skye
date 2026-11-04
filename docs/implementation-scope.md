@@ -23,3 +23,15 @@ Für Build und Watch bleibt am 04.11.2026 der direkte Betrieb auf CentOS 7 verbi
 Erweiterung vom 04.11.2026 aus dem Rocketsky-Websiteprojekt: Autoptimize entfernen, generische statische Auslieferungsfilter und Optimierungen im eigenen Skye-Quellrelease integrieren, eine standardmässig deaktivierte CDN-Konfiguration anbieten und die native Setupkonstante gegen neue gebündelte Themes dokumentieren. Die Umsetzung erfolgt isoliert auf `feature/website-performance-foundation` ab `f063767`; Website- und Provider-Inventare bleiben im eigenen Projektadapter. Drittanbieter-Originale bleiben unverändert. Veröffentlichung und Stage-Rollout werden separat koordiniert.
 
 Weitere Freigabe vom 04.11.2026: die bislang projektspezifischen Staging-Mailgrenzen werden als wiederverwendbares `EnvironmentMail`-Paket mit öffentlichem `skye_block_staging_mail`-Filter in Skye übernommen. Andere Umgebungen und frühere native Entscheidungen bleiben erhalten; keine Maildateninspektion oder echte Testzustellung. Da 3.1.0 noch nicht veröffentlicht oder ausgerollt wurde, bleibt die Versionsnummer des erneuerten Kandidaten 3.1.0.
+
+Erweiterung vom 04.11.2026 nach Veröffentlichung von 3.1.0: Die mobile Navigation
+soll als wiederverwendbarer Skye-Standard nach dem Volksgarage-Vorbild umgesetzt
+werden. Entwicklung erfolgt im separaten sauberen Quellclone auf
+`feature/mobile-navigation-3.2.0` ab dem tatsächlichen Tag-Commit
+`10ba3884893ede53364a1a3b54a7194dae280558`. Generische Logik, Grunddarstellung,
+öffentliche Hooks und native No-JavaScript-/Zugänglichkeitsgrenzen gehören in
+Skye 3.2.0; Markenfarben und Logoanimation bleiben im Website-Theme. Getrennte
+Quellcommits und SSH-Featurepush zur vollständigen CI sind freigegeben. PR,
+Releaseveröffentlichung und Website-Rollout werden anschliessend separat vom
+Hauptchat koordiniert. Installierte Originalsourcen und Fremdpakete werden nicht
+gepatcht; das parallel verwendete skye-upstream bleibt unangetastet.

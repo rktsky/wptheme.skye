@@ -35,6 +35,7 @@ Der bestehende Loader unterstützt weiterhin Ein-/Zweiargumentaufrufe und Child-
 - Automatische begrenzte Medienjobs für vollständige kleinere WebP-Alternativen; native Originale und Bildmetadaten bleiben erhalten. Keine Konvertierung oder Dateiprüfung beim Bildrendern.
 - Vollständige Standardansichten, native Menüs, Passwort-/optionale Members-Grenzen und sichere ACF-Einstellungsrechte.
 - Native Mailblockade nur auf Staging mit ausdrücklichem Projekt-Opt-out; Produktion bleibt nativ.
+- Ab 3.2 eine generische vollflächige mobile Navigation mit nativer Dialogmodalität, stabiler Markenidentität und funktionierendem Detailsfallback; bestehende Childs integrieren sie ausdrücklich.
 - Keine pauschale SVG-Uploadfreigabe, Pluginabschaltung, eigene MO-Dauercaches oder produktiven Datenmigrationen beim Seitenaufruf.
 
 ## Dokumentation
@@ -43,6 +44,7 @@ Der bestehende Loader unterstützt weiterhin Ein-/Zweiargumentaufrufe und Child-
 - [Performance-Verträge und Grenzen](docs/performance.md)
 - [Native statische Auslieferung, CDN und Core-Update-Setup](docs/website-delivery.md)
 - [Native Mailgrenzen auf Staging](docs/environment-mail.md)
+- [Mobile Navigation und Child-Integration](docs/mobile-navigation.md)
 - [Medienpipeline und Betrieb](docs/media.md)
 - [Komponenten und Rohdatenhelfer](docs/components.md)
 - [Sicherheit und getrennte Infrastruktur](docs/security.md)

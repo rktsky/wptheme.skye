@@ -16,6 +16,7 @@ Der Loadervertrag garantiert weiterhin die alte Aufrufform, aber nicht die impli
 | Komponente | Kontext |
 | --- | --- |
 | `header`, `navigation` | `brand` aus `skye_brand_model()`, `navigation` aus `skye_navigation_model()` |
+| `navigation/mobile` ab 3.2 | `mobile_navigation` aus `MobileNavigation::model()`, `navigation` mit getrennt nativ serialisierten `html`, `mobile`, `fallback`; siehe [Navigation](mobile-navigation.md) |
 | `header/brand` | `brand` mit Name, URL, optionaler Logo-URL und nativer Bildausgabe |
 | `footer` | `brand` und bereits durch `skye_footer_sidebar_html()` gerendertes `sidebar_html` |
 | `page/header`, `pageheader/simple` | `header` aus `skye_page_header_model()` |
