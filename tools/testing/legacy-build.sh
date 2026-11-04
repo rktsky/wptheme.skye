@@ -11,6 +11,21 @@ image='quay.io/centos/centos@sha256:e4ca2ed0202e76be184e75fb26d14bf974193579039d
 archive='node-v14.21.3-linux-x64.tar.xz'
 checksum='05c08a107c50572ab39ce9e8663a2a2d696b5d262d5bd6f98d84b997ce932d9a'
 node_checksum='c993f18a419aac830e324640c3ca0429ce4c447544c0881b20b5d4d052e61496'
+
+# Verify pinned bytes with the native host utility; a mismatch never selects another tool.
+# The fallback uses the portable C locale locally, without changing the caller's locale.
+function verify_sha256() {
+	local expected=$1 filename=$2
+	if command -v sha256sum >/dev/null 2>&1; then
+		printf '%s  %s\n' "$expected" "$filename" | sha256sum --check --status
+	elif [ -x /usr/bin/shasum ]; then
+		printf '%s  %s\n' "$expected" "$filename" | LC_ALL=C /usr/bin/shasum -a 256 --check --status
+	else
+		printf 'A native SHA-256 verifier is required (sha256sum or /usr/bin/shasum).\n' >&2
+		return 127
+	fi
+}
+
 if [ "$#" -ne 1 ]; then
 	printf 'Usage: bash tools/testing/legacy-build.sh /absolute/new/evidence-directory\n' >&2
 	exit 2
@@ -62,9 +77,9 @@ forwarded=(--env SKYE_BUILD_NODE=/opt/node/bin/node --env "SKYE_LEGACY_IMAGE=$im
 if [ "${GITHUB_ACTIONS+x}" = x ]; then forwarded+=(--env "GITHUB_ACTIONS=$GITHUB_ACTIONS"); fi
 curl --fail --location --proto '=https' --tlsv1.2 --retry 2 \
 	"https://nodejs.org/dist/v14.21.3/$archive" --output "$temporary/$archive"
-printf '%s  %s\n' "$checksum" "$temporary/$archive" | sha256sum --check --status
+verify_sha256 "$checksum" "$temporary/$archive"
 tar -xJf "$temporary/$archive" -C "$temporary"
-printf '%s  %s\n' "$node_checksum" "$temporary/node-v14.21.3-linux-x64/bin/node" | sha256sum --check --status
+verify_sha256 "$node_checksum" "$temporary/node-v14.21.3-linux-x64/bin/node"
 mkdir -m 0700 "$temporary/work"
 # The exact ELF version-needs table was inspected, not inferred from its Node major.
 printf '{"image":"%s","node_archive":"%s","node_sha256":"%s","node_elf_sha256":"%s","elf_requirements":{"glibc_max":"2.17","glibcxx_max":"3.4.18","cxxabi_max":"1.3.5"},"kernel_shared_with_host":true}\n' \
