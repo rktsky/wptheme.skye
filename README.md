@@ -29,17 +29,20 @@ Der bestehende Loader unterstützt weiterhin Ein-/Zweiargumentaufrufe und Child-
 
 ## Enthaltene Verbesserungen
 
-- Native WordPress-Abhängigkeiten und versionierte externe Assets statt kompletter Inline-Kopien von CSS, jQuery und Theme-JavaScript.
+- Native WordPress-Abhängigkeiten und versionierte Assets; ab 3.1 optionale geprüfte statische Bundles und vollständiges CSS über native Filter ohne HTML-Optimierungsplugin.
 - Automatischer vollständiger Mobile-CSS-Build, quellgebundene Critical-CSS-Erzeugung und konservative Auslieferung. Critical CSS benötigt einen ausdrücklichen Vertrag für den gesamten ersten Viewport; andere Ansichten behalten vollständiges CSS.
 - Native Formularadapter, gezielte optionale Gravity-Forms-Optimierungen, konfigurierbare Font-/Bild-Preloads und Icon-Subset mit vollständigem Fallback.
 - Automatische begrenzte Medienjobs für vollständige kleinere WebP-Alternativen; native Originale und Bildmetadaten bleiben erhalten. Keine Konvertierung oder Dateiprüfung beim Bildrendern.
 - Vollständige Standardansichten, native Menüs, Passwort-/optionale Members-Grenzen und sichere ACF-Einstellungsrechte.
+- Native Mailblockade nur auf Staging mit ausdrücklichem Projekt-Opt-out; Produktion bleibt nativ.
 - Keine pauschale SVG-Uploadfreigabe, Pluginabschaltung, eigene MO-Dauercaches oder produktiven Datenmigrationen beim Seitenaufruf.
 
 ## Dokumentation
 
 - [Build, Konfiguration und Abhängigkeiten](docs/build-deployment.md)
 - [Performance-Verträge und Grenzen](docs/performance.md)
+- [Native statische Auslieferung, CDN und Core-Update-Setup](docs/website-delivery.md)
+- [Native Mailgrenzen auf Staging](docs/environment-mail.md)
 - [Medienpipeline und Betrieb](docs/media.md)
 - [Komponenten und Rohdatenhelfer](docs/components.md)
 - [Sicherheit und getrennte Infrastruktur](docs/security.md)

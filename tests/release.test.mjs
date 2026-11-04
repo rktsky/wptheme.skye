@@ -18,6 +18,7 @@ let temporary;
 let root;
 let revision;
 let compilerVersion;
+let releaseVersion;
 
 /** Execute the actual fixture release compiler separately from the modern harness. */
 async function release(options) {
@@ -76,7 +77,8 @@ before(async () => {
 		await fs.copyFile(path.join(source, item), path.join(root, item));
 	}
 	await fs.writeFile(path.join(root, '.gitignore'), 'node_modules/\ndist/\n.env\n');
-	await fs.writeFile(path.join(root, 'style.css'), '/*\nTheme Name: Skye release fixture\nVersion: 3.0.0\n*/\n');
+	releaseVersion = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8')).version;
+	await fs.writeFile(path.join(root, 'style.css'), `/*\nTheme Name: Skye release fixture\nVersion: ${releaseVersion}\n*/\n`);
 	await fs.writeFile(path.join(root, 'functions.php'), '<?php /** Source export fixture. */\n');
 	await fs.writeFile(path.join(root, 'README.md'), 'Committed release fixture.\n');
 	await fs.mkdir(path.join(root, 'tests'));
@@ -94,7 +96,7 @@ after(async () => {
 test('clean HEAD export ships only verified current assets and licenses', {timeout: 180000}, async () => {
 	await fs.mkdir(path.join(root, 'dist'), {recursive: true});
 	await fs.writeFile(path.join(root, 'dist', 'stale-not-in-manifest.css'), 'Never publish a stale previous output.');
-	const output = path.join(temporary, 'release-3.0.0');
+	const output = path.join(temporary, 'release-' + releaseVersion);
 	const result = await release({root, output});
 	assert.equal(result.revision, revision);
 	assert.equal(result.bootstrap, '6.0.0-alpha.1');
@@ -108,6 +110,7 @@ test('clean HEAD export ships only verified current assets and licenses', {timeo
 	for (const [file, bytes] of files) assert.deepEqual(await fs.readFile(path.join(output, 'dist', file)), bytes);
 	const metadata = JSON.parse(await fs.readFile(path.join(output, 'release.json'), 'utf8'));
 	assert.equal(metadata.revision, revision);
+	assert.equal(metadata.version, releaseVersion);
 	assert.equal(metadata.node, compilerVersion, 'The release records the actual compiler runtime.');
 	assert.equal(Object.keys(metadata.files).length, result.files);
 	assert.ok(metadata.files['dist/assets.json']);
