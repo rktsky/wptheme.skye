@@ -28,7 +28,7 @@ Watch beobachtet Assets, Buildwerkzeuge und die im Manifest genannten PHP-Quelle
 
 ## Abhängigkeiten
 
-Direkte Buildpakete sind exakt im Lockfile gebunden. Bootstrap `6.0.0-alpha.1` ist auf ausdrücklichen Benutzerwunsch gewählt; öffentliche V6-APIs, Klassen und CSS-Tokens ersetzen die alten V5-Annahmen. Alpha ist eine gezielt gewählte, noch veränderliche Schnittstelle; Updates brauchen erneut Menü-, Formular-, Build- und Browserregressionen. Vorhandene V5-Projektinhalte müssen nach der Migration geprüft werden.
+Direkte Buildpakete sind exakt im Lockfile gebunden. Bootstrap ist auf `6.0.0-alpha.1` festgelegt; öffentliche V6-APIs, Klassen und CSS-Tokens ersetzen die alten V5-Annahmen. Die Alpha-Schnittstellen können sich noch ändern; Updates brauchen erneut Menü-, Formular-, Build- und Browserregressionen. Vorhandene V5-Projektinhalte müssen nach der Migration geprüft werden.
 
 Bootstrap und Font Awesome Free liefern die vorhandenen UI-/Iconverträge, Sass kompiliert eigene Module, esbuild bündelt JavaScript, PostCSS/Autoprefixer/cssnano verarbeiten CSS, die beiden PostCSS-Parser sichern die konservative Ableitung, und Chokidar implementiert den vorhandenen Watch-Vertrag. Kein Paket führt Installationscode auf dem Webserver aus. Die Redis-/ACF-PRO-Installation ist ein separater Vorgang.
 

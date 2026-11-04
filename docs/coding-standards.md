@@ -1,6 +1,6 @@
 # Skye Coding Standards
 
-Verbindliche Regeln des Projekteigentümers, aus den Portalregeln übernommen. Herkunft: Portalcommits `bd378f7c` und `9910edc6`. Der Benutzer hat am 03.11.2026 die vollständige Umsetzung im Skye-Originalrepository ausdrücklich freigegeben. Redis und ACF PRO bleiben separat.
+Diese Standards stammen aus den Portalcommits `bd378f7c` und `9910edc6` und gelten auch für Skye. Redis und ACF PRO bleiben separate Installationen. Die Freigaben stehen in [implementation-scope.md](implementation-scope.md).
 
 ## Arbeitsweise und Commits
 Logik- und Styling-Änderungen strikt in getrennten Commits führen. Funktionale

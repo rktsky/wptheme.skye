@@ -2,7 +2,7 @@
 
 ## Lokaler Export
 
-Ein Release entsteht aus einem sauberen, vollständig committeten Checkout. Redis und ACF PRO sind weiterhin separate Originalpakete und werden nicht eingebettet. Bootstrap ist ausdrücklich auf `6.0.0-alpha.1` festgelegt.
+Ein Release entsteht aus einem sauberen, vollständig committeten Checkout. Redis und ACF PRO sind weiterhin separate Originalpakete und werden nicht eingebettet. Bootstrap ist auf `6.0.0-alpha.1` festgelegt.
 
 ```sh
 npm ci --ignore-scripts

@@ -2,7 +2,7 @@
 
 Ausgang: Skye `4e4f2d8ec60a6add71bd612860a98fd20a7d48fd`. Verbindliche Standards aus Portal `de041627b2e41d03678ea1a4ccb92a5434828980`, insbesondere `bd378f7c` und `9910edc6`. Websitequelle ausschliesslich der abgeschlossene saubere Performance-Stand `6fecb117677f192bba8763a3965e40f3a1fd5497`; das nicht abgeschlossene Designexperiment wurde nicht als fertiger Backport behandelt.
 
-Der Benutzer hat am 03.11.2026 die direkte Umsetzung im Originalrepository freigegeben und danach ausdrücklich Bootstrap **6 Alpha** gewählt. Die allgemeinen Performanceverfahren müssen enthalten sein. Projektspezifische Ergebnisse begrenzen ihre wiederverwendbare Erzeugung nicht.
+Skye 3 übernimmt die allgemeinen Performanceverfahren der abgeschlossenen Arbeiten und verwendet Bootstrap **6 Alpha**. Projektspezifische Fonts, Icons und Layoutannahmen werden durch konfigurierbare Verfahren ersetzt. Die Freigaben sind in [implementation-scope.md](implementation-scope.md) dokumentiert.
 
 | Herkunft | Generische Umsetzung in Skye 3 | Grenze / Nachweis |
 | --- | --- | --- |

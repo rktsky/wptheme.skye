@@ -43,7 +43,7 @@ Die zusätzlich für macOS 14 erhältliche eingefrorene Playwright-WebKit-Ausgab
 
 ## GitHub Actions im Originalrepository
 
-Am 04.11.2026 wurde `refactor/skye-3` auf ausdrücklichen Auftrag nach `rktsky/wptheme.skye` gepusht. Der [vollständige Hosted-Lauf für `df7fb75`](https://github.com/rktsky/wptheme.skye/actions/runs/41790028997) ist mit **allen acht Jobs erfolgreich abgeschlossen**. Dieser Ubuntu-24.04-Nachweis ist vom vorstehenden lokalen macOS-Nachweis zu unterscheiden.
+Der Branch `refactor/skye-3` wurde am 04.11.2026 nach `rktsky/wptheme.skye` gepusht. Der [vollständige Hosted-Lauf für `df7fb75`](https://github.com/rktsky/wptheme.skye/actions/runs/41790028997) ist mit **allen acht Jobs erfolgreich abgeschlossen**. Dieser Ubuntu-24.04-Nachweis ist vom vorstehenden lokalen macOS-Nachweis zu unterscheiden.
 
 | Job | Tatsächlicher erfolgreicher Umfang |
 | --- | --- |

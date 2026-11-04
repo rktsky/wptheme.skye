@@ -1,6 +1,6 @@
 # Skye 3
 
-Klassisches WordPress-Basistheme mit **Bootstrap 6.0.0-alpha.1**. Diese Alpha-Version wurde am 03.11.2026 ausdrücklich vom Projekteigentümer gewählt. Skye bleibt ein PHP-Theme; klassische Beitrags- und Widgetbearbeitung sind verbindlich, Gutenberg wird nicht als Editoralternative angeboten.
+Skye 3 ist ein klassisches WordPress-Basistheme mit **Bootstrap 6.0.0-alpha.1**. Beiträge und Widgets werden im Classic Editor bearbeitet. Der Block-Editor ist deaktiviert.
 
 ## Voraussetzungen
 
@@ -25,7 +25,7 @@ Vor eigenen Änderungen im Quellcheckout `AGENTS.md` und die [Coding Standards](
 get_component( 'posts', 'element', array( 'article' => skye_post_model( get_the_ID() ) ) );
 ```
 
-Der bestehende Loader unterstützt weiterhin Ein-/Zweiargumentaufrufe und Child-Theme-Overrides. Neue Daten werden ausdrücklich übergeben. Verträge und Änderungen der Legacy-APIs stehen in [Komponenten](docs/components.md) und [Migration](docs/migration-3.md).
+Der bestehende Loader unterstützt weiterhin Ein-/Zweiargumentaufrufe und Child-Theme-Overrides. Neue Daten werden als Komponentenargumente übergeben. Verträge und Änderungen der Legacy-APIs stehen in [Komponenten](docs/components.md) und [Migration](docs/migration-3.md).
 
 ## Enthaltene Verbesserungen
 

@@ -4,7 +4,7 @@ Skye 3 ist eine neue Hauptversion. Änderungen in einer Entwicklungsableitung ü
 
 ## Bootstrap 6 Alpha und Build
 
-Bootstrap `6.0.0-alpha.1` wurde ausdrücklich gewählt. Der Build verwendet dessen originales CSS-Modul-/Layer-System und die benötigten originalen Drawer-/Menu-Daten-APIs. Eigene SASS-Dateien bleiben erhalten; Bootstrap-5-Variablen, Imports, Utilities und Collapse-/Dropdown-Markup sind keine unverändert gültigen Bootstrap-6-Verträge. In eigenen Komponenten die tatsächlichen Alpha-Dokumentationen und generierten Assets prüfen. Abhängigkeiten werden unverändert aus den gelockten Paketen gebaut, nicht im Vendor-Code korrigiert.
+Skye 3 verwendet Bootstrap `6.0.0-alpha.1`. Der Build nutzt dessen originales CSS-Modul-/Layer-System und die benötigten originalen Drawer-/Menu-Daten-APIs. Eigene SASS-Dateien bleiben erhalten; Bootstrap-5-Variablen, Imports, Utilities und Collapse-/Dropdown-Markup sind keine unverändert gültigen Bootstrap-6-Verträge. In eigenen Komponenten die tatsächlichen Alpha-Dokumentationen und generierten Assets prüfen. Abhängigkeiten werden unverändert aus den gelockten Paketen gebaut, nicht im Vendor-Code korrigiert.
 
 Gulp/Bower/JSCS/JSHint/Travis und das alte Roots-Regelwerk wurden ersetzt. Node-/npm-Anforderungen stehen im Paketmanifest; `npm ci` und `npm run build` ersetzen die alte Installationsfolge. Die frühere nicht existierende `gulp translate`-Anweisung wurde entfernt. Übersetzbare Strings bleiben bei WordPress; ein Projekt, das einen POT-Export benötigt, verwendet den dafür vorgesehenen WP-CLI-i18n-Befehl separat.
 
