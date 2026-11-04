@@ -161,12 +161,18 @@ namespace {
 		/**
 		 * Create empty synthetic WordPress tables with binary value comparison.
 		 *
+		 * PHP 8.4 adds the dedicated SQLite connection and registration API;
+		 * only the minimum PHP 8.3 runtime needs the legacy PDO driver methods.
+		 * Both paths register the same callbacks and execute identical predicates.
+		 *
+		 * @see https://www.php.net/manual/en/class.pdo-sqlite.php
+		 * @see https://www.php.net/manual/en/migration85.deprecated.php
 		 * @return void
 		 * @since 3.0.0
 		 */
 		public function __construct() {
 
-			$this->pdo = new PDO( 'sqlite::memory:' );
+			$this->pdo = PHP_VERSION_ID >= 80400 ? new \Pdo\Sqlite( 'sqlite::memory:' ) : new PDO( 'sqlite::memory:' );
 			$this->pdo->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
 			$this->ready = true;
 			$this->prefix = 'wp_';
@@ -177,8 +183,13 @@ namespace {
 			$this->pdo->exec( 'CREATE TABLE wp_options (option_id INTEGER PRIMARY KEY AUTOINCREMENT, option_name TEXT COLLATE BINARY UNIQUE, option_value TEXT COLLATE BINARY, autoload TEXT)' );
 			$this->pdo->exec( 'CREATE TABLE wp_postmeta (meta_id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, meta_key TEXT COLLATE BINARY, meta_value TEXT COLLATE BINARY)' );
 			$this->pdo->exec( "CREATE TABLE wp_posts (ID INTEGER PRIMARY KEY, post_author INTEGER DEFAULT 1, post_date TEXT DEFAULT '', post_date_gmt TEXT DEFAULT '', post_content TEXT DEFAULT '', post_title TEXT DEFAULT '', post_excerpt TEXT DEFAULT '', post_status TEXT DEFAULT 'inherit', comment_status TEXT DEFAULT 'closed', ping_status TEXT DEFAULT 'closed', post_password TEXT DEFAULT '', post_name TEXT DEFAULT '', to_ping TEXT DEFAULT '', pinged TEXT DEFAULT '', post_modified TEXT DEFAULT '', post_modified_gmt TEXT DEFAULT '', post_content_filtered TEXT DEFAULT '', post_parent INTEGER DEFAULT 0, guid TEXT DEFAULT '', menu_order INTEGER DEFAULT 0, post_type TEXT DEFAULT 'attachment', post_mime_type TEXT DEFAULT 'image/jpeg', comment_count INTEGER DEFAULT 0)" );
-			$this->pdo->sqliteCreateFunction( 'UNIX_TIMESTAMP', 'skye_media_test_db_time', 0 );
-			$this->pdo->sqliteCreateFunction( 'CONCAT', 'skye_media_test_concat' );
+			if ( PHP_VERSION_ID >= 80400 ) {
+				$this->pdo->createFunction( 'UNIX_TIMESTAMP', 'skye_media_test_db_time', 0 );
+				$this->pdo->createFunction( 'CONCAT', 'skye_media_test_concat' );
+			} else {
+				$this->pdo->sqliteCreateFunction( 'UNIX_TIMESTAMP', 'skye_media_test_db_time', 0 );
+				$this->pdo->sqliteCreateFunction( 'CONCAT', 'skye_media_test_concat' );
+			}
 		}
 
 		/**
