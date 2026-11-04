@@ -13,6 +13,7 @@ const require = createRequire(import.meta.url);
 const { deriveMobile } = require('../tools/build/mobile-css.cjs');
 const { deriveCritical } = require('../tools/build/critical-hero.cjs');
 const { classesFromSource } = require('../tools/build/critical-sources.cjs');
+const postcss = require('postcss');
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const compilerNode = process.env.SKYE_BUILD_NODE || process.execPath;
 const execute = promisify(execFile);
@@ -187,6 +188,15 @@ test('clean locked assets, failed source and source-watch recovery preserve immu
 		assert.match(manifest._performance.critical.build_hash, /^[a-f0-9]{64}$/);
 		assert.ok((await fs.stat(path.join(fixture,'dist',manifest['main.js']))).size > 0);
 		assert.ok((await fs.stat(path.join(fixture,'dist',manifest['main-mobile.css']))).size < (await fs.stat(path.join(fixture,'dist',manifest['main.css']))).size);
+		const expectedLayers = ['colors','config','root','reboot','layout','content','forms','components','custom','helpers','utilities'];
+		for (const name of ['main.css', 'main-mobile.css', 'main-critical.css']) {
+			const layers = new Set();
+			postcss.parse(await fs.readFile(path.join(fixture, 'dist', manifest[name]), 'utf8')).walkAtRules('layer', rule => {
+				if (rule.parent.type !== 'root') return;
+				for (const layer of rule.params.split(',').map(value => value.trim()).filter(Boolean)) layers.add(layer);
+			});
+			assert.deepEqual([...layers], expectedLayers, 'Final CSS preserves effective first-definition layer order: ' + name);
+		}
 		const before = await fs.readFile(path.join(fixture,'dist/assets.json'), 'utf8');
 		const source = path.join(fixture, 'assets/styles/main.scss');
 		const original = await fs.readFile(source, 'utf8');
