@@ -6,8 +6,13 @@ if ( PHP_SAPI !== 'cli' ) {
 }
 define( 'WP_DISABLE_FATAL_ERROR_HANDLER', true );
 $external_source = dirname( __DIR__ );
-$external_site = realpath( getenv( 'SKYE_SITE_ROOT' ) ?: dirname( $external_source ) . '/rocketsky-website/.runtime/wordpress' );
-if ( ! $external_site || ! is_file( $external_site . '/wp-load.php' ) || ( ! str_contains( $external_site, '/.git/runtime/' ) && ! str_contains( $external_site, '/.runtime/wordpress' ) ) ) {
+$external_requested = getenv( 'SKYE_SITE_ROOT' );
+$external_local_site = realpath( dirname( $external_source ) . '/rocketsky-website/.runtime/wordpress' );
+$external_runtime = realpath( $external_source . '/.git/runtime' );
+$external_site = realpath( $external_requested ?: ( $external_local_site ?: '' ) );
+$external_ci_fixture = is_string( $external_requested ) && $external_requested !== '' && $external_runtime && $external_site && str_starts_with( $external_site, $external_runtime . '/' );
+$external_local_fixture = $external_site && $external_local_site && $external_site === $external_local_site;
+if ( ! $external_site || ! is_file( $external_site . '/wp-load.php' ) || ( ! $external_ci_fixture && ! $external_local_fixture ) ) {
 	throw new RuntimeException( 'Use an isolated local native WordPress fixture.' );
 }
 define( 'ABSPATH', $external_site . '/' );
@@ -28,8 +33,16 @@ function external_source_directory( $directory ) {
 add_filter( 'template_directory', 'external_source_directory' );
 require ABSPATH . 'wp-load.php';
 ini_set( 'error_log', 'php://stderr' );
-if ( wp_get_environment_type() !== 'staging' || ! in_array( wp_parse_url( site_url(), PHP_URL_HOST ), array( '127.0.0.1', 'localhost' ), true ) ) {
-	throw new RuntimeException( 'External-link fixtures require isolated localhost staging.' );
+// setup-site.py deliberately uses local; the known project QA fallback uses staging.
+$external_environment = $external_ci_fixture ? 'local' : 'staging';
+$external_database = defined( 'DB_PATH' ) && is_string( DB_PATH ) ? realpath( DB_PATH ) : false;
+$external_fixture_root = realpath( dirname( $external_site ) );
+if ( wp_get_environment_type() !== $external_environment || ! defined( 'DB_ENGINE' ) || DB_ENGINE !== 'sqlite' ||
+	! $wpdb instanceof WP_SQLite_DB || ! $external_database || ! is_file( $external_database ) || ! $external_fixture_root ||
+	! str_starts_with( $external_database, $external_fixture_root . '/' ) ||
+	! in_array( wp_parse_url( site_url(), PHP_URL_HOST ), array( '127.0.0.1', 'localhost' ), true ) ||
+	! in_array( wp_parse_url( home_url(), PHP_URL_HOST ), array( '127.0.0.1', 'localhost' ), true ) ) {
+	throw new RuntimeException( 'External-link fixtures require loopback SQLite inside their own isolated local runtime.' );
 }
 
 use Rocketsky\Skye\Packages\ExternalLinks;
