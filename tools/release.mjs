@@ -151,7 +151,7 @@ export async function release({root = defaultRoot, output} = {}) {
 	let staging = await fs.mkdtemp(path.join(parent, '.skye-release-'));
 	try {
 		await extractRevision(root, revision, staging);
-		for (const name of ['.git', 'tests', 'tools', '.github', 'node_modules', 'assets', 'package.json', 'package-lock.json', 'build.mjs', 'AGENTS.md', '.php-cs-fixer.dist.php', '.editorconfig', 'README.tpl.md']) {
+		for (const name of ['.git', 'tests', 'tools', '.github', 'node_modules', 'assets', 'package.json', 'package-lock.json', 'build.mjs', 'AGENTS.md', '.php-cs-fixer.dist.php', '.editorconfig', '.nvmrc', '.npmrc', 'README.tpl.md']) {
 			try { await fs.lstat(path.join(staging, name)); throw new Error('Development path leaked through git archive: ' + name); }
 			catch (error) { if (error.code !== 'ENOENT') throw error; }
 		}

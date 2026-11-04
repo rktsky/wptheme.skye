@@ -11,3 +11,5 @@
 /build.mjs export-ignore
 /assets export-ignore
 /README.tpl.md export-ignore
+/.nvmrc export-ignore
+/.npmrc export-ignore
