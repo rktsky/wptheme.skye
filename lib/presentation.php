@@ -279,7 +279,7 @@ function skye_render_pagebuilder() {
  * nested links remain reachable when no JavaScript has enhanced the page.
  *
  * @since 3.0.0
- * @return array{html:string,fallback:string} Native serializer output for templates.
+ * @return array Native serializer output; optional mobile/options keys enable the parent standard.
  */
 function skye_navigation_model() {
 	$args = skye_navigation_args();
@@ -288,8 +288,22 @@ function skye_navigation_model() {
 	$args['skye_bootstrap'] = false;
 	$args['menu_id'] = 'skye-navigation-fallback';
 	$args['menu_class'] = 'skye-menu-fallback';
+	$mobile_options = class_exists( 'Rocketsky\\Skye\\Packages\\MobileNavigation' ) && Rocketsky\Skye\Packages\MobileNavigation::enabled()
+		? Rocketsky\Skye\Packages\MobileNavigation::model() : null;
+	if ( $mobile_options !== null ) {
+		$args['depth'] = 0;
+		$args = Rocketsky\Skye\Packages\MobileNavigation::menu_args( $args, $mobile_options['id'] . '-fallback' );
+	}
 	$fallback = wp_nav_menu( $args );
-	return array( 'html' => is_string( $html ) ? $html : '', 'fallback' => is_string( $fallback ) ? $fallback : '' );
+	$result = array( 'html' => is_string( $html ) ? $html : '', 'fallback' => is_string( $fallback ) ? $fallback : '' );
+	if ( $mobile_options !== null ) {
+		$args['menu_class'] = 'skye-navigation-menu';
+		$args = Rocketsky\Skye\Packages\MobileNavigation::menu_args( $args, $mobile_options['id'] . '-mobile' );
+		$mobile = wp_nav_menu( $args );
+		$result['mobile'] = is_string( $mobile ) ? $mobile : '';
+		$result['mobile_options'] = $mobile_options;
+	}
+	return $result;
 }
 
 /**

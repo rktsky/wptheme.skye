@@ -51,6 +51,7 @@ jobs:
           npm run build
           "$SKYE_TEST_NODE" --test tests/build.test.mjs
           "$SKYE_TEST_NODE" --test tests/critical-loader.test.cjs
+          "$SKYE_TEST_NODE" --test tests/mobile-navigation.test.cjs
           "$SKYE_TEST_NODE" --test tests/release.test.mjs
       - name: Prove a clean committed release export
         run: '"$SKYE_BUILD_NODE" tools/release.mjs "$RUNNER_TEMP/skye-release"'

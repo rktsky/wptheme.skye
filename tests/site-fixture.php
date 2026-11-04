@@ -39,7 +39,7 @@ function skye_fixture_post( $slug, $values ) {
 	}
 	return $id;
 }
-$home = skye_fixture_post( 'fixture-home', array( 'post_type' => 'page', 'post_title' => 'A clear starting point', 'post_content' => '<p>Native WordPress content remains readable without ACF, Redis or a JavaScript page builder.</p><h2>Simple content</h2><p>Keyboard navigation and responsive layouts are part of the base theme.</p>' ) );
+$home = skye_fixture_post( 'fixture-home', array( 'post_type' => 'page', 'post_title' => 'A clear starting point', 'post_content' => '<p>Native WordPress content remains readable without ACF, Redis or a JavaScript page builder.</p><h2 id="simple-content">Simple content</h2><p>Keyboard navigation and responsive layouts are part of the base theme.</p>' ) );
 $about = skye_fixture_post( 'fixture-about', array( 'post_type' => 'page', 'post_title' => 'About the fixture', 'post_content' => '<p>This page exercises native navigation and content.</p>' ) );
 $child = skye_fixture_post( 'fixture-child', array( 'post_type' => 'page', 'post_parent' => $about, 'post_title' => 'A child page', 'post_content' => '<p>Nested navigation keeps its native page state.</p>' ) );
 $protected = skye_fixture_post( 'fixture-protected', array( 'post_type' => 'page', 'post_title' => 'Protected page', 'post_password' => 'fixture-only', 'post_content' => 'PRIVATE_FIXTURE_MARKER' ) );
@@ -58,5 +58,13 @@ if ( ! $items ) {
 			wp_update_nav_menu_item( $menu_id, 0, array( 'menu-item-object-id' => $child, 'menu-item-object' => 'page', 'menu-item-type' => 'post_type', 'menu-item-status' => 'publish', 'menu-item-parent-id' => $item ) );
 		}
 	}
+}
+$fragment_url = home_url( '/#simple-content' );
+$has_fragment = false;
+foreach ( wp_get_nav_menu_items( $menu_id ) as $menu_item ) {
+	$has_fragment = $has_fragment || $menu_item->url === $fragment_url;
+}
+if ( ! $has_fragment ) {
+	wp_update_nav_menu_item( $menu_id, 0, array( 'menu-item-title' => 'Simple content', 'menu-item-url' => $fragment_url, 'menu-item-type' => 'custom', 'menu-item-status' => 'publish' ) );
 }
 echo wp_json_encode( array( 'home' => $home, 'about' => $about, 'child' => $child, 'protected' => $protected, 'article' => $article, 'blocks' => $blocks, 'longtext' => $longtext, 'menu' => $menu_id, 'wordpress' => $wp_version, 'php' => PHP_VERSION ) ) . "\n";

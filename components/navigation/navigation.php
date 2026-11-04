@@ -1,6 +1,18 @@
 <?php
 /** Render the Bootstrap 6 Alpha navbar with native dialog navigation and a no-JS fallback. */
 ?>
+<?php if ( ! empty( $navigation['mobile_options'] ) ) : ?>
+	<div class="navbar skye-standard-navigation">
+		<div class="container">
+			<div data-skye-navigation-brand-for="<?php echo esc_attr( $navigation['mobile_options']['id'] ); ?>">
+				<?php get_component( 'header', 'brand', array( 'brand' => $brand ) ); ?>
+			</div>
+			<?php if ( $navigation['html'] !== '' ) : ?>
+				<?php get_component( 'navigation/mobile', false, array( 'navigation' => $navigation, 'mobile_navigation' => $navigation['mobile_options'] ) ); ?>
+			<?php endif; ?>
+		</div>
+	</div>
+<?php else : ?>
 <nav class="navbar md:navbar-expand" aria-label="<?php esc_attr_e( 'Primary navigation', 'skye' ); ?>">
 	<div class="container">
 		<?php get_component( 'header', 'brand', array( 'brand' => $brand ) ); ?>
@@ -19,3 +31,4 @@
 		<?php endif; ?>
 	</div>
 </nav>
+<?php endif; ?>
