@@ -110,6 +110,7 @@ jobs:
         with:
           name: php-${{ matrix.php }}-wordpress-${{ matrix.wordpress }}
           path: .git/runtime/php-tests/
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7
 
@@ -177,5 +178,6 @@ jobs:
             .git/runtime/browser-${{ matrix.browser }}/
             .git/runtime/browser-critical-${{ matrix.browser }}/
             .git/runtime/browser-server.log
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7
