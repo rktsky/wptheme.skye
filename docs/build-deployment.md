@@ -12,7 +12,7 @@ npm run build
 npm run watch
 ```
 
-Node 24 wird nur für die getrennten Browser- und Regressionstestprogramme in der CI verwendet. Es ist keine Voraussetzung für Build, Watch oder den Releaseexport auf CentOS 7. Die Testharnesses starten den eigentlichen Compiler über `SKYE_BUILD_NODE`; ihre Protokolle nennen beide Laufzeiten. Die Produktionssite lädt nur PHP und die gebauten Assets.
+Die getrennten Browser- und Regressionstestprogramme verwenden lokal und in der CI Node 24. Build, Watch und Releaseexport auf CentOS 7 benötigen Node 14. Die Testharnesses starten den eigentlichen Compiler über `SKYE_BUILD_NODE`; ihre Protokolle nennen beide Laufzeiten. Die Produktionssite lädt nur PHP und die gebauten Assets.
 
 Die offiziellen Node-14-Linux-Binaries passen zu glibc 2.17; Node 24 verlangt neuere Systembibliotheken. Der zusätzliche CI-Container prüft den Build deshalb mit dem unveränderten CentOS-7.9-Userland und dem offiziellen Node-14-Archiv. Er teilt den Kernel des Ubuntu-Runners und ersetzt keinen Test auf einem physischen CentOS-7-Host. Es werden weder glibc noch libstdc++ ersetzt. Node 14 erhält keine Upstream-Sicherheitsupdates mehr; der Kompatibilitätsstand bleibt auf die vorhandenen Buildsysteme begrenzt.
 
@@ -55,7 +55,7 @@ Offizielle Grundlagen, geprüft am 03.11.2026: [Bootstrap 6 Migration](https://g
 Der zusätzliche echte Browserlauf `tests/browser-critical.cjs` setzt die unter [testing-setup.md](testing-setup.md) erstellte isolierte Site, ihren laufenden Loopbackserver und die separat installierte Playwright-Testlaufzeit voraus:
 
 ```sh
-SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium node tests/browser-critical.cjs
+SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium /absoluter/pfad/node24 tests/browser-critical.cjs
 ```
 
 `SKYE_PLAYWRIGHT_MODULE` kann auf die isolierte Playwright-Installation zeigen; `SKYE_BROWSER_EXECUTABLE` benennt bei Bedarf einen ausdrücklich verwendeten Browser. Standardmässig wird der jeweilige Playwright-Browser verwendet. Die Fixture wird ausschliesslich unter `.git/runtime/` in einer lokalen Umgebung vorübergehend installiert; bestehende Dateien werden nie überschrieben. Sie prüft einen inhaltsleeren, bewusst begrenzten ersten Viewport mit echter verzögerter CSS-Antwort, keinen beliebigen Projektinhalt. Ergebnisse und Ansichten stehen unter `.git/runtime/browser-critical-<engine>/`. Lokal tatsächlich ausgeführt: Chrome 155.0.8059.40 und Firefox 153.0 auf macOS, je 390/1440 CSS-Pixel und 37 erfolgreiche Assertions einschliesslich No-JS und spätem Opt-out. Für die Aufnahme vor CSS-Freigabe umgeht der Test ausschliesslich Playwrights zusätzliche Font-Wartezeit unter einem geprüften Systemfont-Vertrag ohne `@font-face`/`@import`; Seiten- und Geometrieprüfungen bleiben aktiv. WebKit ist getrennt nachzuweisen; der lokal eingefrorene macOS-14-Driver scheiterte vor dem Seitenaufruf, siehe [Prüfungen](testing.md).

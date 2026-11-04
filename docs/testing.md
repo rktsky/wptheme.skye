@@ -43,11 +43,12 @@ Die zusätzlich für macOS 14 erhältliche eingefrorene Playwright-WebKit-Ausgab
 
 ## GitHub Actions im Originalrepository
 
-Der Branch `refactor/skye-3` wurde am 04.11.2026 nach `rktsky/wptheme.skye` gepusht. Der [vollständige Hosted-Lauf für `df7fb75`](https://github.com/rktsky/wptheme.skye/actions/runs/41790028997) ist als früherer Node-24-Buildstand mit **allen acht Jobs erfolgreich abgeschlossen**. Dieser Ubuntu-24.04-Nachweis ist vom vorstehenden lokalen macOS-Nachweis zu unterscheiden.
+Der [GitHub-Lauf für `4201040`](https://github.com/rktsky/wptheme.skye/actions/runs/41817410124) auf `refactor/skye-3` bestand am 04.11.2026 **alle neun Jobs**. Er prüft den Node-14-Build und zusätzlich das originale CentOS-7.9-Userland auf Ubuntu 24.04. Der frühere [Acht-Job-Lauf für `df7fb75`](https://github.com/rktsky/wptheme.skye/actions/runs/41790028997) verwendete noch Node 24 als Compiler; der aktuelle Lauf ersetzt diesen Buildnachweis.
 
 | Job | Tatsächlicher erfolgreicher Umfang |
 | --- | --- |
-| Build und Release | Node 24.22.2/npm 12.2.1, gelockte Installation/Audit, Syntax, Produktionsbuild, Watch-/Fehler-/Loader-/Exportregressionen und sauberer Releaseexport |
+| Build und Release | Node 14.21.3/npm 6.14.18, strikte gelockte Installation/Audit, Syntax, Produktionsbuild und sauberer Releaseexport; separater Node-24.22.2-Testprozess mit Node-14-Compiler für Build-/Watch-/Fehler-/Exportregressionen sowie alle 70 Loader-Aussagen |
+| CentOS 7 / Node 14 | Originales CentOS 7.9 mit glibc 2.17, offizielle Node-14-Linux-Binaries, frische npm-6-Installation und alle sieben Build-/Watch-Prüfgruppen einschliesslich Wiederaufnahme und SIGTERM |
 | PHP 8.3 / WordPress 6.8.12 | Vollständige zehn Standalone-Prozesse, darunter 540 Medienaussagen, sowie native Footer-/Siteprüfung vor und nach Original-Classic-Editor-Aktivierung |
 | PHP 8.4 / WordPress 6.8.12 | Derselbe vollständige Prüfumfang auf der unterstützten neueren PHP-Laufzeit |
 | PHP 8.3 / WordPress 7.1.4 | Derselbe vollständige Prüfumfang mit aktuellem Core |
@@ -74,7 +75,11 @@ Build und Watch verwenden jetzt den Portalstand Node 14.21.3/npm 6.14.18 mit Loc
 
 Die drei Build-/Watch-Tests und vier Release-Testgruppen bestehen mit Compiler `v14.21.3` und Harness `v24.22.2`; der Release-Metadatensatz nennt die tatsächliche Compilerlaufzeit. Alle bisherigen Fehlerfälle bleiben aktiv. Die vollständige CSS-Layerreihenfolge bleibt nach der Optimierung in Full-, Mobile- und Critical-CSS gleich: `colors, config, root, reboot, layout, content, forms, components, custom, helpers, utilities`. Der Critical-Auszug liegt weiter unter seinem 96-KiB-Budget. Der direkte Node-14-Loaderlauf besteht alle 70 Assertions.
 
-Ein zusätzlicher GitHub-Job führt eine frische npm-6-Installation sowie den echten Build und Watch im digestgebundenen originalen CentOS-7.9-Userland aus. Er prüft glibc 2.17, Sourcefehler mit unveränderter letzter Ausgabe, Wiederaufnahme, neue PHP-/Assetdateien und SIGTERM während eines Builds. Node und native CSS-Bibliothek bleiben unveränderte Herstellerdateien; Systembibliotheken werden nicht ersetzt. Der Dockercontainer teilt den Kernel des Ubuntu-Hosts. Der tatsächliche Hosted-Nachweis dieses neuen Jobs wird nach seinem ersten erfolgreichen Lauf ergänzt.
+Der lokale CentOS-Lauf für `4201040` bestand am 04.11.2026 alle sieben Prüfgruppen: originales CentOS 7.9 mit glibc 2.17 und Node 14.21.3/npm 6.14.18; frische strikte Installation der 77 Pakete; normaler `npm run build`; fehlgeschlagener CLI-Build mit unveränderter letzter Ausgabe und erfolgreicher Wiederaufnahme; Fehler und Wiederaufnahme im laufenden Watch; neue PHP-Quellen und verschachtelte Assetdateien; SIGTERM während eines Builds mit sauberem Abschluss. Die Originaldateien von glibc, libstdc++ und Loader hatten vor und nach dem Lauf dieselben SHA-256-Digests. Das erste Teilprotokoll bleibt als fehlgeschlagen erhalten: Eine globale npm-Einstellung hatte auch den expliziten Build übersprungen. Die Korrektur begrenzt `--ignore-scripts` auf die Installation.
+
+Der Lauf verwendete das digestgebundene CentOS-Image unter amd64-Emulation in einer lokalen ARM64-Linux-VM mit geteiltem Kernel `6.8.0-117-generic`. Die Quellen und das offizielle Node-Archiv wurden über eigene temporäre Docker-Volumes schreibgeschützt eingebunden; Systembibliotheken und VM-Konfiguration blieben unverändert. Beide eigenen Container und alle vier Volumes wurden entfernt. Die Ergebnisdateien liegen unter `.git/runtime/centos7-copy-proof-6f27c048284b4a12/`.
+
+Der zusätzliche CentOS-Job im [GitHub-Lauf für `4201040`](https://github.com/rktsky/wptheme.skye/actions/runs/41817410124) bestand denselben vollständigen Build-/Watch-Umfang. Er verwendet dasselbe Originalimage und dasselbe offizielle Node-Archiv mit schreibgeschützten Host-Bind-Mounts auf dem Ubuntu-Runner. Der vorherige [Lauf für `06558ce`](https://github.com/rktsky/wptheme.skye/actions/runs/41816784219) dokumentiert den behobenen npm-Einstellungsfehler. Beide erfolgreichen Containerprüfungen teilen den jeweiligen Hostkernel und ersetzen keinen Test auf einem CentOS-7-Server mit Kernel 3.10.
 
 | Originaldatei | Geprüfte Voraussetzung |
 | --- | --- |
@@ -104,8 +109,8 @@ SKYE_WORDPRESS_CORE=/absoluter/pfad/wordpress php tools/testing/run.php
 Die zweite Core-Version braucht einen eigenen expliziten Gesamtlauf. Die vollständig gestartete native Site zusätzlich mit `SKYE_SITE_ROOT=/absoluter/pfad/site/wordpress php tests/core-sidebar-native.php` sowie `tests/site-verify.php` vor und nach `--activate-classic-plugin` prüfen. Nach Start ihres lokalen Servers:
 
 ```sh
-SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium node tests/browser.cjs
-SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium node tests/browser-critical.cjs
+SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium /absoluter/pfad/node24 tests/browser.cjs
+SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium /absoluter/pfad/node24 tests/browser-critical.cjs
 ```
 
 `SKYE_PLAYWRIGHT_MODULE` benennt die separate Playwright-Installation, `SKYE_BROWSER_EXECUTABLE` bei Bedarf die tatsächlich geprüfte Browserdatei. Firefox/WebKit werden ausdrücklich über `SKYE_BROWSER` gewählt. Keine parallelen Critical-Läufe in derselben Site: Die MU-Fixture wird exklusiv angelegt. Fehlende Voraussetzungen ergeben einen Fehler, keinen stillen Skip.

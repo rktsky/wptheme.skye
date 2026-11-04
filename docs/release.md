@@ -18,18 +18,18 @@ Der Zielordner darf noch nicht existieren und muss ausserhalb des Quellcheckouts
 
 Es werden ausschliesslich die im gerade erzeugten `dist/assets.json` referenzierten Dateien und die dort ausdrücklich ausgewiesenen aktuellen `_licenses` übernommen. Jedes Asset muss eine reguläre lokale Datei mit passendem Inhaltsfingerprint sein. Pfadtraversal, Wrapper, Symlinks, fehlende Dateien, leere Lizenzen, ungültiges JSON und unvollständige Performanceverträge brechen den Export ab. Alte weiterhin im lokalen `dist/` vorhandene Hashdateien werden nicht mitgeliefert. Das ist von der absichtlichen Aufbewahrung alter Dateien bei einem laufenden Deployment zu unterscheiden.
 
-Die eigene Theme-Lizenz sowie die tatsächlichen Bootstrap-/Font-Awesome-Lizenzen bleiben enthalten. Die erfassten Critical-PHP-Quellen müssen im Export denselben SHA-256-Digest wie im Build haben. `release.json` dokumentiert Commit, Theme-/Bootstrap-Version, verwendete Node-Version und SHA-256-Digests sämtlicher Nutzdateien. Die Datei inventarisiert sich selbst nicht. Theme- und Paketversion müssen übereinstimmen. `.nvmrc` und `.npmrc` bleiben als Entwicklungskonfiguration aus dem Release ausgeschlossen. Ein sauberes Exportverzeichnis ist ein überprüfbares Artefakt und kein Nachweis über eine bereits erfolgte Veröffentlichung.
+Die eigene Theme-Lizenz sowie die fünf Original-Lizenzen von Bootstrap, Font Awesome und Floating UI bleiben enthalten. Die erfassten Critical-PHP-Quellen müssen im Export denselben SHA-256-Digest wie im Build haben. `release.json` dokumentiert Commit, Theme-/Bootstrap-Version, verwendete Node-Version und SHA-256-Digests sämtlicher Nutzdateien. Die Datei inventarisiert sich selbst nicht. Theme- und Paketversion müssen übereinstimmen. `.nvmrc` und `.npmrc` bleiben als Entwicklungskonfiguration aus dem Release ausgeschlossen. Ein sauberes Exportverzeichnis ist ein überprüfbares Artefakt und kein Nachweis über eine bereits erfolgte Veröffentlichung.
 
 Git, `tar`, die dokumentierte Node-/npm-Laufzeit und die aus dem Lockfile installierten Buildabhängigkeiten sind Voraussetzungen. Eine installierte Produktionssite oder Produktionszugangsdaten werden für den Export nicht benötigt.
 
 ## Prüfprogramme
 
 ```sh
-node --test tests/release.test.mjs
+SKYE_BUILD_NODE=/absoluter/pfad/node14 /absoluter/pfad/node24 --test tests/release.test.mjs
 SKYE_WORDPRESS_CORE=/absoluter/pfad/wordpress php tools/testing/run.php
 ```
 
-Die Release-Regression arbeitet mit einem Wegwerf-Gitrepository und dem tatsächlichen Build-/Exportcode. Sie prüft aktuelle Lizenzdateien und unveränderte Manifestbytes, den Ausschluss alter Ausgaben und Entwicklungsdateien, Dirty-/Ignored-Quellen, lokale Exportüberschreibungen, vorhandene beziehungsweise unsichere Ziele, beschädigte Dateien, Symlinks und fehlende oder ungültige Manifestdaten.
+Der Node-24-Testprozess startet den tatsächlichen Node-14-Compiler über `SKYE_BUILD_NODE`; diese Trennung gilt auch für `tests/build.test.mjs`. Der einfache Loaderlauf `npm run test:performance` funktioniert direkt mit Node 14. Die Release-Regression arbeitet mit einem Wegwerf-Gitrepository und dem tatsächlichen Build-/Exportcode. Sie prüft aktuelle Lizenzdateien und unveränderte Manifestbytes, den Ausschluss alter Ausgaben und Entwicklungsdateien, Dirty-/Ignored-Quellen, lokale Exportüberschreibungen, vorhandene beziehungsweise unsichere Ziele, beschädigte Dateien, Symlinks und fehlende oder ungültige Manifestdaten.
 
 Der PHP-Runner führt jeden ausdrücklich klassifizierten Regressionseinstieg in einem frischen PHP-Prozess aus. ACF-Anwesenheit und -Abwesenheit sind eigene Core-Testfälle. Neue unklassifizierte PHP-Dateien unter `tests/` führen zum Fehler, statt stillschweigend nicht ausgeführt zu werden. Fixtures, der lokale Serverrouter und Programme für die echte Wegwerf-Site sind ausdrücklich aus diesem Standalone-Runner ausgeschlossen; die CI führt die Siteprüfungen separat aus. Ein fehlgeschlagener Prozess ergibt einen fehlgeschlagenen Gesamtlauf. Einzelprotokolle liegen unter `.git/runtime/php-tests/`; `SKYE_TEST_LOG_DIR` kann einen anderen lokalen Protokoll-Elternordner vorgeben.
 

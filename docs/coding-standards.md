@@ -42,6 +42,10 @@ Schlüssel darf beim Filtern nicht wegen null verschwinden. Gemeinsame
 Ergebnisse vor dem Rendering berechnen, nicht durch Scope-Rückschreiben.
 
 ## Schreibweise und Dokumentation
+Technische Dokumentation beschreibt Verhalten, Voraussetzungen und Ergebnisse
+direkt. Freigaben stehen im Freigabedokument; wiederholte Hinweise darauf, wer
+eine Version gewählt oder eine Entscheidung genehmigt hat, entfallen.
+
 Tabs, LF und lesbare Abstände verwenden; keine Leerzeichen am Zeilenende.
 Nicht leere PHP-Klammern mit inneren Abständen: function xyz( $data, $zxy ) {
 und xyz( $data, $zxy );. Leere Klammern bleiben (). Kontrollstrukturen lesbar
