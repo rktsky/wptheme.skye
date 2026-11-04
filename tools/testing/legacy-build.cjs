@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const assert = require('assert').strict;
 const {spawn, spawnSync} = require('child_process');
 const {pathToFileURL} = require('url');
+const {annotateGitHubError} = require('./github-errors.cjs');
 
 /** Wait for an observed child/output state instead of assuming a build duration. */
 async function until(predicate, label, timeout = 60000) {
@@ -185,5 +186,5 @@ async function run(source, work, evidence) {
 	console.log(JSON.stringify(result, null, 2));
 }
 
-if (process.argv[2] === '--watch-worker') watchWorker(process.argv[3]).catch(error => { console.error(error); process.exitCode = 1; });
-else run(process.argv[2], process.argv[3], process.argv[4]).catch(error => { console.error(error); process.exitCode = 1; });
+const task = process.argv[2] === '--watch-worker' ? watchWorker(process.argv[3]) : run(process.argv[2], process.argv[3], process.argv[4]);
+task.catch(error => { annotateGitHubError(error); console.error(error); process.exitCode = 1; });

@@ -24,11 +24,42 @@ if [ -e "$evidence" ] || [ -L "$evidence" ]; then
 	printf 'Evidence directory already exists; nothing was replaced.\n' >&2
 	exit 2
 fi
-docker info >/dev/null
 temporary=$(mktemp -d)
-# This exact temporary directory belongs to this invocation; never remove caller paths.
-trap 'rm -rf -- "$temporary"' EXIT
+# Annotate only the synthetic container log, never source or user configuration.
+# Keep the original status even if annotation transport fails; cleanup owns this temp only.
+function finish() {
+	local status=$?
+	trap - EXIT
+	if [ "$status" -ne 0 ] && [ "${GITHUB_ACTIONS:-}" = true ] && [ -f "$evidence/container.log" ]; then
+		if ! python3 - "$evidence/container.log" "$status" <<'PYANNOTATION'
+import os, sys
+with open(sys.argv[1], 'rb') as stream:
+    stream.seek(max(0, os.fstat(stream.fileno()).st_size - 8192))
+    tail = stream.read(8192)
+if b'::error::' not in tail:
+    text = 'CentOS 7 build preflight/container failed (exit ' + sys.argv[2] + ').\n' + tail.decode('utf-8', errors='replace')
+    escaped = text.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+    print('\n::error::' + escaped)
+PYANNOTATION
+		then
+			printf 'Could not create the additional CI annotation; original failure retained.\n' >&2
+		fi
+	fi
+	if ! rm -rf -- "$temporary"; then
+		printf 'Could not clean the owned temporary runtime.\n' >&2
+		if [ "$status" -eq 0 ]; then status=1; fi
+	fi
+	exit "$status"
+}
+trap finish EXIT
 mkdir -m 0700 "$evidence"
+if docker info >/dev/null 2> "$evidence/container.log"; then :; else
+	status=$?
+	cat "$evidence/container.log" >&2
+	exit "$status"
+fi
+forwarded=(--env SKYE_BUILD_NODE=/opt/node/bin/node --env "SKYE_LEGACY_IMAGE=$image")
+if [ "${GITHUB_ACTIONS+x}" = x ]; then forwarded+=(--env "GITHUB_ACTIONS=$GITHUB_ACTIONS"); fi
 curl --fail --location --proto '=https' --tlsv1.2 --retry 2 \
 	"https://nodejs.org/dist/v14.21.3/$archive" --output "$temporary/$archive"
 printf '%s  %s\n' "$checksum" "$temporary/$archive" | sha256sum --check --status
@@ -38,8 +69,12 @@ mkdir -m 0700 "$temporary/work"
 # The exact ELF version-needs table was inspected, not inferred from its Node major.
 printf '{"image":"%s","node_archive":"%s","node_sha256":"%s","node_elf_sha256":"%s","elf_requirements":{"glibc_max":"2.17","glibcxx_max":"3.4.18","cxxabi_max":"1.3.5"},"kernel_shared_with_host":true}\n' \
 	"$image" "$archive" "$checksum" "$node_checksum" > "$evidence/provenance.json"
-docker pull --platform linux/amd64 "$image"
-docker image inspect "$image" > "$evidence/image.json"
+docker pull --platform linux/amd64 "$image" 2>&1 | tee -a "$evidence/container.log"
+if docker image inspect "$image" > "$evidence/image.json" 2> "$temporary/image-error.log"; then :; else
+	status=$?
+	cat "$temporary/image-error.log" | tee -a "$evidence/container.log" >&2
+	exit "$status"
+fi
 # No system package installation, vendor patch, host Docker socket or privileged mode.
 docker run --rm --platform linux/amd64 --read-only \
 	--user "$(id -u):$(id -g)" --cap-drop ALL --security-opt no-new-privileges \
@@ -51,6 +86,6 @@ docker run --rm --platform linux/amd64 --read-only \
 	--env PATH=/opt/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
 	--env HOME=/work --env npm_config_cache=/work/npm-cache \
 	--env npm_config_engine_strict=true --env npm_config_ignore_scripts=true \
-	--env SKYE_BUILD_NODE=/opt/node/bin/node --env "SKYE_LEGACY_IMAGE=$image" \
+	"${forwarded[@]}" \
 	"$image" /bin/bash -c 'set -euo pipefail; cat /etc/centos-release; /usr/bin/getconf GNU_LIBC_VERSION; ldd /opt/node/bin/node; exec /opt/node/bin/node /source/tools/testing/legacy-build.cjs /source /work /evidence' \
-	2>&1 | tee "$evidence/container.log"
+	2>&1 | tee -a "$evidence/container.log"
