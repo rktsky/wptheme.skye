@@ -68,6 +68,7 @@ $bounded = MobileNavigation::model( array( 'id' => str_repeat( 'n', 64 ) ) );
 navigation_check( $bounded['id'] === $model['id'], 'Instance IDs reserve room for distinct menu identity suffixes.' );
 $plain = MobileNavigation::model( array( 'title' => '<strong>Plain title</strong>' ) );
 navigation_check( $plain['title'] === 'Plain title', 'Filtered labels remain plain UI strings.' );
+navigation_check( MobileNavigation::model( array( 'title' => '<i></i>', 'open_label' => '<b> </b>' ) )['title'] === $model['title'] && MobileNavigation::model( array( 'open_label' => '<b> </b>' ) )['open_label'] === $model['open_label'], 'Markup-only configuration cannot erase a required accessible label.' );
 $arguments = skye_navigation_args();
 $arguments['echo'] = false;
 $arguments['depth'] = 0;

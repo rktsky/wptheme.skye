@@ -137,3 +137,10 @@ test('unsupported modal APIs and malformed control identity leave native details
 	const mismatch = fixture(); mismatch.opener.setAttribute('aria-controls', 'another-dialog');
 	assert.equal(mismatch.initialize(), null); assert.equal(mismatch.fallback.hidden, false); assert.equal(mismatch.opener.hidden, true);
 });
+
+test('late enhancement preserves a menu the user already explicitly expanded', () => {
+	const f = fixture(); f.fallback.open = true;
+	const controller = f.initialize();
+	assert.ok(controller); assert.equal(f.dialog.open, true); assert.equal(f.opener.getAttribute('aria-expanded'), 'true'); assert.equal(f.document.activeElement, f.first);
+	controller.close(); f.flush(); assert.equal(f.header.children[0], f.brand);
+});

@@ -62,7 +62,10 @@ final class MobileNavigation {
 		}
 		foreach ( array( 'label', 'title', 'open_text', 'close_text', 'open_label', 'close_label' ) as $key ) {
 			if ( is_string( $values[$key] ) && trim( $values[$key] ) !== '' && strlen( $values[$key] ) <= 240 ) {
-				$result[$key] = wp_strip_all_tags( $values[$key] );
+				$plain = trim( wp_strip_all_tags( $values[$key] ) );
+				if ( $plain !== '' ) {
+					$result[$key] = $plain;
+				}
 			}
 		}
 		return $result;

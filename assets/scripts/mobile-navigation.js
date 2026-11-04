@@ -195,10 +195,12 @@ function initializeNavigation(root) {
 			fallback.open = false;
 		}
 	});
+	const alreadyExpanded = fallback.open;
 	root.dataset.skyeNavigationReady = 'true';
 	fallback.open = false;
 	fallback.hidden = true;
 	opener.hidden = false;
+	if (alreadyExpanded && !desktop.matches) open();
 	return {open, close};
 }
 
