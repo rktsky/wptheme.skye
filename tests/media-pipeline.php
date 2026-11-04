@@ -594,6 +594,67 @@ namespace {
 	}
 
 	/**
+	 * Decode one pixel independently of native truecolor or palette storage.
+	 *
+	 * imagecolorat() returns a palette index for indexed PNGs, not packed RGBA.
+	 * The public color decoder preserves the same alpha assertions for either
+	 * legitimate output model chosen by the unchanged native image provider.
+	 *
+	 * @param GdImage $image Real decoded fixture image.
+	 * @param int $x Horizontal pixel position.
+	 * @param int $y Vertical pixel position.
+	 * @return array{red:int,green:int,blue:int,alpha:int} Decoded native pixel channels.
+	 * @throws RuntimeException If the requested pixel cannot be decoded.
+	 * @see https://www.php.net/manual/en/function.imagecolorat.php
+	 * @see https://www.php.net/manual/en/function.imagecolorsforindex.php
+	 * @since 3.0.0
+	 */
+	function skye_media_test_pixel( GdImage $image, int $x, int $y ): array {
+		$index = imagecolorat( $image, $x, $y );
+		$pixel = false === $index ? false : imagecolorsforindex( $image, $index );
+		if ( ! is_array( $pixel ) ) {
+			throw new RuntimeException( 'Cannot decode fixture pixel.' );
+		}
+		return $pixel;
+	}
+
+	/**
+	 * Save and reload transparent palette and truecolor PNGs through real GD.
+	 *
+	 * This proves why an indexed color cannot be bitshifted as packed RGBA while
+	 * retaining exact opaque, partial-alpha and transparent checks for both models.
+	 *
+	 * @return void
+	 * @since 3.0.0
+	 */
+	function skye_media_test_png_color_models() {
+		foreach ( array( false, true ) as $truecolor ) {
+			$image = $truecolor ? imagecreatetruecolor( 3, 1 ) : imagecreate( 3, 1 );
+			imagealphablending( $image, false );
+			imagesavealpha( $image, true );
+			foreach ( array( 127, 64, 0 ) as $x => $alpha ) {
+				$color = imagecolorallocatealpha( $image, 20, 40, 60, $alpha );
+				imagesetpixel( $image, $x, 0, $color );
+			}
+			$path = $GLOBALS['directory'] . '/png-colors-' . ( $truecolor ? 'truecolor' : 'palette' ) . '.png';
+			skye_media_check( imagepng( $image, $path ), 'The color-model fixture is saved as an actual PNG file.' );
+			unset( $image );
+			$image = imagecreatefrompng( $path );
+			skye_media_check( $image instanceof GdImage, 'Native GD decodes the saved PNG fixture.' );
+			skye_media_check( imageistruecolor( $image ) === $truecolor, 'PNG decoding preserves the intended palette or truecolor model.' );
+			foreach ( array( 127, 64, 0 ) as $x => $alpha ) {
+				skye_media_check( skye_media_test_pixel( $image, $x, 0 )['alpha'] === $alpha, 'Both PNG models retain exact transparent, partial-alpha and opaque channels.' );
+			}
+			$opaque = skye_media_test_pixel( $image, 2, 0 );
+			skye_media_check( $opaque['red'] === 20 && $opaque['green'] === 40 && $opaque['blue'] === 60, 'Both PNG models preserve opaque source colors.' );
+			if ( ! $truecolor ) {
+				skye_media_check( ( imagecolorat( $image, 0, 0 ) >> 24 ) === 0 && skye_media_test_pixel( $image, 0, 0 )['alpha'] === 127, 'The old packed-color shift would falsely reject this fully transparent palette pixel.' );
+			}
+			unset( $image );
+		}
+	}
+
+	/**
 	 * Create synthetic photographs or transparent PNGs without customer fixtures.
 	 *
 	 * @param string $path Destination inside the disposable test directory.
@@ -1787,6 +1848,9 @@ namespace {
 	/**
 	 * Fail immediately if a presentation request reaches worker filesystem/encoding.
 	 *
+	 * Retain only the selected native editor class for CI failure diagnostics;
+	 * no source paths or customer data are added to this diagnostic record.
+	 *
 	 * @param string $function Native IO function invoked by an actual theme class.
 	 * @param array  $arguments Original native arguments.
 	 * @return mixed Unmodified native result outside the frontend-only phase.
@@ -1799,7 +1863,11 @@ namespace {
 			throw new RuntimeException( 'Frontend reached media worker IO: ' . $function );
 		}
 
-		return call_user_func_array( $function, $arguments );
+		$result = call_user_func_array( $function, $arguments );
+		if ( 'wp_get_image_editor' === $function && is_object( $result ) ) {
+			$GLOBALS['skye_media_last_editor'] = get_class( $result );
+		}
+		return $result;
 	}
 
 	/**
@@ -2248,7 +2316,8 @@ namespace {
 			skye_media_check( $result['created'] === 1 && $result['status'] === 'pending', 'The shared soft deadline is checked again before the second native image operation.' );
 			$png = wp_get_attachment_metadata( 711, true )['sizes']['skye-content-sm'];
 			$image = imagecreatefrompng( dirname( get_attached_file( 711, true ) ) . '/' . $png['file'] );
-			skye_media_check( ( imagecolorat( $image, imagesx( $image ) - 2, imagesy( $image ) - 2 ) >> 24 ) === 127, 'Real native PNG resizing preserves transparent source pixels.' );
+			$pixel = skye_media_test_pixel( $image, imagesx( $image ) - 2, imagesy( $image ) - 2 );
+			skye_media_check( $pixel['alpha'] >= 120, 'Real native PNG resizing preserves transparent source pixels: ' . json_encode( array( 'editor' => $GLOBALS['skye_media_last_editor'] ?? 'unknown', 'truecolor' => imageistruecolor( $image ), 'rgba' => $pixel, 'file' => $png['file'] ) ) );
 			unset( $image );
 
 			skye_media_test_reset();
@@ -3099,6 +3168,9 @@ namespace {
 	}
 
 	$groups = [];
+	$before_checks = $checks;
+	skye_media_test_png_color_models();
+	$groups['png_color_models'] = $checks - $before_checks;
 	$before_checks = $checks;
 	skye_media_test_store();
 	$groups['store'] = $checks - $before_checks;
