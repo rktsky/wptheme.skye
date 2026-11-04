@@ -36,6 +36,7 @@ Der bestehende Loader unterstützt weiterhin Ein-/Zweiargumentaufrufe und Child-
 - Vollständige Standardansichten, native Menüs, Passwort-/optionale Members-Grenzen und sichere ACF-Einstellungsrechte.
 - Native Mailblockade nur auf Staging mit ausdrücklichem Projekt-Opt-out; Produktion bleibt nativ.
 - Ab 3.2 eine generische vollflächige mobile Navigation mit nativer Dialogmodalität, stabiler Markenidentität und funktionierendem Detailsfallback; bestehende Childs integrieren sie ausdrücklich.
+- Ab 3.2.2 öffnen externe HTTP(S)-Links in nativen Menüs und redaktionellen Inhalten mit `target="_blank"`, `noopener` und `noreferrer`; ein gemeinsamer Helper steht expliziten Theme-Links zur Verfügung.
 - Keine pauschale SVG-Uploadfreigabe, Pluginabschaltung, eigene MO-Dauercaches oder produktiven Datenmigrationen beim Seitenaufruf.
 
 ## Dokumentation
@@ -45,6 +46,7 @@ Der bestehende Loader unterstützt weiterhin Ein-/Zweiargumentaufrufe und Child-
 - [Native statische Auslieferung, CDN und Core-Update-Setup](docs/website-delivery.md)
 - [Native Mailgrenzen auf Staging](docs/environment-mail.md)
 - [Mobile Navigation und Child-Integration](docs/mobile-navigation.md)
+- [Externe Links und Theme-Helper](docs/external-links.md)
 - [Medienpipeline und Betrieb](docs/media.md)
 - [Komponenten und Rohdatenhelfer](docs/components.md)
 - [Sicherheit und getrennte Infrastruktur](docs/security.md)
