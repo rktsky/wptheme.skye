@@ -161,14 +161,15 @@ Ohne JavaScript steht auf mobilen **und Desktopbreiten** ein echtes
 `<details><summary>` mit sämtlichen Fallbacklinks bereit. Bei fehlgeschlagenem
 Komponentenscript bleibt zumindest die mobile native Detailsfunktion erhalten;
 Desktoplinks bleiben separat nativ. Fehlende `showModal()`-Unterstützung aktiviert
-keinen defekten JavaScriptbutton. Der unverstärkte Summary- und verstärkte
+keinen defekten JavaScriptbutton. Ein bereits ausdrücklich geöffnetes natives Detailsmenü bleibt auch bei spät
+geladenem JavaScript geöffnet. Der unverstärkte Summary- und verstärkte
 Buttonzustand teilen dieselbe kompakte Geometrie.
 
 ## Tatsächliche Prüfung und Grenzen
 
 Am 04.11.2026 lokal: Node 14.21.3-Build/Watch- und Releaseharness, alle 13
-PHP-Regressionsprozesse, nativer WordPress-7.1.4-Menü-/Assettest (52 Assertions)
-und drei Controller-VM-Szenarien mit tatsächlichem Quellprogramm. Der moderne
+PHP-Regressionsprozesse, nativer WordPress-7.1.4-Menü-/Assettest (53 Assertions)
+und vier Controller-VM-Szenarien mit tatsächlichem Quellprogramm. Der moderne
 Node-24-Testharness bleibt getrennt vom Produktionsbuild. VM-DOM-Fixtures
 belegen Zustands-/Racegrenzen und sind keine Browser- oder Gerätetests.
 

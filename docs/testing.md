@@ -131,10 +131,10 @@ Diese Grenzen werden nicht durch erfolgreich konfigurierte Workflows, schmale De
 Die neue [Mobile-Navigation](mobile-navigation.md) ergänzt den expliziten PHP-Lauf
 um `mobile-navigation-native.php`. Dieser benötigt zusätzlich die vollständig
 installierte eigene `SKYE_SITE_ROOT`-Fixture derselben zu prüfenden Core-Version.
-Am 04.11.2026 bestanden lokal 52 Assertions mit dem tatsächlichen WordPress-7.1.4-
+Am 04.11.2026 bestanden lokal 53 Assertions mit dem tatsächlichen WordPress-7.1.4-
 Menuwalker und nativen Asset-/Filterregistrierungen sowie alle 13 PHP-Prozesse.
 Der Produktionscompiler war Node 14.21.3, der getrennte Testharness Node 24.22.1;
-11 Node-Harnessfälle einschliesslich Build-/Watch-/Releasegrenzen und drei
+12 Node-Harnessfälle einschliesslich Build-/Watch-/Releasegrenzen und vier
 Controller-VM-Szenarien bestanden. Die Controller-Fixture bildet keinen Browser
 nach und ersetzt keine tatsächliche Modalschnittstellenprüfung.
 

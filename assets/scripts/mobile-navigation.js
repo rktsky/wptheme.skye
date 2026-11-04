@@ -2,12 +2,22 @@
 
 const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** Return only rendered sequential keyboard destinations inside the actual dialog. @since 3.2.0 */
+/**
+ * Return only rendered sequential destinations so hidden links never enter the modal tab cycle.
+ * @since 3.2.0
+ * @param {HTMLDialogElement} dialog Actual owned modal.
+ * @returns {HTMLElement[]} Rendered sequential keyboard destinations.
+ */
 function focusable(dialog) {
 	return [...dialog.querySelectorAll(focusableSelector)].filter(node => node.tabIndex >= 0 && !node.closest('[inert]') && node.getClientRects().length && getComputedStyle(node).visibility !== 'hidden');
 }
 
-/** Resolve only an existing same-document fragment; modifiers and foreign navigation stay native. @since 3.2.0 */
+/**
+ * Resolve existing same-document fragments without replacing foreign/native link behavior.
+ * @since 3.2.0
+ * @param {HTMLAnchorElement} link Actual activated menu link.
+ * @returns {{target: HTMLElement, hash: string}|null} Existing destination or a native-navigation fallback.
+ */
 function fragmentTarget(link) {
 	try {
 		const url = new URL(link.href, window.location.href);
@@ -19,7 +29,12 @@ function fragmentTarget(link) {
 	}
 }
 
-/** Initialize one explicit component; missing native modal support retains its complete details fallback. @since 3.2.0 */
+/**
+ * Initialize one explicit component while unsupported browsers retain complete native details.
+ * @since 3.2.0
+ * @param {HTMLElement} root Prepared navigation component with unique control identities.
+ * @returns {{open: Function, close: Function}|null} Request-local controller, or an untouched fallback.
+ */
 function initializeNavigation(root) {
 	if (root.dataset.skyeNavigationReady || typeof HTMLDialogElement === 'undefined' || typeof HTMLDialogElement.prototype.showModal !== 'function') return null;
 	const opener = root.querySelector('[data-skye-navigation-open]');
@@ -40,12 +55,22 @@ function initializeNavigation(root) {
 	let closeReason = 'close';
 	let lifecycle = 0;
 
-	/** Publish lifecycle only; consumers may adapt branding without receiving menu data. @since 3.2.0 */
+	/**
+	 * Publish lifecycle so project branding can react without receiving menu data.
+	 * @since 3.2.0
+	 * @param {string} name Fixed opened/closed lifecycle suffix.
+	 * @param {string} reason Fixed server-independent interaction reason.
+	 * @returns {void}
+	 */
 	function announce(name, reason) {
 		root.dispatchEvent(new CustomEvent('skye:navigation:' + name, {bubbles: true, detail: {id: dialog.id, reason}}));
 	}
 
-	/** Move the same owned brand node into the top layer; listeners and SVG IDs are preserved. @since 3.2.0 */
+	/**
+	 * Move the same brand node into the top layer to preserve its listeners and SVG identities.
+	 * @since 3.2.0
+	 * @returns {void} Missing or unrelated sources remain unchanged.
+	 */
 	function moveBrand() {
 		if (!slot) return;
 		const header = root.closest('header');
@@ -57,14 +82,22 @@ function initializeNavigation(root) {
 		slot.append(brand);
 	}
 
-	/** Restore the exact original position instead of rendering a second animated logo. @since 3.2.0 */
+	/**
+	 * Restore the exact original position rather than creating another animated logo instance.
+	 * @since 3.2.0
+	 * @returns {void}
+	 */
 	function restoreBrand() {
 		if (brand && placeholder?.isConnected) placeholder.replaceWith(brand);
 		brand = null;
 		placeholder = null;
 	}
 
-	/** Complete one close exactly once, including native/foreign close and breakpoint cleanup. @since 3.2.0 */
+	/**
+	 * Finish a lifecycle once, releasing native modal state before restoring visible focus.
+	 * @since 3.2.0
+	 * @returns {void} A closed lifecycle is an idempotent no-op.
+	 */
 	function finishedClose() {
 		if (state === 'closed') return;
 		const focusedHref = dialog.contains(document.activeElement) ? document.activeElement.closest('a[href]')?.href : null;
@@ -98,7 +131,13 @@ function initializeNavigation(root) {
 		announce('closed', closeReason);
 	}
 
-	/** Bound closing animation while Escape and rapid close requests remain effective. @since 3.2.0 */
+	/**
+	 * Bound closing animation so Escape and rapid requests never leave the page inert.
+	 * @since 3.2.0
+	 * @param {string} reason Fixed lifecycle reason.
+	 * @param {{target: HTMLElement, hash: string}|null} destination Validated same-document fragment.
+	 * @returns {void} Stale animation callbacks cannot affect a reopened lifecycle.
+	 */
 	function close(reason = 'close', destination = null) {
 		if (state === 'closed') return;
 		if (destination) afterClose = destination;
@@ -125,7 +164,11 @@ function initializeNavigation(root) {
 		Promise.all(animations.map(animation => animation.finished.catch(() => {}))).then(finish);
 	}
 
-	/** Open only in the mobile layout and focus the first destination after native modal activation. @since 3.2.0 */
+	/**
+	 * Activate only a mobile modal and reveal its first destination from the top of the link area.
+	 * @since 3.2.0
+	 * @returns {void} A failed native activation restores the functional details fallback.
+	 */
 	function open() {
 		if (state !== 'closed' || desktop.matches) return;
 		moveBrand();
