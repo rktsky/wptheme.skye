@@ -106,7 +106,8 @@ final class LocalAssets {
 	/**
 	 * Reuse a hash-verified complete CSS derivative instead of reparsing on visitors.
 	 *
-	 * The input key binds source bytes, canonical base and delivery configuration.
+	 * The input key binds the CSS grammar version, source bytes, canonical base and
+	 * delivery configuration. Older derivatives remain available to open pages.
 	 * Cache manifests contain only hashes and public artifact names. Unsupported
 	 * source syntax and unavailable storage retain the native stylesheet link.
 	 *
@@ -123,7 +124,7 @@ final class LocalAssets {
 		if ( ! is_string( $mapping ) || strlen( $mapping ) > 4096 ) {
 			return false;
 		}
-		$key = hash( 'sha256', $source['sha256'] . '|' . $source['url'] . '|' . $mapping );
+		$key = hash( 'sha256', 'full-css-v2|' . $source['sha256'] . '|' . $source['url'] . '|' . $mapping );
 		$manifest_path = $cache['path'] . '/style-source-' . $key . '.json';
 		if ( is_file( $manifest_path ) && ! is_link( $manifest_path ) && filesize( $manifest_path ) < 4096 ) {
 			$record = json_decode( file_get_contents( $manifest_path ), true );
