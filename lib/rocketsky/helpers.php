@@ -62,6 +62,20 @@ function skye_component_html( $name, $second = false, array $args = array() ) {
 }
 
 /**
+ * Share Skye's external-link policy with explicit theme/component anchor attributes.
+ *
+ * Pass raw attributes and escape them at the existing output boundary. Internal,
+ * relative and nonweb destinations retain every supplied value unchanged.
+ *
+ * @since 3.2.2
+ * @param array $attributes Native anchor attributes with an optional raw href.
+ * @return array Attributes with external target/rel defaults and all other values preserved.
+ */
+function skye_external_link_attributes( array $attributes ) {
+	return \Rocketsky\Skye\Packages\ExternalLinks::attributes( $attributes );
+}
+
+/**
  * Read one raw field from its explicit native WordPress storage identity.
  *
  * This deliberately avoids ACF field-definition/formatting queries even when ACF
