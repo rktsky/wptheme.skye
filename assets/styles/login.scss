@@ -1,2 +1,6 @@
-@import "general/variables";
-@import "login/login";
+@use "general/variables" as v;
+body.login {
+	background: v.$body-bg;
+	color: v.$body-color;
+}
+body.login .button-primary { background: v.$primary; border-color: v.$primary; }

@@ -1,8 +1,12 @@
-# Include your project-specific ignores in this file
-# Read about how to use .gitignore: https://help.github.com/articles/ignoring-files
-dist
-bower_components
-node_modules
+/dist/
+/node_modules/
+/bower_components/
+/tools/coding-standards/vendor/
+/tools/coding-standards/.php-cs-fixer.cache
+.php-cs-fixer.cache
 npm-debug.log
 .DS_Store
-package-lock.json
+auth.json
+.env
+.env.*
+!.env.example

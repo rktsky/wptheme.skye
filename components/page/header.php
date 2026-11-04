@@ -1,15 +1,3 @@
 <?php
-
-	global $data;
-
-	if( empty( $data ) && function_exists( 'get_field' ) ) {
-		$data = (object) get_field( 'pageheader' );
-	}
-
-	if( empty( $data ) )
-		$data = (object) [];
-
-	if( empty( $data->type ) )
-		$data->type = 'simple';
-
-	get_component( 'pageheader', $data->type );
+/** Select a prevalidated page-header component with its explicit presentation model. */
+get_component( 'pageheader', $header['type'], array( 'header' => $header ) );

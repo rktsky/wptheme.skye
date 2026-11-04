@@ -1,25 +1,11 @@
-@import "general/mixins";
-@import "general/variables";
-
-@import "../../bower_components/bootstrap/scss/bootstrap.scss";
-@import "../../bower_components/fontawesome/scss/fontawesome.scss";
-@import "../../bower_components/fontawesome/scss/brands.scss";
-@import "../../bower_components/fontawesome/scss/solid.scss";
-@import "../../bower_components/fontawesome/scss/regular.scss";
-
-@import "general/fonts";
-@import "general/global";
-@import "general/typography";
-
-@import "components/buttons";
-@import "components/comments";
-@import "components/forms";
-@import "components/hamburger";
-@import "components/wp-classes";
-
-@import "layouts/404";
-@import "layouts/footer";
-@import "layouts/header";
-@import "layouts/pages";
-@import "layouts/posts";
-@import "layouts/tinymce";
+@use "general/foundation";
+@use "general/colors";
+@use "general/global";
+@use "general/typography";
+@use "components/comments";
+@use "components/forms";
+@use "components/hamburger";
+@use "components/wp-classes";
+@use "components/icons";
+@use "layouts/404" as not-found;
+@use "layouts/tinymce";

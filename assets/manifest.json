@@ -1,25 +1,67 @@
 {
-  "dependencies": {
-    "main.js": {
-      "files": [
-        "scripts/main.js",
-        "scripts/hamburger.js"
-      ],
-      "main": true
-    },
-    "main.css": {
-      "files": [
-        "styles/main.scss"
-      ],
-      "main": true
-    },
-    "login.css": {
-      "files": [
-        "styles/login.scss"
-      ]
-    }
+  "styles": {
+    "main.css": "styles/main.scss",
+    "login.css": "styles/login.scss",
+    "fontawesome.css": "styles/fontawesome.scss"
   },
-  "config": {
-    "devUrl": "http://example.test"
+  "scripts": {
+    "main.js": "scripts/main.js",
+    "critical-styles.js": "scripts/critical-styles.js",
+    "critical-form-gate.js": "scripts/critical-form-gate.js"
+  },
+  "performance": {
+    "mobileBreakpoint": 576,
+    "critical": {
+      "version": 1,
+      "id": "skye-shell-v1",
+      "filename": "main-critical.css",
+      "placeholder": "__SKYE_THEME_DIST__",
+      "classes": [
+        "active",
+        "collapse",
+        "collapsed",
+        "collapsing",
+        "current-menu-ancestor",
+        "current-menu-item",
+        "current-menu-parent",
+        "menu",
+        "menu-item",
+        "nav",
+        "nav-open",
+        "screen-reader-text",
+        "show",
+        "skip-link",
+        "skye-menu-item",
+        "skye-menu-parent",
+        "skye-menu-toggle",
+        "submenu",
+        "visually-hidden",
+        "visually-hidden-focusable"
+      ],
+      "prefixes": [
+        "navbar",
+        "nav-",
+        "brand",
+        "page-header",
+        "menu",
+        "drawer",
+        "submenu"
+      ],
+      "source_paths": [
+        "base.php",
+        "components/header/",
+        "components/navigation/",
+        "components/pageheader/",
+        "lib/presentation.php",
+        "lib/assets.php",
+        "lib/setup.php",
+        "components/page/header.php",
+        "lib/rocketsky/helpers.php",
+        "lib/titles.php",
+        "lib/routing.php"
+      ]
+    },
+    "icons": [],
+    "fonts": []
   }
 }

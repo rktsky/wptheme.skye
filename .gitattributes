@@ -1,0 +1,15 @@
+/tests export-ignore
+/tools export-ignore
+/.github export-ignore
+/AGENTS.md export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/.editorconfig export-ignore
+/.gitignore export-ignore
+/.gitattributes export-ignore
+/package.json export-ignore
+/package-lock.json export-ignore
+/build.mjs export-ignore
+/assets export-ignore
+/README.tpl.md export-ignore
+/.nvmrc export-ignore
+/.npmrc export-ignore

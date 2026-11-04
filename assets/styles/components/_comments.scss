@@ -1,19 +1,4 @@
-.comment-list {
-  @extend .list-unstyled;
-}
-.comment-list ol {
-  list-style: none;
-}
-.comment-form p {
-  @extend .form-text;
-}
-.comment-form input[type="text"],
-.comment-form input[type="email"],
-.comment-form input[type="url"],
-.comment-form textarea {
-  @extend .form-control;
-}
-.comment-form input[type="submit"] {
-  @extend .btn;
-  @extend .btn-secondary;
-}
+.comment-list,
+.comment-list ol { list-style: none; }
+.comment-list { padding-inline-start: 0; }
+.comment-form p { margin-block-end: 1rem; }

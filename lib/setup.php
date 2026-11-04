@@ -1,141 +1,113 @@
 <?php
+/** Register classic theme support and native immutable asset dependencies. */
 
 namespace Rocketsky\Skye\Setup;
 
 use Rocketsky\Skye\Assets;
+use Rocketsky\Skye\Packages\Icons;
 
 /**
- * Theme setup
+ * Describe theme capabilities while leaving content and site policy under Core control.
+ *
+ * Native image, title, logo and HTML5 support keep plugins and child themes compatible.
+ *
+ * @since 2015-11-11
+ * @return void
  */
 function setup() {
-
-	// Make theme available for translation
 	load_theme_textdomain( 'skye', get_template_directory() . '/lang' );
-
-	// Enable plugins to manage the document title
-	// http://codex.wordpress.org/Function_Reference/add_theme_support#Title_Tag
-	add_theme_support('title-tag');
-
-	// Register wp_nav_menu() menus
-	// http://codex.wordpress.org/Function_Reference/register_nav_menus
-	register_nav_menus([
-		'primary_navigation' => __('Primary Navigation', 'skye')
-	]);
-
-	// Enable post thumbnails
-	// http://codex.wordpress.org/Post_Thumbnails
-	// http://codex.wordpress.org/Function_Reference/set_post_thumbnail_size
-	// http://codex.wordpress.org/Function_Reference/add_image_size
-	add_theme_support('post-thumbnails');
-
-	// Enable post formats
-	// http://codex.wordpress.org/Post_Formats
-	add_theme_support('post-formats', ['aside', 'gallery', 'link', 'image', 'quote', 'video', 'audio']);
-
-	// Enable HTML5 markup support
-	// http://codex.wordpress.org/Function_Reference/add_theme_support#HTML5
-	add_theme_support('html5', ['caption', 'comment-form', 'comment-list', 'gallery', 'search-form']);
-
-	// Use main stylesheet for visual editor
-	// To add custom styles edit /assets/styles/layouts/_tinymce.scss
-	add_editor_style(Assets\asset_path('styles/main.css'));
+	add_theme_support( 'title-tag' );
+	add_theme_support( 'post-thumbnails' );
+	add_theme_support( 'custom-logo' );
+	add_theme_support( 'html5', array( 'caption', 'comment-form', 'comment-list', 'gallery', 'search-form', 'style', 'script' ) );
+	register_nav_menus( array( 'primary_navigation' => __( 'Primary Navigation', 'skye' ) ) );
+	add_editor_style( Assets\asset_uri( 'styles/main.css' ) );
 }
-add_action('after_setup_theme', __NAMESPACE__ . '\\setup');
+add_action( 'after_setup_theme', __NAMESPACE__ . '\\setup' );
 
 /**
- * Register sidebars
+ * Register the existing footer extension point using the native widget renderer.
+ *
+ * Wrappers are WordPress API format templates rather than an alternative page renderer.
+ *
+ * @since 2015-11-11
+ * @return void
  */
 function widgets_init() {
-
-	register_sidebar([
-		'name'			=> __('Footer', 'skye'),
-		'id'			=> 'sidebar-footer',
-		'before_widget' => '<section class="widget %1$s %2$s">',
-		'after_widget'	=> '</section>',
-		'before_title'	=> '<h3>',
-		'after_title'	=> '</h3>'
-	]);
-
+	register_sidebar( array(
+		'name' => __( 'Footer', 'skye' ), 'id' => 'sidebar-footer',
+		'before_widget' => '<section class="widget %1$s %2$s">', 'after_widget' => '</section>',
+		'before_title' => '<h3>', 'after_title' => '</h3>',
+	) );
 }
-//add_action('widgets_init', __NAMESPACE__ . '\\widgets_init');
+add_action( 'widgets_init', __NAMESPACE__ . '\\widgets_init' );
 
 /**
- * Theme assets
+ * Enqueue complete viewport peers and only the starter's native JavaScript dependencies.
+ *
+ * Core owns ordering, inline data and script strategy. Block content retains its
+ * native assets even though editing is classic. Content hashes provide cache busting.
+ *
+ * @since 2015-11-11
+ * @return void
  */
 function assets() {
-	//wp_enqueue_style('skye/css', Assets\asset_path('styles/main.css'), false, null);
-	wp_dequeue_style( 'wp-block-library' );
-	wp_dequeue_style( 'wp-block-library-theme' );
-	wp_dequeue_style( 'wc-block-style' );
-
-	if (is_single() && comments_open() && get_option('thread_comments')) {
-		wp_enqueue_script('comment-reply');
+	foreach ( Assets\stylesheet_variants() as $handle => $style ) {
+		wp_enqueue_style( $handle, Assets\asset_uri( $style['file'] ), array(), null, $style['media'] );
 	}
-
-	//wp_enqueue_script('skye/js', Assets\asset_path('scripts/main.js'), ['jquery'], null, true);
-}
-add_action('wp_enqueue_scripts', __NAMESPACE__ . '\\assets', 100);
-
-
-function print_assets() {
-
-	$file = 'styles/main.css';
-	if( file_exists( Assets\dist_path( $file ) ) ) {
-		//  deepcode ignore XSS: no external input
-		echo '<style type="text/css" name=\'' . $file . '\'>' . str_replace( '../', parse_url( get_template_directory_uri(), PHP_URL_PATH ) . '/dist/', file_get_contents( Assets\dist_path( $file ) ) ) . '</style>';
+	wp_register_style( 'skye/fontawesome', Assets\asset_uri( 'styles/fontawesome.css' ), array_keys( Assets\stylesheet_variants() ), null );
+	if ( ! class_exists( Icons::class ) || Icons::needs_styles() ) {
+		wp_enqueue_style( 'skye/fontawesome' );
 	}
-
-	// Example font loading
-	//echo '<link rel="preload" href="' . Assets\dist_path( 'fonts/font.woff2' ) . '" as="font" type="font/woff2" crossorigin>';
-
+	wp_enqueue_script( 'skye/js', Assets\asset_uri( 'scripts/main.js' ), array(), null, array( 'in_footer' => true, 'strategy' => 'defer' ) );
+	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
+		wp_enqueue_script( 'comment-reply' );
+	}
 }
-add_action('wp_head', __NAMESPACE__ . '\\print_assets' );
+add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\assets', 100 );
 
-function print_late_assets() {
-
-	$files = [
-		[ 'direct', 'wp-includes/js/wp-embed.min.js' ],
-		[ 'direct', 'wp-includes/js/jquery/jquery.min.js' ],
-		[ 'direct', 'wp-includes/js/jquery/jquery-migrate.min.js' ],
-		[ 'dist', 'scripts/main.js' ],
-	];
-
-	foreach( $files as $file ) {
-
-		switch ( $file[ 0 ] ) {
-			case 'direct':
-				if( file_exists( ABSPATH . $file[ 1 ] ) ) {
-					//  deepcode ignore XSS: no external input
-					echo '<script type=\'text/javascript\' name=\'' . $file[ 1 ] . '\'>' . file_get_contents( ABSPATH . $file[ 1 ] ) . '</script>';
-				}
-				break;
-			case 'dist':
-				if( file_exists( Assets\dist_path( $file[ 1 ] ) ) ) {
-					//  deepcode ignore XSS: no external input
-					echo '<script type=\'text/javascript\' name=\'' . $file[ 1 ] . '\'>' . file_get_contents( Assets\dist_path( $file[ 1 ] ) ) . '</script>';
-				}
-				break;
-			case 'asset':
-				if( file_exists( Assets\asset_path( $file[ 1 ] ) ) ) {
-					//  deepcode ignore XSS: no external input
-					echo '<script type=\'text/javascript\' name=\'' . $file[ 1 ] . '\'>' . file_get_contents( Assets\asset_path( $file[ 1 ] ) ) . '</script>';
-				}
-				break;
+/**
+ * Add configured critical hints using Core's preload API, preserving unrelated providers.
+ *
+ * Responsive image candidates omit a fallback URL to prevent duplicate downloads
+ * in older preload parsers. Callers own content eligibility and accurate sizes.
+ *
+ * @since 3.0.0
+ * @param array $resources Existing native preload descriptors.
+ * @return array Original descriptors followed by valid configured own hints.
+ */
+function preload_resources( $resources ) {
+	$resources = is_array( $resources ) ? $resources : array();
+	$configured = apply_filters( 'skye_preload_resources', array() );
+	$hints = array_merge( Assets\font_preloads(), is_array( $configured ) ? $configured : array() );
+	foreach ( $hints as $hint ) {
+		if ( ! is_array( $hint ) || ! in_array( $hint['as'] ?? '', array( 'font', 'image', 'style' ), true ) ) {
+			continue;
 		}
-
+		if ( ( isset( $hint['imagesrcset'] ) && ! is_string( $hint['imagesrcset'] ) ) || ( isset( $hint['imagesizes'] ) && ! is_string( $hint['imagesizes'] ) ) ) {
+			continue;
+		}
+		if ( ( $hint['as'] ?? '' ) === 'image' && ! empty( $hint['imagesrcset'] ) ) {
+			unset( $hint['href'] );
+		}
+		if ( ( isset( $hint['href'] ) && ! is_string( $hint['href'] ) ) || ( empty( $hint['href'] ) && empty( $hint['imagesrcset'] ) ) ) {
+			continue;
+		}
+		if ( ! in_array( $hint, $resources, true ) ) {
+			$resources[] = $hint;
+		}
 	}
-
+	return $resources;
 }
-add_action('wp_footer', __NAMESPACE__ . '\\print_late_assets' );
+add_filter( 'wp_preload_resources', __NAMESPACE__ . '\\preload_resources' );
 
-function remove_embed() {
-	wp_dequeue_script( 'wp-embed' );
-	wp_dequeue_script( 'jquery' );
-	wp_dequeue_script( 'jquery-migrate' );
-}
-add_action( 'wp_head', __NAMESPACE__ . '\\remove_embed' );
-
+/**
+ * Enqueue the separately built login skin without replacing WordPress form behavior.
+ *
+ * @since 2020-12-10
+ * @return void
+ */
 function ct_login_style() {
-    wp_enqueue_style( 'ct-login', Assets\asset_uri('styles/login.css') );
+	wp_enqueue_style( 'skye/login', Assets\asset_uri( 'styles/login.css' ), array(), null );
 }
 add_action( 'login_enqueue_scripts', __NAMESPACE__ . '\\ct_login_style' );

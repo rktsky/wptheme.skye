@@ -1,0 +1,217 @@
+name: Skye quality
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  assets:
+    name: Locked assets and release export
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.22.2'
+      - name: Retain the isolated modern test harness
+        run: echo "SKYE_TEST_NODE=$(command -v node)" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '14.21.3'
+          cache: npm
+      - name: Verify the production Node and npm runtime
+        run: |
+          test "$(node --version)" = v14.21.3
+          test "$(npm --version)" = 6.14.18
+          test "$(npm config get engine-strict)" = true
+          echo "SKYE_BUILD_NODE=$(command -v node)" >> "$GITHUB_ENV"
+      - name: Install and audit the locked production build graph
+        run: |
+          npm ci --production=false --ignore-scripts --no-audit
+          npm audit --audit-level=moderate
+      - name: Compile and verify successful and failed build paths
+        run: |
+          npm run lint:js
+          npm run lint:style
+          npm run build
+          "$SKYE_TEST_NODE" --test tests/build.test.mjs
+          "$SKYE_TEST_NODE" --test tests/critical-loader.test.cjs
+          "$SKYE_TEST_NODE" --test tests/release.test.mjs
+      - name: Prove a clean committed release export
+        run: '"$SKYE_BUILD_NODE" tools/release.mjs "$RUNNER_TEMP/skye-release"'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: skye-dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: skye-release-proof
+          path: ${{ runner.temp }}/skye-release/release.json
+          if-no-files-found: error
+          retention-days: 7
+
+  legacy-build:
+    name: Node 14 build and watch / CentOS 7 userland
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify the original CentOS 7 userland with the official Node 14 runtime
+        run: bash tools/testing/legacy-build.sh "$RUNNER_TEMP/skye-centos7-evidence"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: centos7-node14-build-watch
+          path: ${{ runner.temp }}/skye-centos7-evidence/
+          if-no-files-found: warn
+          retention-days: 7
+
+  php:
+    name: PHP ${{ matrix.php }} / WordPress ${{ matrix.wordpress }}
+    needs: assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.3'
+            wordpress: '6.8.12'
+          - php: '8.4'
+            wordpress: '6.8.12'
+          - php: '8.3'
+            wordpress: '7.1.4'
+          - php: '8.5'
+            wordpress: '7.1.4'
+    env:
+      SKYE_PHP_BINARY: php
+      SKYE_SITE_ROOT: ${{ github.workspace }}/.git/runtime/site/wordpress
+      SKYE_WORDPRESS_CORE: ${{ github.workspace }}/.git/runtime/site/wordpress
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: bcmath, curl, ctype, dom, fileinfo, gd, iconv, mbstring, mysqli, openssl, pdo_sqlite, session, sqlite3, tokenizer, xml, zip, zlib
+          tools: composer:2.11.1
+          coverage: none
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: skye-dist
+          path: dist/
+      - name: Install and audit the locked PHP quality tools
+        run: |
+          composer install --working-dir=tools/coding-standards --no-interaction --prefer-dist --no-progress --no-scripts
+          composer audit --working-dir=tools/coding-standards --no-interaction
+      - name: Check source contracts, formatting and syntax
+        run: |
+          php tools/coding-standards/check.php
+          php tools/coding-standards/vendor/bin/php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
+          git ls-files -z -- '*.php' | xargs -0 -n1 php -l
+      - name: Prepare an isolated native WordPress fixture
+        run: python3 tools/testing/setup-site.py --root .git/runtime/site --wordpress-version '${{ matrix.wordpress }}' --php-binary php --classic-editor
+      - name: Run every classified standalone PHP regression
+        run: php tools/testing/run.php
+      - name: Verify native site behavior before and after the separate Classic Editor
+        run: |
+          php tests/core-sidebar-native.php
+          php tests/site-verify.php
+          php tests/site-verify.php --activate-classic-plugin
+          php tests/site-verify.php
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: php-${{ matrix.php }}-wordpress-${{ matrix.wordpress }}
+          path: .git/runtime/php-tests/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
+  browser:
+    name: Native site / ${{ matrix.browser }}
+    needs: assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    env:
+      SKYE_PHP_BINARY: php
+      SKYE_SITE_ROOT: ${{ github.workspace }}/.git/runtime/site/wordpress
+      SKYE_BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.22.2'
+      - name: Use the documented npm runtime
+        run: npm install --global npm@12.2.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          extensions: curl, ctype, dom, fileinfo, gd, iconv, mbstring, mysqli, openssl, pdo_sqlite, session, sqlite3, tokenizer, xml, zip, zlib
+          tools: none
+          coverage: none
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: skye-dist
+          path: dist/
+      - name: Install the pinned isolated browser test runtime
+        run: |
+          npm install --prefix "$RUNNER_TEMP/skye-playwright" --save-exact --ignore-scripts playwright@1.64.1
+          npm --prefix "$RUNNER_TEMP/skye-playwright" audit --audit-level=moderate
+          node "$RUNNER_TEMP/skye-playwright/node_modules/playwright/cli.js" install --with-deps '${{ matrix.browser }}'
+      - name: Prepare the native SQLite site
+        run: python3 tools/testing/setup-site.py --root .git/runtime/site --wordpress-version 7.1.4 --php-binary php
+      - name: Check pages, navigation, native fallback and critical delivery
+        run: |
+          php -S 127.0.0.1:8973 -t "$SKYE_SITE_ROOT" tests/server.php > .git/runtime/browser-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          export SKYE_PLAYWRIGHT_MODULE="$RUNNER_TEMP/skye-playwright/node_modules/playwright"
+          node --input-type=module <<'JS'
+          const deadline = Date.now() + 10000;
+          let ready = false;
+          while (Date.now() < deadline) {
+            try { if ((await fetch('http://127.0.0.1:8973/')).status === 200) { ready = true; break; } } catch {}
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          if (!ready) throw new Error('The isolated PHP site did not become ready.');
+          JS
+          node tests/browser.cjs
+          node tests/browser-critical.cjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: browser-${{ matrix.browser }}
+          path: |
+            .git/runtime/browser-${{ matrix.browser }}/
+            .git/runtime/browser-critical-${{ matrix.browser }}/
+            .git/runtime/browser-server.log
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7

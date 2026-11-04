@@ -1,7 +1,7 @@
+@use "variables" as v;
+// Own presentation tokens remain independent of the Bootstrap theme namespace.
 :root {
-	--color-page-background: #{$body-bg};
-	--color-text: #{$font-color};
-	--color-primary: #{$primary};
-	--color-secondary: #{$secondary};
-	--color-white: #{$white};
+	--skye-accent: #{v.$primary};
+	--skye-text: #{v.$body-color};
+	--skye-background: #{v.$body-bg};
 }

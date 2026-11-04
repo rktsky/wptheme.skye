@@ -1,13 +1,3 @@
-<div class="container">
-	<div class="row">
-		<div class="col-12">
-			<?php get_component('page-header'); ?>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-12">
-			<?php get_component('page-content'); ?>
-		</div>
-	</div>
-</div>
-
+<?php
+/** Preserve the generic content component through the documented page-content renderer. */
+get_component( 'page', 'content' );

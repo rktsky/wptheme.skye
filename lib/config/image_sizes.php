@@ -1,16 +1,4 @@
 <?php
-	
-// Register here your image sizes
+/** Define project image sizes; native WordPress defaults remain available. */
 
-$rs_image_sizes = array(
-
-	// Example
-/*
-	'rs-example' => array(
-		'width'		=>		1200,
-		'height'	=>		800,
-		'crop'		=>		false,
-	),
-*/
-	
-);
+$rs_image_sizes = array();
