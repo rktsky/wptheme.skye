@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
+const {annotateGitHubError} = require('../tools/testing/github-errors.cjs');
 const playwright = require(process.env.SKYE_PLAYWRIGHT_MODULE || 'playwright');
 const root = path.resolve(__dirname, '..');
 const origin = process.env.SKYE_TEST_ORIGIN || 'http://127.0.0.1:8973';
@@ -131,4 +132,8 @@ async function run() {
 		}
 	}
 }
-run().catch(error => { console.error(error); process.exitCode = 1; });
+run().catch(error => {
+	console.error(error);
+	annotateGitHubError(error);
+	process.exitCode = 1;
+});
