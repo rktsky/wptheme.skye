@@ -102,8 +102,8 @@ npm run lint:style
 php tools/coding-standards/check.php
 php tools/coding-standards/vendor/bin/php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
 npm run build
-SKYE_BUILD_NODE=/absoluter/pfad/node14 /absoluter/pfad/node24 --test tests/build.test.mjs tests/critical-loader.test.cjs tests/release.test.mjs
-SKYE_WORDPRESS_CORE=/absoluter/pfad/wordpress php tools/testing/run.php
+SKYE_BUILD_NODE=/absoluter/pfad/node14 /absoluter/pfad/node24 --test tests/build.test.mjs tests/critical-loader.test.cjs tests/mobile-navigation.test.cjs tests/release.test.mjs
+SKYE_WORDPRESS_CORE=/absoluter/pfad/wordpress SKYE_SITE_ROOT=/absoluter/pfad/.git/runtime/site/wordpress php tools/testing/run.php
 ```
 
 Die zweite Core-Version braucht einen eigenen expliziten Gesamtlauf. Die vollständig gestartete native Site zusätzlich mit `SKYE_SITE_ROOT=/absoluter/pfad/site/wordpress php tests/core-sidebar-native.php` sowie `tests/site-verify.php` vor und nach `--activate-classic-plugin` prüfen. Nach Start ihres lokalen Servers:
@@ -125,3 +125,23 @@ Nicht eingecheckte lokale Rohprotokolle und Fixture-Daten liegen unter `.git/run
 - Keine generischen Lighthouse-Scores oder prozentualen Ladezeiten werden behauptet. Rohgrössen stehen in [Performance](performance.md); Medienfixturewerte in [Medien](media.md). Eine unbekannte Route erhält ohne vollständigen geprüften Critical-Vertrag den nativen Fallback.
 
 Diese Grenzen werden nicht durch erfolgreich konfigurierte Workflows, schmale Desktopansichten oder frühere Volksgarage-Messungen ersetzt. Es wurden keine produktiven Inhalte, Kundendateien, Mails, Zahlungen oder externen Fachaktionen verändert.
+
+## Erweiterung 3.2: native Navigation
+
+Die neue [Mobile-Navigation](mobile-navigation.md) ergänzt den expliziten PHP-Lauf
+um `mobile-navigation-native.php`. Dieser benötigt zusätzlich die vollständig
+installierte eigene `SKYE_SITE_ROOT`-Fixture derselben zu prüfenden Core-Version.
+Am 04.11.2026 bestanden lokal 53 Assertions mit dem tatsächlichen WordPress-7.1.4-
+Menuwalker und nativen Asset-/Filterregistrierungen sowie alle 13 PHP-Prozesse.
+Der Produktionscompiler war Node 14.21.3, der getrennte Testharness Node 24.22.1;
+12 Node-Harnessfälle einschliesslich Build-/Watch-/Releasegrenzen und vier
+Controller-VM-Szenarien bestanden. Die Controller-Fixture bildet keinen Browser
+nach und ersetzt keine tatsächliche Modalschnittstellenprüfung.
+
+Die vorhandenen drei CI-Browserengines prüfen jetzt den nativen Modalzustand,
+Tab-/Shift-Tab-/Escape-Fokus, Fragmentnavigation, identischen Markenknoten,
+Breakpointbereinigung, global eindeutige IDs, Desktop-/Mobile-No-JavaScript,
+Scriptfehler und reduzierte Bewegung. Die neue Hosted-Ausführung wird erst nach
+dem Featurepush bewertet. Die früheren verlinkten grünen Läufe belegen diese
+3.2-Erweiterung noch nicht. Im Subagent war kein CUA-Browser verfügbar; eine lokale
+visuelle Browserabnahme wird für diesen Stand nicht behauptet.

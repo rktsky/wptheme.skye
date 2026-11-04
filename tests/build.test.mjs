@@ -182,7 +182,7 @@ test('clean locked assets, failed source and source-watch recovery preserve immu
 		}
 		assert.ok(!Object.keys(manifest).some(name => name.includes('.gitkeep') || name.includes('.DS_Store')));
 		assert.ok(manifest._performance.critical.sources.every(source => /^[a-f0-9]{64}$/.test(source.sha256)));
-		for (const model of ['lib/presentation.php', 'lib/rocketsky/helpers.php', 'lib/titles.php', 'lib/routing.php']) {
+		for (const model of ['lib/presentation.php', 'lib/package/MobileNavigation.php', 'lib/rocketsky/helpers.php', 'lib/titles.php', 'lib/routing.php']) {
 			assert.ok(manifest._performance.critical.sources.some(source => source.path === model), 'Bind the actual first-viewport renderer: ' + model);
 		}
 		assert.match(manifest._performance.critical.build_hash, /^[a-f0-9]{64}$/);

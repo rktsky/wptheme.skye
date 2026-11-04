@@ -2,12 +2,14 @@
   "styles": {
     "main.css": "styles/main.scss",
     "login.css": "styles/login.scss",
-    "fontawesome.css": "styles/fontawesome.scss"
+    "fontawesome.css": "styles/fontawesome.scss",
+    "mobile-navigation.css": "styles/mobile-navigation.scss"
   },
   "scripts": {
     "main.js": "scripts/main.js",
     "critical-styles.js": "scripts/critical-styles.js",
-    "critical-form-gate.js": "scripts/critical-form-gate.js"
+    "critical-form-gate.js": "scripts/critical-form-gate.js",
+    "mobile-navigation.js": "scripts/mobile-navigation.js"
   },
   "performance": {
     "mobileBreakpoint": 576,
@@ -53,6 +55,7 @@
         "components/navigation/",
         "components/pageheader/",
         "lib/presentation.php",
+        "lib/package/MobileNavigation.php",
         "lib/assets.php",
         "lib/setup.php",
         "components/page/header.php",

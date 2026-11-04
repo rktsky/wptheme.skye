@@ -160,7 +160,8 @@ async function run() {
 		const nojsPage = await nojs.newPage();
 		await nojsPage.goto(origin + '/?page_id=' + fixture.about + '&skye_critical_browser=positive', {waitUntil:'networkidle'});
 		assert.ok(await nojsPage.locator('link[rel="stylesheet"]').count(), 'No-JavaScript receives the real native stylesheet fallback.');
-		assert.ok(await nojsPage.locator('.skye-no-script-navigation a').first().isVisible(), 'No-JavaScript navigation remains usable on the admitted test viewport.');
+		await nojsPage.locator('[data-skye-navigation-fallback] summary').click();
+		assert.ok(await nojsPage.locator('.skye-navigation-fallback-links a').first().isVisible(), 'Native no-JavaScript details navigation remains usable on the admitted test viewport.');
 		result.checks += 2;
 		await nojs.close();
 		fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result,null,2)+'\n');
