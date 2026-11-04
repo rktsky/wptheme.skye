@@ -16,6 +16,7 @@
  * @see https://developer.wordpress.org/reference/functions/wp_schedule_single_event/
  * @see https://developer.wordpress.org/reference/functions/wp_get_image_editor/
  * @see https://developer.wordpress.org/coding-standards/inline-documentation-standards/php/
+ * @see https://www.php.net/manual/en/function.imagedestroy.php GD objects use normal object lifetime.
  * @since 3.0.0
  */
 
@@ -626,7 +627,7 @@ namespace {
 			imagejpeg( $image, $path, 90 );
 		}
 
-		imagedestroy( $image );
+		unset( $image );
 	}
 
 	/**
@@ -1191,7 +1192,7 @@ namespace {
 		$transparent = imagecolorsforindex( $image, imagecolorat( $image, 0, 0 ) );
 		$opaque = imagecolorsforindex( $image, imagecolorat( $image, 5, 5 ) );
 		skye_media_check( $transparent['alpha'] >= 120 && $opaque['alpha'] <= 5, 'Real encoded WebP retains transparent and opaque PNG pixels.' );
-		imagedestroy( $image );
+		unset( $image );
 		skye_media_test_sources_unchanged( $hashes );
 
 		$snapshot = skye_media_test_snapshot( 423, 'image/png', 0 );
@@ -2237,7 +2238,7 @@ namespace {
 			$png = wp_get_attachment_metadata( 711, true )['sizes']['skye-content-sm'];
 			$image = imagecreatefrompng( dirname( get_attached_file( 711, true ) ) . '/' . $png['file'] );
 			skye_media_check( ( imagecolorat( $image, imagesx( $image ) - 2, imagesy( $image ) - 2 ) >> 24 ) === 127, 'Real native PNG resizing preserves transparent source pixels.' );
-			imagedestroy( $image );
+			unset( $image );
 
 			skye_media_test_reset();
 			skye_media_test_large_native( 712, 'image/png' );
