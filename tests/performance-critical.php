@@ -114,6 +114,26 @@ foreach ( array( 'gform_basic', 'gform_theme_components', 'gform_theme' ) as $ha
 }
 $critical = new CriticalStyles();
 $form = array( 'id' => 3, 'fields' => array( new GF_Field_Text() ) );
+$controls = new \Rocketsky\Skye\Packages\FormControls();
+perf_check( CriticalStyles::supported_form( $form ), 'The exact owned class-only control adapters remain compatible with native simple forms.' );
+$GLOBALS['perf_producer_calls'] = 0;
+$producer = 'perf_foreign_markup';
+foreach ( array( 'gform_get_form_filter', 'gform_get_form_filter_3', 'gform_field_content', 'gform_field_content_3_8', 'gform_field_input_3_8', 'gform_form_tag', 'gform_form_after_open_3', 'gform_post_render_script', 'gform_submit_button' ) as $hook ) {
+	add_filter( $hook, $producer, 25 );
+	perf_check( ! CriticalStyles::supported_form( $form ), 'An additional native render producer keeps full delivery: ' . $hook );
+	perf_check( has_filter( $hook, $producer ) === 25, 'The conservative guard never removes a provider callback: ' . $hook );
+	remove_filter( $hook, $producer, 25 );
+}
+perf_check( $GLOBALS['perf_producer_calls'] === 0, 'Eligibility inspects hook records without invoking providers, scripts or network requests.' );
+$protected_form = $form;
+$protected_form['enableHoneypot'] = true;
+perf_check( ! CriticalStyles::supported_form( $protected_form ), 'Native honeypot forms retain the complete blocking Basic/HP delivery path.' );
+$adapter = array( $controls, 'gravityforms' );
+remove_filter( 'gform_field_content', $adapter, 20 );
+add_filter( 'gform_field_content', $adapter, 20, 4 );
+perf_check( ! CriticalStyles::supported_form( $form ), 'An altered own callback arity does not inherit the verified producer contract.' );
+remove_filter( 'gform_field_content', $adapter, 20 );
+add_filter( 'gform_field_content', $adapter, 20, 5 );
 $critical->observe_form( $form, false );
 $critical->enqueue();
 $body = 'window.syntheticNativeInitializer = current_page;';
@@ -123,6 +143,24 @@ perf_check( $critical->form_script( $body, 99, 1 ) === $body, 'Unobserved form I
 $unsupported = array( 'id' => 4, 'fields' => array( new GF_Field_Text() ), 'enableAnimation' => true );
 $critical->observe_form( $unsupported, false );
 perf_check( $critical->form_script( $body, 3, 1 ) === $body, 'A later richer form revokes the unprinted request opt-in.' );
+perf_detach( $critical );
+
+$originals = perf_critical_graph();
+foreach ( array( 'gform_basic', 'gform_theme_components', 'gform_theme' ) as $handle ) {
+	wp_enqueue_style( $handle, 'https://example.test/' . $handle . '.css', array(), null );
+}
+$critical = new CriticalStyles();
+$critical->observe_form( $form, false );
+$critical->enqueue();
+add_filter( 'gform_get_form_filter', $producer, 25 );
+$critical->validate_delivery();
+foreach ( $originals as $handle => $original ) {
+	perf_check( wp_styles()->registered[$handle]->src === $original->src && wp_styles()->registered[$handle]->deps === $original->deps, 'A producer added between enqueue and head output restores the original complete theme graph.' );
+}
+foreach ( array( 'gform_basic', 'gform_theme_components', 'gform_theme' ) as $handle ) {
+	perf_check( wp_styles()->get_data( $handle, 'skye-after-paint' ) !== true && wp_styles()->registered[$handle]->src === 'https://example.test/' . $handle . '.css', 'The late pre-head fallback retains every complete GF source including Basic: ' . $handle );
+}
+remove_filter( 'gform_get_form_filter', $producer, 25 );
 perf_detach( $critical );
 
 $originals = perf_critical_graph();
@@ -216,6 +254,18 @@ function perf_wrong_layout( $previous, $build ) {
 	return array( 'id' => $build['id'], 'build_hash' => 'stale', 'first_viewport' => true );
 }
 
+/**
+ * Observe an unknown producer only if production incorrectly executes it.
+ *
+ * @since 3.3.0
+ * @param string $html Existing native rendered fragment.
+ * @return string The unchanged fragment, with a process-local invocation count.
+ */
+function perf_foreign_markup( $html ) {
+	$GLOBALS['perf_producer_calls']++;
+	return $html;
+}
+
 /** Provide only the effective native provider theme boundary for the production guard. @since 3.0.0 */
 class GFFormDisplay {
 	/** @var array Existing provider initialization records; none in this fixture. */
@@ -244,6 +294,8 @@ class GFCommon {
 }
 /** Represent a known built-in field shape without rendering or storing an entry. @since 3.0.0 */
 class GF_Field_Text {
+	/** @var int Native field identity used only for scoped render-hook regression. @since 3.3.0 */
+	public $id = 8;
 	/** @var string Native built-in type checked by the production adapter. */
 	public $type = 'text';
 	/** @var string Native built-in width policy checked before layout-sensitive work. */

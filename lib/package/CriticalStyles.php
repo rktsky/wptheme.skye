@@ -29,6 +29,8 @@ class CriticalStyles {
 	private $enabled = false;
 	/** @var array<int,bool> Actual supported provider form IDs observed this request. */
 	private $simple_forms = array();
+	/** @var array<int,array> Native render-hook contracts retained until the final pre-print check. @since 3.3.0 */
+	private $form_producers = array();
 	/** @var string Trusted own-asset wrapper; empty keeps provider initialization native. */
 	private $form_gate = '';
 	/** @var bool One unsupported provider form disables this request's opt-in. */
@@ -212,6 +214,7 @@ class CriticalStyles {
 		}
 		if ( ! $this->unsupported_form && self::supported_form( $form ) ) {
 			$this->simple_forms[(int) $form['id']] = true;
+			$this->form_producers[(int) $form['id']] = self::form_markup_hooks( $form );
 			$this->enqueue_form_styles();
 			return;
 		}
@@ -231,6 +234,12 @@ class CriticalStyles {
 	public function validate_delivery() {
 		if ( ! $this->enabled ) {
 			return;
+		}
+		foreach ( $this->form_producers as $hooks ) {
+			if ( ! self::native_form_producers( $hooks ) ) {
+				$this->disable_delivery();
+				return;
+			}
 		}
 		if ( ! apply_filters( 'skye_progressive_styles', true ) ||
 			( wp_scripts()->registered['skye/css-loader'] ?? null ) !== $this->loader_registration ||
@@ -387,6 +396,82 @@ class CriticalStyles {
 				'emailConfirmEnabled', 'enableEnhancedUI', 'enableCalculation', 'calculationFormula', 'productField', 'choices', 'enablePrice' ) as $key ) {
 				if ( ! empty( $field->$key ) ) {
 					return false;
+				}
+			}
+		}
+		return self::native_form_producers( self::form_markup_hooks( $form ) );
+	}
+
+	/**
+	 * Describe render hooks that can add controls, markup or executable form code.
+	 *
+	 * Only the theme's own class-only adapters and readiness wrapper are known.
+	 * Third-party producers, including native anti-spam integrations, need their
+	 * ordinary complete delivery. No plugin version, project-specific form identity, rendered HTML,
+	 * submission value or provider callback is inspected or invoked here.
+	 *
+	 * @since 3.3.0
+	 * @param array $form Already available native enqueue object.
+	 * @return array<string,array|null> Hook names and optional exact own callback contracts.
+	 */
+	private static function form_markup_hooks( array $form ) {
+		$id = (int) $form['id'];
+		$hooks = array();
+		$known = array(
+			'gform_field_content' => array( FormControls::class, 'gravityforms', 20, 5 ),
+			'gform_submit_button' => array( FormControls::class, 'submit_button', 20, 1 ),
+			'gform_next_button' => array( FormControls::class, 'submit_button', 20, 1 ),
+			'gform_previous_button' => array( FormControls::class, 'submit_button', 20, 1 ),
+			'gform_post_render_script' => array( self::class, 'form_script', 20, 3 ),
+		);
+		foreach ( array( 'gform_get_form_filter', 'gform_form_tag', 'gform_form_after_open', 'gform_form_after_close',
+			'gform_field_content', 'gform_field_input', 'gform_field_container', 'gform_submit_button',
+			'gform_next_button', 'gform_previous_button', 'gform_post_render_script' ) as $hook ) {
+			$hooks[$hook] = $known[$hook] ?? null;
+			$hooks[$hook . '_' . $id] = null;
+		}
+		foreach ( $form['fields'] as $field ) {
+			$field_id = $field->id ?? null;
+			if ( ( is_int( $field_id ) || is_string( $field_id ) ) && preg_match( '/^[1-9][0-9]*$/D', (string) $field_id ) ) {
+				foreach ( array( 'gform_field_content', 'gform_field_input', 'gform_field_container' ) as $hook ) {
+					$hooks[$hook . '_' . $id . '_' . $field_id] = null;
+				}
+			}
+		}
+		return $hooks;
+	}
+
+	/**
+	 * Refuse additional render producers without executing or altering their hooks.
+	 *
+	 * Core's public WP_Hook callback records retain identity, priority and arity.
+	 * Rechecking before stylesheet output catches registrations added after the
+	 * provider enqueue; callbacks introduced after head output require a project's
+	 * separately verified layout contract rather than an inferred guarantee.
+	 *
+	 * @see https://developer.wordpress.org/reference/classes/wp_hook/
+	 * @since 3.3.0
+	 * @param array<string,array|null> $hooks Expected native hook contracts.
+	 * @return bool Whether every current producer is absent or the exact own adapter.
+	 */
+	private static function native_form_producers( array $hooks ) {
+		global $wp_filter;
+		foreach ( $hooks as $hook => $known ) {
+			if ( ! isset( $wp_filter[$hook] ) ) {
+				continue;
+			}
+			$registry = $wp_filter[$hook];
+			if ( ! $registry instanceof \WP_Hook ) {
+				return false;
+			}
+			foreach ( $registry->callbacks as $priority => $callbacks ) {
+				foreach ( $callbacks as $callback ) {
+					$function = $callback['function'];
+					if ( ! $known || ! is_array( $function ) || count( $function ) !== 2 || ! is_object( $function[0] ) ||
+						get_class( $function[0] ) !== $known[0] || $function[1] !== $known[1] ||
+						$priority !== $known[2] || $callback['accepted_args'] !== $known[3] ) {
+						return false;
+					}
 				}
 			}
 		}

@@ -66,6 +66,8 @@ class Skye_Form_Screen {
  */
 class Skye_Form_Field {
 	public $context = '';
+	/** @var string Effective native field identity, including structural anti-spam controls. @since 3.3.0 */
+	public $type = 'text';
 
 	/**
 	 * Identify a Gravity Forms editor render.
@@ -188,6 +190,28 @@ skye_perf_form_check( str_contains( $compound_output, '<label for="first">First<
 $first = skye_perf_form_tag( $compound_output );
 skye_perf_form_check( $first->get_attribute( 'value' ) === "O'Neil" && $first->get_attribute( 'name' ) === 'input_4.3' && $first->get_attribute( 'autocomplete' ) === 'given-name' && $first->get_attribute( 'aria-required' ) === 'true', 'Compound values, subinput names and ARIA/autocomplete contracts survive.' );
 skye_perf_form_check( $adapter->gravityforms( $compound_output ) === $compound_output, 'Existing classes and compound fragments remain byte-idempotent.' );
+
+$honeypot = clone $field;
+$honeypot->type = 'honeypot';
+$protected = '<div class="gform_validation_container" aria-hidden="true"><input type="text" name="input_8" value="" tabindex="-1" autocomplete="new-password"></div>';
+skye_perf_form_check( apply_filters( 'gform_field_content', $protected, $honeypot, '', 0, 7 ) === $protected, 'A native structural honeypot remains byte-identical rather than becoming a visible Bootstrap control.' );
+$security = '<input type="hidden" name="state_7" value="signed&amp;opaque"><textarea name="ak_hp_textarea" style="display:none"></textarea><input type="hidden" name="ak_js" value="123"><script>document.getElementById("ak_js_fixture").value=Date.now();</script>';
+foreach ( array( 'gform_submit_button', 'gform_next_button', 'gform_previous_button', 'comment_form_submit_button' ) as $hook ) {
+	$button = '<button type="submit" name="submitter" value="native" aria-label="Continue">Continue</button>';
+	$output = apply_filters( $hook, $button . $security, array() );
+	skye_perf_form_check( str_ends_with( $output, $security ), 'Adjacent signed state and provider anti-spam controls/scripts remain byte-identical in ' . $hook . '.' );
+	$tag = skye_perf_form_tag( $output, 'BUTTON' );
+	skye_perf_form_check( $tag->has_class( 'btn' ) && $tag->get_attribute( 'name' ) === 'submitter' && $tag->get_attribute( 'value' ) === 'native' && $tag->get_attribute( 'aria-label' ) === 'Continue', 'Only the actual submitter gains classes in ' . $hook . '.' );
+}
+foreach ( array( 'text', 'email', 'hidden', 'checkbox', 'radio', 'file', '', 'unknown' ) as $type ) {
+	$input = '<input type="' . $type . '" name="provider" value="native">';
+	skye_perf_form_check( $adapter->submit_button( $input ) === $input, 'A non-submitter input remains unchanged even inside a button-filter fragment: ' . $type );
+}
+foreach ( array( 'submit', 'button', 'reset', 'image' ) as $type ) {
+	$tag = skye_perf_form_tag( $adapter->submit_button( '<input type="' . $type . '" name="provider" value="native">' ) );
+	skye_perf_form_check( $tag->has_class( 'btn' ) && $tag->get_attribute( 'type' ) === $type, 'Native input submitter semantics remain supported: ' . $type );
+}
+skye_perf_form_check( $adapter->gravityforms( 'Plain provider text.' ) === 'Plain provider text.', 'Plain text retains exact bytes without invoking an HTML parser.' );
 
 $GLOBALS['current_screen'] = new Skye_Form_Screen();
 $input = '<input type="text" name="input_1">';
