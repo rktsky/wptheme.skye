@@ -142,6 +142,12 @@ Eine private CSS-Renderfixture verwendet die unveränderten tatsächlichen Core-
 
 Die Renderfixture ist eine gezielte Prüfung synthetischer nativer Controls, kein Nachweis aller echten Dashboardseiten oder physischer Geräte. Kundenansichten, Formularflüsse und die tatsächlichen Foundation-Übernahmen werden in Rocketsky und Francesca Schori separat gegen ihre jeweiligen Ausgangsstände geprüft. Es wird keine neue öffentliche Geschwindigkeitsmessung behauptet. Die Architekturprüfung erfasst 105 eigene PHP-Dateien ohne Befund; der Formatter meldet keine vorgeschlagenen Änderungen.
 
+## Separater MU-Updatewächter 1.0.0
+
+Die [native Updatewächter-Suite](../tools/update-guard/README.md) ist ein eigener vollständiger Site-Einstieg unter `tools/update-guard/tests/native.php`. Sie gehört nicht zu den Standalone-Prozessen unter `tests/`. Der Workflow führt sie in den vier vorhandenen PHP-/Core-Paaren nach dem Fixture-Setup aus; `SKYE_SITE_ROOT` und das bestehende Profilsetup bleiben unverändert. Der getrennte offizielle WP-CLI-PHAR `2.12.0` wird vor Ausführung gegen seinen festen SHA-256-Digest geprüft. Es gibt keinen optionalen Skip und keinen zusätzlichen Job.
+
+Der lokale Fachnachweis umfasst je 158 Aussagen auf den unveränderten Coreversionen 6.8.12 und 7.1.4 unter PHP 8.3.36. Zusätzlich wurde der tatsächliche neue Workflow-Schritt lokal gegen die eigene 6.8.12-Site ausgeführt: 158 Aussagen bestanden. Ein kontrollierter Fehler des Aufrufharnesses ohne Änderung einer Quelldatei bewahrte Exitstatus 7, vollständige Diagnose und korrekt escaped GitHub-Fehlerannotation. actionlint 1.7.12 prüft den Workflow ohne Befund. Die Hosted-Matrix für diese Erweiterung wird nach Veröffentlichung separat bewertet; frühere grüne Läufe belegen die neue Suite nicht.
+
 ## Offene Abnahmegrenzen
 
 - Der oben verlinkte grüne Hosted-Lauf belegt ausschliesslich seine deklarierten PHP-/WordPress-Paare und Linux-Engines. Andere Kombinationen werden nicht als ausgeführt ausgegeben.

@@ -107,6 +107,7 @@ jobs:
       SKYE_PHP_BINARY: php
       SKYE_SITE_ROOT: ${{ github.workspace }}/.git/runtime/site/wordpress
       SKYE_WORDPRESS_CORE: ${{ github.workspace }}/.git/runtime/site/wordpress
+      SKYE_WP_CLI: ${{ github.workspace }}/.git/runtime/wp-cli-2.12.0.phar
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -132,6 +133,25 @@ jobs:
           git ls-files -z -- '*.php' | xargs -0 -n1 php -l
       - name: Prepare an isolated native WordPress fixture
         run: python3 tools/testing/setup-site.py --root .git/runtime/site --wordpress-version '${{ matrix.wordpress }}' --php-binary php --classic-editor
+      - name: Verify the pinned original WP-CLI runtime
+        run: |
+          curl --fail --show-error --silent --location --proto '=https' --proto-redir '=https' \
+            https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar \
+            --output "$SKYE_WP_CLI"
+          echo "ce34ddd838f7351d6759068d09793f26755463b4a4610a5a5c0a97b68220d85c  $SKYE_WP_CLI" | sha256sum --check --status
+          php "$SKYE_WP_CLI" --version
+      - name: Verify protected native plugin updates and activation preservation
+        run: |
+          mkdir -p .git/runtime/php-tests
+          guard_log=.git/runtime/php-tests/update-guard-native.log
+          if php tools/update-guard/tests/native.php "$SKYE_SITE_ROOT" > "$guard_log" 2>&1; then
+            cat "$guard_log"
+          else
+            guard_status=$?
+            cat "$guard_log"
+            node -e 'require("./tools/testing/github-errors.cjs").annotateGitHubError(require("node:fs").readFileSync(process.argv[1], "utf8"));' "$guard_log"
+            exit "$guard_status"
+          fi
       - name: Run every classified standalone PHP regression
         run: php tools/testing/run.php
       - name: Verify native site behavior before and after the separate Classic Editor
