@@ -128,6 +128,18 @@ SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium /absoluter/pfad/nod
 
 Nicht eingecheckte lokale Rohprotokolle und Fixture-Daten liegen unter `.git/runtime/`: `php-tests/<lauf>/`, `browser-<engine>/result.json` samt Screenshots, `browser-critical-<engine>/result.json` und Setup-/Auditprotokolle. Sie enthalten lokale Installationspfade und gehören nicht ins öffentliche Theme. Die JSON-Ergebnisse nennen die tatsächlich verwendete Core-/PHP-/Browserversion; die Assertionzahl ist keine Prozentangabe zur Codeabdeckung. Der [Releaseexport](release.md) erfasst den sauberen Commit, Inventar und Nutzdatei-Digests in `release.json`; ein Export ist keine bereits erfolgte Veröffentlichung.
 
+## Backend-Branding und Quellenhärtung 3.4.0
+
+Lokaler Nachweis vom 05.11.2026 auf macOS/arm64 mit PHP 8.3.36. Beide unveränderten WordPress-Versionen 6.8.12 und 7.1.4 führen jeweils alle 17 ausdrücklich klassifizierten PHP-Programme erfolgreich aus. Darin enthalten: je 123 Branding-, 58 Bildkandidaten- und 246 Static-Delivery-Aussagen. Die neuen Branding- und Bildkandidatenpfade verursachen in diesen Tests keine persistenten SQL-Schreibzugriffe oder HTTP-Aufrufe.
+
+Die Pfadregressionen tauschen Zwischenverzeichnisse und Root-Generationen in einem separaten Prozess aus, während der lesende Prozess einen warmen PHP-Pfadcache hat. Der SourceReader sowie die Branding-Styles lehnen fremde Ziele ab. Zulässige Root-Symlinks und indirekte relative Verknüpfungen bleiben verfügbar; Schleifen, Pfadbudgets, atomare Dateiwechsel, Löschung/Wiederanlage und Speichergrenzen sind abgedeckt.
+
+Node 14.21.3 kompiliert 27 aktuelle Assets. Die acht Build-/Watch-/Release-Testgruppen laufen mit getrenntem Node-24.22.2-Harness und tatsächlichem Node-14-Compiler. Dreizehn gezielte Parsergegenproben prüfen unter Node 14 auch Layerpriorität, alternative Rootselektoren, Kommentare an Eigenschaftsgrenzen und mehrdeutige Farbdefinitionen. Mehrdeutige Fälle brechen ab; sie erzeugen keine geratenen Markenfarben.
+
+Eine private CSS-Renderfixture verwendet die unveränderten tatsächlichen Core-Styles beider Versionen und die gebauten Skye-Skins: 16 Ansichten mit Standard-, Korall-, Weiss- und Gelbpalette, darunter dunkle Websitehintergründe. Chrome 156.0.8078.80 mit Playwright 1.62.1 besteht 296 Renderaussagen und 64 ergänzende Rand-/Schattenprüfungen. Sichtbare Radio-/Checkboxmarkierungen, weisse Formularflächen, Fokus, Links, Buttons und unveränderte native deaktivierte Farben sind geprüft. Der kleinste geprüfte Kontrollrand-/Schattenkontrast liegt bei 4,52:1. Vier Weiss-/Korallansichten wurden zusätzlich visuell gelesen.
+
+Die Renderfixture ist eine gezielte Prüfung synthetischer nativer Controls, kein Nachweis aller echten Dashboardseiten oder physischer Geräte. Kundenansichten, Formularflüsse und die tatsächlichen Foundation-Übernahmen werden in Rocketsky und Francesca Schori separat gegen ihre jeweiligen Ausgangsstände geprüft. Es wird keine neue öffentliche Geschwindigkeitsmessung behauptet. Die Architekturprüfung erfasst 105 eigene PHP-Dateien ohne Befund; der Formatter meldet keine vorgeschlagenen Änderungen.
+
 ## Offene Abnahmegrenzen
 
 - Der oben verlinkte grüne Hosted-Lauf belegt ausschliesslich seine deklarierten PHP-/WordPress-Paare und Linux-Engines. Andere Kombinationen werden nicht als ausgeführt ausgegeben.
