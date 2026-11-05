@@ -1,0 +1,146 @@
+{
+  "checked_at_utc": "2026-11-05T14:26:56.630066+00:00",
+  "scope": "Actual WordPress hook/parser/dependency APIs with controlled provider boundaries; no GF site bootstrap/submission/browser/native-provider-classification claim.",
+  "php": "8.3.26",
+  "base_commit": "d2685a3b7acbc65e67f5d607b23f9c41a967350a",
+  "checks": [
+    {
+      "wordpress": "7.1.4",
+      "test": "performance-form-controls",
+      "exit_code": 0,
+      "stdout": "Skye_FORM_CONTROLS_RESULT={\"status\":\"pass\",\"assertions\":129,\"wordpress\":\"7.1.4\",\"php\":\"8.3.26\"}\n",
+      "stderr": ""
+    },
+    {
+      "wordpress": "7.1.4",
+      "test": "performance-critical",
+      "exit_code": 0,
+      "stdout": "{\"critical_assertions\":54,\"result\":\"pass\",\"wordpress\":\"7.1.4\"}\n",
+      "stderr": ""
+    },
+    {
+      "wordpress": "7.1.4",
+      "test": "performance-empty-style",
+      "exit_code": 0,
+      "stdout": "{\"empty_form_style_assertions\":51,\"result\":\"pass\",\"wordpress\":\"7.1.4\"}\n",
+      "stderr": ""
+    },
+    {
+      "wordpress": "7.1.4",
+      "test": "performance-strategies",
+      "exit_code": 0,
+      "stdout": "{\n    \"status\": \"pass\",\n    \"assertions\": 46,\n    \"php\": \"8.3.26\",\n    \"wordpress\": \"7.1.4\",\n    \"network\": \"not bootstrapped; fixture URLs never fetched\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "wordpress": "6.8.12",
+      "test": "performance-form-controls",
+      "exit_code": 0,
+      "stdout": "Skye_FORM_CONTROLS_RESULT={\"status\":\"pass\",\"assertions\":129,\"wordpress\":\"6.8.12\",\"php\":\"8.3.26\"}\n",
+      "stderr": ""
+    },
+    {
+      "wordpress": "6.8.12",
+      "test": "performance-critical",
+      "exit_code": 0,
+      "stdout": "{\"critical_assertions\":54,\"result\":\"pass\",\"wordpress\":\"6.8.12\"}\n",
+      "stderr": ""
+    },
+    {
+      "wordpress": "6.8.12",
+      "test": "performance-empty-style",
+      "exit_code": 0,
+      "stdout": "{\"empty_form_style_assertions\":51,\"result\":\"pass\",\"wordpress\":\"6.8.12\"}\n",
+      "stderr": ""
+    },
+    {
+      "wordpress": "6.8.12",
+      "test": "performance-strategies",
+      "exit_code": 0,
+      "stdout": "{\n    \"status\": \"pass\",\n    \"assertions\": 46,\n    \"php\": \"8.3.26\",\n    \"wordpress\": \"6.8.12\",\n    \"network\": \"not bootstrapped; fixture URLs never fetched\"\n}\n",
+      "stderr": ""
+    }
+  ],
+  "source_sha256": {
+    "lib/package/FormControls.php": "4b12ff5fb96b7668087568b8c8ff4d61571bf7dd7fdf2d07dc91f79f37829a35",
+    "lib/package/CriticalStyles.php": "1d0c1648ed869c44ffe2e15c771d4ece885731d4f65c74410525c414f729b9db",
+    "tests/performance-form-controls.php": "e52489fd21d7df75e22ea953e1c68cf307b987a6e10c71ad3c29f5748c29ed8b",
+    "tests/performance-critical.php": "2f82aef0ee3b2343993b2ff9e4d0e4d250882b9216a37caa23d388aad327145c"
+  },
+  "final_fixture_checked_at_utc": "2026-11-05T14:40:19.438610+00:00",
+  "native_checked_at_utc": "2026-11-05T14:40:31.498587+00:00",
+  "native_checks": [
+    {
+      "wordpress": "7.1.4",
+      "php": "8.3.36",
+      "test": "performance-form-controls",
+      "exit_code": 0,
+      "stdout": "Skye_FORM_CONTROLS_RESULT={\"status\":\"pass\",\"assertions\":129,\"wordpress\":\"7.1.4\",\"php\":\"8.3.36\"}\n",
+      "stderr_only_locale_warnings": true
+    },
+    {
+      "wordpress": "7.1.4",
+      "php": "8.3.36",
+      "test": "performance-critical",
+      "exit_code": 0,
+      "stdout": "{\"critical_assertions\":54,\"result\":\"pass\",\"wordpress\":\"7.1.4\"}\n",
+      "stderr_only_locale_warnings": true
+    },
+    {
+      "wordpress": "7.1.4",
+      "php": "8.3.36",
+      "test": "performance-empty-style",
+      "exit_code": 0,
+      "stdout": "{\"empty_form_style_assertions\":51,\"result\":\"pass\",\"wordpress\":\"7.1.4\"}\n",
+      "stderr_only_locale_warnings": true
+    },
+    {
+      "wordpress": "7.1.4",
+      "php": "8.3.36",
+      "test": "performance-strategies",
+      "exit_code": 0,
+      "stdout": "{\n    \"status\": \"pass\",\n    \"assertions\": 46,\n    \"php\": \"8.3.36\",\n    \"wordpress\": \"7.1.4\",\n    \"network\": \"not bootstrapped; fixture URLs never fetched\"\n}\n",
+      "stderr_only_locale_warnings": true
+    },
+    {
+      "wordpress": "6.8.12",
+      "php": "8.3.36",
+      "test": "performance-form-controls",
+      "exit_code": 0,
+      "stdout": "Skye_FORM_CONTROLS_RESULT={\"status\":\"pass\",\"assertions\":129,\"wordpress\":\"6.8.12\",\"php\":\"8.3.36\"}\n",
+      "stderr_only_locale_warnings": true
+    },
+    {
+      "wordpress": "6.8.12",
+      "php": "8.3.36",
+      "test": "performance-critical",
+      "exit_code": 0,
+      "stdout": "{\"critical_assertions\":54,\"result\":\"pass\",\"wordpress\":\"6.8.12\"}\n",
+      "stderr_only_locale_warnings": true
+    },
+    {
+      "wordpress": "6.8.12",
+      "php": "8.3.36",
+      "test": "performance-empty-style",
+      "exit_code": 0,
+      "stdout": "{\"empty_form_style_assertions\":51,\"result\":\"pass\",\"wordpress\":\"6.8.12\"}\n",
+      "stderr_only_locale_warnings": true
+    },
+    {
+      "wordpress": "6.8.12",
+      "php": "8.3.36",
+      "test": "performance-strategies",
+      "exit_code": 0,
+      "stdout": "{\n    \"status\": \"pass\",\n    \"assertions\": 46,\n    \"php\": \"8.3.36\",\n    \"wordpress\": \"6.8.12\",\n    \"network\": \"not bootstrapped; fixture URLs never fetched\"\n}\n",
+      "stderr_only_locale_warnings": true
+    }
+  ],
+  "architecture_native": "Architecture/contracts: 98 files, 0 issues.",
+  "format_native": {
+    "files": 6,
+    "fixable": 0,
+    "php_cs_fixer": "3.95.27",
+    "php": "8.3.36",
+    "scope": "All six changed first-party PHP implementation/regression files"
+  }
+}

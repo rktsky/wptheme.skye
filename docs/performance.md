@@ -28,6 +28,8 @@ Nur die tatsächlichen eigenen unveränderten nativen Styles werden optimiert. D
 
 PHP-gerenderte Formulare müssen vor dem Head über Gravity Forms angemeldet werden. Der Filter `skye_form_assets` kann kleine vorbereitete Beschreibungen `array( array( 'id' => 3, 'ajax' => false ) )` liefern. Skye ruft dafür die native Providerfunktion auf, dedupliziert identische Angaben und erfindet weder ACF-Layoutnamen noch neue Datenbankabfragen.
 
+Ab 3.3 behalten zusätzliche native Formular-/Script-Produzenten die vollständige normale Auslieferung. Die Klassenadapter verändern keine Honeypot- oder begleitenden Sicherheitsfelder; [Rendergrenzen und getrennte WEBFORM-Abnahme](forms-native-contracts.md) beschreiben den tatsächlichen Umfang. Provider-Sicherheitsprüfungen werden für die Auslieferung weder abgeschaltet noch nachgebaut.
+
 Progressive Formularinitialisierung gilt zusätzlich nur für den überprüften nativen Text-/E-Mail-Einzelfeldvertrag ohne unbekannte Add-ons, dynamische Layouts oder eigene Initialisierer. Der ursprüngliche Providerkörper, Aufrufkontext und die Argumente bleiben unverändert und werden pro Aufruf genau einmal freigegeben. Unbekannte Formulare behalten normale Styles und native Initialisierung. `FormControls` ergänzt nur Klassen an tatsächlichen Provider-/Kommentar-/Sucheingaben über die WordPress-HTML-API; Werte, Nonces, Reihenfolge und Accessibilityattribute werden nicht rekonstruiert.
 
 ## Icons, Fonts und Preloads

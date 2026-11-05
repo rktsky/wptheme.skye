@@ -1,0 +1,50 @@
+{
+  "checked_at_utc": "2026-11-05T14:33:49.332068+00:00",
+  "scope": "Private original Skye build only; no live deployment or release export.",
+  "local_node": "24.22.2",
+  "native_node": "14.21.3",
+  "native": {
+    "manifest_sha256": "4e61f5a26ede1282e6733b5787c2e47e08d230c9ae0445ca22dac9c8c6304a46",
+    "files": {
+      "fonts/fa-brands-400-808443ae6c820439.ttf": "808443ae6c8204395add8543da8a90a60b9376fb0f87ed8e8ea37d109596d805",
+      "fonts/fa-brands-400-d7236a19bf23cbb2.woff2": "d7236a19bf23cbb2027280e8f51dc99d6c45976a2ed60de73382b034b18a2b68",
+      "fonts/fa-regular-400-54cf6086f7bb21f9.ttf": "54cf6086f7bb21f9d072ad494a19b4681fa516dd0a14cee52da01d3651a913a3",
+      "fonts/fa-regular-400-e3456d1283b9d753.woff2": "e3456d1283b9d75337a773dfd147bf908fd02c01b4bf48576d8603a69b13cbe5",
+      "fonts/fa-solid-900-aa75998623a391e6.woff2": "aa75998623a391e61c6901794ace832e3ecdd288b56d608f21bea0411acc0b8e",
+      "fonts/fa-solid-900-d2f0593540b0e33b.ttf": "d2f0593540b0e33ba6de255a54f272d466e31144806956bea8cfdbf7edffc9bd",
+      "fonts/fa-v4compatibility-0ce9033c69dc714f.woff2": "0ce9033c69dc714f5f45ef9bf17d55e4c46bcdfad6799a4e92b38e7781bf86bd",
+      "fonts/fa-v4compatibility-30f6abf6baa42582.ttf": "30f6abf6baa425825828793d6dfad1fb63765d0e5abaa7af6feafb9bfcece5a0",
+      "images/checkmark-da4ee32ce2ef4e33.svg": "da4ee32ce2ef4e3336ad9af9c4bca88243d5fc54a5061748519b8be4c46f4a86",
+      "images/oval-eec2c40d8b1bb983.svg": "eec2c40d8b1bb98306990239204d8b90ca030f0def0e00dfe3117ae42991e126",
+      "images/radiodot-38f1862ab5de8d6d.svg": "38f1862ab5de8d6d41178f3427efbff9d40c12bd6edc24d6f2af3bc2dec76ad0",
+      "licenses/bootstrap-bc0cd18d94c028f1.txt": "bc0cd18d94c028f1c0b62ec9fdaddcb9921c1e07c29cf52dc7df8cca9daf2488",
+      "licenses/floating-ui-core-0e4c9a9b6c71019c.txt": "0e4c9a9b6c71019cbbea3bdc20b01223110a9035700f9c960c8fcbf78c2325ce",
+      "licenses/floating-ui-dom-0e4c9a9b6c71019c.txt": "0e4c9a9b6c71019cbbea3bdc20b01223110a9035700f9c960c8fcbf78c2325ce",
+      "licenses/floating-ui-utils-0e4c9a9b6c71019c.txt": "0e4c9a9b6c71019cbbea3bdc20b01223110a9035700f9c960c8fcbf78c2325ce",
+      "licenses/fontawesome-9b914eae88817d63.txt": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc",
+      "scripts/critical-form-gate-31690f9776f76e2d.js": "31690f9776f76e2dcf52f0f87d5f796b492b3e4c66853324eb0b34f5445639e7",
+      "scripts/critical-styles-2b22bc37f2faa8ee.js": "2b22bc37f2faa8ee702b46dff41f3f578382a46777dc99e0af21a32f9ed3eb8b",
+      "scripts/main-843c3d8b7c0defe8.js": "843c3d8b7c0defe8a4ef3430cf9dc656841169d10a145eb2205af14991ae664c",
+      "scripts/mobile-navigation-a7e3f8670a18d7f5.js": "a7e3f8670a18d7f51ced0227e5e2fb2b1d820c54771b02ce2f3fbeeeff2f02f8",
+      "styles/fontawesome-c478168035739fc4.css": "c478168035739fc45fc18bfa18ac084ec8ea30c2be8deded6aa8ee16a06f4b23",
+      "styles/login-82457a41ee5abbc0.css": "82457a41ee5abbc0063c16a3e2f0648c0d05f6f9d75209f14cf9ca4cd23b769d",
+      "styles/main-7b1ca9c3c2eeda72.css": "7b1ca9c3c2eeda720f7b0dfb6bbc8a98c98c17ea4624cf1f6e47eda44370f997",
+      "styles/main-critical-d510fcf2ceb2702d.css": "d510fcf2ceb2702d61d99f89d5b579a5ceb816b75ca00e0c04a67400504f444a",
+      "styles/main-mobile-1f51d85a126955fa.css": "1f51d85a126955fa1faf17a64b517e571c2c680fd17215e4acddbc8e77b7d7b7",
+      "styles/mobile-navigation-6216a11bf0e40c0f.css": "6216a11bf0e40c0ff03ead4898c2f8649576da612d39333e45380af66ba839d5"
+    },
+    "system": "Linux",
+    "machine": "x86_64",
+    "libc": [
+      "glibc",
+      "2.3.4"
+    ],
+    "os_release": "CentOS Linux release 7.9.2009 (Core)"
+  },
+  "entire_dependency_graph_sha256": "bcbc7f3b60b78ca6942d836622f59bffefdf6fe4dbf322a6292354b9ceef5366",
+  "dependencies_reused_from_verified_identical_private_graph": true,
+  "new_dependency_installations": 0,
+  "outputs": 26,
+  "all_files_byte_equal": true,
+  "manifest_byte_equal": true
+}
