@@ -54,6 +54,10 @@ Die zusätzlich für macOS 14 erhältliche eingefrorene Playwright-WebKit-Ausgab
 
 ## GitHub Actions im Originalrepository
 
+Die Browserjobs auf Ubuntu 24.04 installieren ihre nativen Abhängigkeiten über den unveränderten Playwright-Installer. Der eigene Helfer `tools/testing/browser-dependencies.sh` verwendet dafür eine temporäre APT-Konfiguration mit separaten Paketlisten, offiziellen Ubuntu-HTTPS-Archiven und dem nativen Ubuntu-Archivschlüssel. `/etc/apt` und die Playwright-Dateien werden nicht verändert. Die Konfiguration wird dem bereits privilegiert gestarteten Installer ausdrücklich mitgegeben, damit sie beim Prozesswechsel erhalten bleibt. Ubuntu dokumentiert diesen [APT-Konfigurationsweg](https://ubuntu.com/pro-client/docs/en/docs/howtoguides/use_custom_apt_config/); der [Playwright-Installer 1.64.1](https://github.com/microsoft/playwright/blob/v1.64.1/packages/playwright-core/src/server/registry/dependencies.ts) führt weiterhin die eigentliche Paketauswahl und Installation aus.
+
+Anlass ist der [WebKit-Abbruch für `58ffa98`](https://github.com/rktsky/wptheme.skye/actions/runs/42110271594): Der voreingestellte Azure-Ubuntumirror lieferte Pakete so langsam, dass das Joblimit vor dem ersten Browsertest erreicht wurde. Dieser Lauf ist kein bestandener WebKit-Nachweis. Alle vier PHP-/Core-Jobs desselben Quellstands bestanden jeweils die 193 nativen Wächteraussagen. Der separate Browserdownload und die vollständigen Browserprüfungen bleiben Pflicht; weder ihr Umfang noch das Joblimit werden reduziert. Der tatsächliche neue Hosted-Lauf wird separat bewertet.
+
 Der [GitHub-Lauf für `4201040`](https://github.com/rktsky/wptheme.skye/actions/runs/41817410124) auf `refactor/skye-3` bestand am 04.11.2026 **alle neun Jobs**. Er prüft den Node-14-Build und zusätzlich das originale CentOS-7.9-Userland auf Ubuntu 24.04. Der frühere [Acht-Job-Lauf für `df7fb75`](https://github.com/rktsky/wptheme.skye/actions/runs/41790028997) verwendete noch Node 24 als Compiler; der aktuelle Lauf ersetzt diesen Buildnachweis.
 
 | Job | Tatsächlicher erfolgreicher Umfang |
