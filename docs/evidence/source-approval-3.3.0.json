@@ -1,0 +1,24 @@
+{
+  "checked_at_utc": "2026-11-05T14:45:38.885836+00:00",
+  "version": "3.3.0",
+  "branch": "work/native-form-media-contracts",
+  "base_commit": "d2685a3b7acbc65e67f5d607b23f9c41a967350a",
+  "source_sha256": {
+    "lib/package/FormControls.php": "4b12ff5fb96b7668087568b8c8ff4d61571bf7dd7fdf2d07dc91f79f37829a35",
+    "lib/package/CriticalStyles.php": "1d0c1648ed869c44ffe2e15c771d4ece885731d4f65c74410525c414f729b9db",
+    "lib/package/Images.php": "e70093da6080150c2f091a670d8d78a3ef839e4f36c9d8725c715e4aeb05b6e8",
+    "tests/performance-form-controls.php": "e52489fd21d7df75e22ea953e1c68cf307b987a6e10c71ad3c29f5748c29ed8b",
+    "tests/performance-critical.php": "2f82aef0ee3b2343993b2ff9e4d0e4d250882b9216a37caa23d388aad327145c",
+    "tests/media-pipeline.php": "7953d5231b5e5e94c2b8f314f55936cf5bab2bb08c4566f9adec47c420e5f319",
+    "package.json": "aac86e9d607a8b9469284a437f6bad20f58577463dd102ebd393be0fc9bb0816",
+    "package-lock.json": "ebdcbb37aaff0e0cba36966e1f33383c8a3266cc06680ea73f0c262d82dc4a86",
+    "style.css": "1add2ad3bf53f89a456ab3e662b2c14ff2a2b1c34abbd38ad68cfeb0188c940f"
+  },
+  "source_only": true,
+  "live_install_or_upgrade": false,
+  "push": false,
+  "remaining_acceptance": [
+    "Actual installed Gravity Forms WEBFORM and browser/device coverage for a consuming project.",
+    "Clean committed release export and CI for this new branch."
+  ]
+}

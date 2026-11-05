@@ -34,7 +34,9 @@ Der bestehende Loader unterstützt weiterhin Ein-/Zweiargumentaufrufe und Child-
 - Native WordPress-Abhängigkeiten und versionierte Assets; ab 3.1 optionale geprüfte statische Bundles und vollständiges CSS über native Filter ohne HTML-Optimierungsplugin.
 - Automatischer vollständiger Mobile-CSS-Build, quellgebundene Critical-CSS-Erzeugung und konservative Auslieferung. Critical CSS benötigt einen ausdrücklichen Vertrag für den gesamten ersten Viewport; andere Ansichten behalten vollständiges CSS.
 - Native Formularadapter, gezielte optionale Gravity-Forms-Optimierungen, konfigurierbare Font-/Bild-Preloads und Icon-Subset mit vollständigem Fallback.
+- Ab 3.3 bleiben native Honeypots und benachbarte Sicherheitsfelder auch in den Klassenadaptern unverändert. Zusätzliche Formular-/Script-Produzenten behalten die vollständige native CSS-Auslieferung; [Formulargrenzen und Prüfverfahren](docs/forms-native-contracts.md).
 - Automatische begrenzte Medienjobs für vollständige kleinere WebP-Alternativen; native Originale und Bildmetadaten bleiben erhalten. Keine Konvertierung oder Dateiprüfung beim Bildrendern.
+- Ab 3.3 explizite responsive WebP-Vorladungen aus derselben geprüften Bildpipeline, mit nativem Fallback und konservativem Duplikatabgleich; [API und Grenzen](docs/responsive-image-preloads.md).
 - Vollständige Standardansichten, native Menüs, Passwort-/optionale Members-Grenzen und sichere ACF-Einstellungsrechte.
 - Native Mailblockade nur auf Staging mit ausdrücklichem Projekt-Opt-out; Produktion bleibt nativ.
 - Ab 3.2 eine generische vollflächige mobile Navigation mit nativer Dialogmodalität, stabiler Markenidentität und funktionierendem Detailsfallback; bestehende Childs integrieren sie ausdrücklich.

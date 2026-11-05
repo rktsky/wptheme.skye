@@ -43,6 +43,7 @@ class FormControls {
 	 * those renders styled while leaving normal administration and the field
 	 * editor/entry-detail contexts unchanged. Match the former Sass type list;
 	 * color, file, hidden and choice controls intentionally retain their styles.
+	 * Native honeypot fields remain byte-identical, including provider-owned text inputs.
 	 *
 	 * @see https://docs.gravityforms.com/gform_field_content/
 	 * @param string $html Rendered field content supplied by Gravity Forms.
@@ -52,6 +53,10 @@ class FormControls {
 	 */
 	public function gravityforms( $html, $field = null ) {
 		if ( is_admin() && ! wp_doing_ajax() ) {
+			return $html;
+		}
+		// Native anti-spam controls are structural provider markup, not visible inputs.
+		if ( is_object( $field ) && ( $field->type ?? null ) === 'honeypot' ) {
 			return $html;
 		}
 		foreach ( array( 'is_form_editor', 'is_entry_detail', 'is_entry_detail_edit' ) as $context ) {
@@ -106,6 +111,7 @@ class FormControls {
 	 *
 	 * This replaces old Sass selector expansion without recreating a button's
 	 * nonce, value, action, provider attributes or accessibility label.
+	 * Adjacent hidden state or ordinary inputs are never treated as submitters.
 	 *
 	 * @since 3.0.0
 	 * @param string $html Native button/input markup.
@@ -133,7 +139,7 @@ class FormControls {
 	 * @since 3.0.0
 	 */
 	private function controls( $html, $mode ) {
-		if ( ! is_string( $html ) || $html === '' || ! class_exists( '\WP_HTML_Tag_Processor' ) ) {
+		if ( ! is_string( $html ) || $html === '' || ! str_contains( $html, '<' ) || ! class_exists( '\WP_HTML_Tag_Processor' ) ) {
 			return $html;
 		}
 		$types = $mode === 'gravityforms' ? self::GF_INPUT_TYPES : array( 'text', 'email', 'url' );
@@ -141,7 +147,10 @@ class FormControls {
 		while ( $tags->next_tag() ) {
 			$tag = $tags->get_tag();
 			if ( $mode === 'submit' || ( $mode === 'search' && $tags->has_class( 'search-submit' ) ) ) {
-				if ( in_array( $tag, array( 'INPUT', 'BUTTON' ), true ) ) {
+				$type = $tags->get_attribute( 'type' );
+				$type = is_string( $type ) ? strtolower( $type ) : '';
+				if ( ( $tag === 'BUTTON' && in_array( $type, array( '', 'submit', 'button', 'reset' ), true ) ) ||
+					( $tag === 'INPUT' && in_array( $type, array( 'submit', 'button', 'reset', 'image' ), true ) ) ) {
 					$tags->add_class( 'btn' );
 					$tags->add_class( 'btn-solid' );
 					$tags->add_class( 'theme-primary' );

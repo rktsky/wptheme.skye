@@ -1,5 +1,16 @@
 # Tatsächlicher Prüfnachweis
 
+## Ergänzung 05.11.2026 – vorbereiteter Skye-3.3.0-Quellstand
+
+Auf Basis von 3.2.2 (`d2685a3b7acbc65e67f5d607b23f9c41a967350a`) wurden im isolierten Branch `work/native-form-media-contracts` die generischen Formulargrenzen und die explizite responsive WebP-Vorladung ergänzt. Der ursprüngliche Quellcheckout und installierte Kunden-/Herstellerpakete bleiben unverändert. Es gab keinen Push, Kundenrollout oder automatisches Fork-Upgrade.
+
+- [Formular-/Hookregressionen](forms-native-contracts.md): je Core 129 Controls-, 54 Critical-, 51 Empty-Style- und 46 Strategie-Assertions. Beide Core-Stände 7.1.4/6.8.12 bestehen unter lokalem PHP 8.3.26 und nativem PHP 8.3.36; keine GF-/Akismet-Website wird gebootstrapt.
+- [Medien-/Preload-Regressionsmatrix](responsive-image-preloads.md): je Core 590 Assertions einschliesslich 50 neuer Preloadfälle mit tatsächlichem GD/WebP und privater SQLite-Testbibliothek. Keine MySQL-/InnoDB- oder Browserabnahme daraus ableiten.
+- Privater Original-Node-14.21.3-/CentOS-7.9-Build: 26 Ausgaben und Manifest bytegleich zum lokalen Node-24.22.2-Build; [Beleg](evidence/native-build-3.3.0.json). Buildabhängigkeiten wurden aus einem nachweislich identischen privaten Lockgraph kopiert, keine Systemabhängigkeit installiert.
+- Native Architektur-/Vertragsprüfung: 98 Dateien ohne Befund. Formatter-Dry-run aller sechs geänderten Implementierungs-/Regressionsdateien: keine vorgeschlagene Änderung. Der [Quellstand](evidence/source-approval-3.3.0.json) ist gehasht. Ein vollständiger 3.3-Releaseexport, dessen CI und echte Browser-/WEBFORM-/Geräteabnahmen sind damit nicht behauptet.
+
+## Historischer Nachweis Skye 3.0.0
+
 Stand: 04.11.2026, Skye 3.0.0 auf dem Arbeitsbranch `refactor/skye-3`. Dieser Nachweis betrifft das integrierte Basistheme, nicht eine produktive Volksgarage-Installation. Logik, Styling und reine Formatierung sind getrennt in Git nachvollziehbar; [Herkunft](backports.md), [Migration](migration-3.md) und [Freigabe](implementation-scope.md) beschreiben den Umfang.
 
 ## Lokale Umgebung

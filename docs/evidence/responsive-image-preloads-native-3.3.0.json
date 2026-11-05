@@ -1,0 +1,131 @@
+{
+  "feature": "Explicit responsive WebP preloads",
+  "version": "3.3.0",
+  "recorded_utc": "2026-11-05T14:35:53.348170+00:00",
+  "source_base": "d2685a3b7acbc65e67f5d607b23f9c41a967350a",
+  "branch": "work/native-form-media-contracts",
+  "source_sha256": {
+    "lib/package/Images.php": "e70093da6080150c2f091a670d8d78a3ef839e4f36c9d8725c715e4aeb05b6e8",
+    "tests/media-pipeline.php": "7953d5231b5e5e94c2b8f314f55936cf5bab2bb08c4566f9adec47c420e5f319"
+  },
+  "runtime": {
+    "php": "8.3.36",
+    "os": "CentOS Linux 7.9.2009",
+    "gd": "2.3.3 with WebP",
+    "pdo_sqlite": "3.54.1, process-local private test library"
+  },
+  "test_library": {
+    "why": "Native hosting SQLite3.7.17 cannot execute the existing test adapter UPSERT syntax. No product code or adapter predicate was changed.",
+    "url": "https://www.sqlite.org/2026/sqlite-autoconf-3540100.tar.gz",
+    "official_sha3_256": "b6ced585c750916b1052667239a12c25a7ff34e7f06e1e6e01ecb0427657d9c4",
+    "build": "cc -O1 -DSQLITE_ENABLE_COLUMN_METADATA -fPIC -shared -Wl,-soname,libsqlite3.so.0 -o ../libsqlite3.so.0 sqlite3.c -lpthread -ldl -lm",
+    "scope": "Private CLI process only; no system library, FPM, site config or installed original changed."
+  },
+  "runs": [
+    {
+      "core": "7.1.4",
+      "exit_code": 0,
+      "command": "LD_LIBRARY_PATH=<private-test-libraries> SKYE_WORDPRESS_CORE=<original-core-source> php tests/media-pipeline.php",
+      "result": {
+        "status": "pass",
+        "assertions": 590,
+        "groups": {
+          "png_color_models": 15,
+          "store": 70,
+          "native_generator": 77,
+          "delivery_gain": 87,
+          "native_pipeline": 43,
+          "discovery_recovery": 14,
+          "additive_native_backfill": 43,
+          "native_backfill_edges": 26,
+          "delete_races": 12,
+          "frontend_no_worker_io": 18,
+          "queue_races": 4,
+          "settle_races": 4,
+          "ledger_merge": 5,
+          "retention_cleanup": 13,
+          "native_scheduler": 21,
+          "cleanup_recovery": 19,
+          "policy_disable_resume": 15,
+          "configured_size_changes": 4,
+          "native_retirement_failure": 21,
+          "presentation_invalidation": 11,
+          "presentation_fallback": 13,
+          "responsive_preloads": 50
+        },
+        "delivery_gain_bytes": {
+          "photo_png": {
+            "native": 12059,
+            "webp": 4812,
+            "variants": 3
+          },
+          "flat_png": {
+            "native": 277,
+            "webp": 330,
+            "variants": 1
+          }
+        },
+        "php": "8.3.36",
+        "wordpress": "7.1.4",
+        "database": "SQLite predicates; not an InnoDB/Redis integration test",
+        "native_http": "blocked"
+      }
+    },
+    {
+      "core": "6.8.12",
+      "exit_code": 0,
+      "command": "LD_LIBRARY_PATH=<private-test-libraries> SKYE_WORDPRESS_CORE=<original-core-source> php tests/media-pipeline.php",
+      "result": {
+        "status": "pass",
+        "assertions": 590,
+        "groups": {
+          "png_color_models": 15,
+          "store": 70,
+          "native_generator": 77,
+          "delivery_gain": 87,
+          "native_pipeline": 43,
+          "discovery_recovery": 14,
+          "additive_native_backfill": 43,
+          "native_backfill_edges": 26,
+          "delete_races": 12,
+          "frontend_no_worker_io": 18,
+          "queue_races": 4,
+          "settle_races": 4,
+          "ledger_merge": 5,
+          "retention_cleanup": 13,
+          "native_scheduler": 21,
+          "cleanup_recovery": 19,
+          "policy_disable_resume": 15,
+          "configured_size_changes": 4,
+          "native_retirement_failure": 21,
+          "presentation_invalidation": 11,
+          "presentation_fallback": 13,
+          "responsive_preloads": 50
+        },
+        "delivery_gain_bytes": {
+          "photo_png": {
+            "native": 12059,
+            "webp": 4812,
+            "variants": 3
+          },
+          "flat_png": {
+            "native": 277,
+            "webp": 330,
+            "variants": 1
+          }
+        },
+        "php": "8.3.36",
+        "wordpress": "6.8.12",
+        "database": "SQLite predicates; not an InnoDB/Redis integration test",
+        "native_http": "blocked"
+      }
+    }
+  ],
+  "limits": [
+    "No site bootstrap, customer database access or real upload access.",
+    "Native HTTP blocked by existing harness. No mail transport invoked.",
+    "SQLite predicates are not an InnoDB/Redis concurrency integration.",
+    "No browser, device, LCP or Speed Index outcome claimed.",
+    "No customer upgrade, public deployment, push or commit."
+  ]
+}
