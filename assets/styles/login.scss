@@ -1,6 +1,107 @@
-@use "general/variables" as v;
-body.login {
-	background: v.$body-bg;
-	color: v.$body-color;
+// The shared palette colors native login controls without changing authentication.
+body.login.skye-branding {
+	background: var(--skye-brand-background);
+	color: var(--skye-brand-text);
+	--wp-admin-theme-color: var(--skye-brand-control-link);
+	--wp-admin-theme-color-rgb: var(--skye-brand-control-rgb);
+
+	a,
+	#nav a,
+	#backtoblog a,
+	.privacy-policy-link {
+		color: var(--skye-brand-link);
+	}
+
+	form,
+	#login_error,
+	.message,
+	.success,
+	#login .notice {
+		color: var(--skye-brand-control-text);
+	}
+
+	form a,
+	#login_error a,
+	.message a,
+	.success a,
+	#login .notice a,
+	.wp-hide-pw {
+		color: var(--skye-brand-control-link);
+	}
+
+	.language-switcher .button:not(:disabled, .disabled, [disabled], [aria-disabled="true"]) {
+		border-color: var(--skye-brand-control-link);
+		color: var(--skye-brand-control-link);
+	}
+
+	.button-primary:not(:disabled, .disabled, [disabled], [aria-disabled="true"]) {
+		background: var(--skye-brand-primary);
+		border-color: var(--skye-brand-control-link);
+		color: var(--skye-brand-on-primary);
+		text-shadow: none;
+	}
+
+	.button-primary:not(:disabled, .disabled, [disabled], [aria-disabled="true"]):is(:hover, :active) {
+		background: var(--skye-brand-hover);
+		border-color: var(--skye-brand-control-link);
+		color: var(--skye-brand-on-hover);
+	}
+
+	:is(input, a, button, select):focus-visible {
+		outline: 2px solid var(--skye-brand-focus);
+		outline-offset: 2px;
+	}
+
+	:is(form, .message, .success, .notice, #login_error) :is(input, a, button, select):focus-visible,
+	.language-switcher select:focus-visible {
+		outline-color: var(--skye-brand-control-link);
+	}
+
+	:is(input[type="text"], input[type="password"], input[type="email"], select):focus {
+		border-color: var(--skye-brand-control-link);
+		box-shadow: 0 0 0 1px var(--skye-brand-control-link);
+	}
 }
-body.login .button-primary { background: v.$primary; border-color: v.$primary; }
+
+body.login.skye-login-branding h1 a {
+	background-image: none;
+	width: 100%;
+	max-width: 320px;
+	margin-inline: auto;
+	box-sizing: border-box;
+}
+
+body.login.skye-login-has-logo h1 a {
+	background-image: var(--skye-login-logo);
+	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+	height: 96px;
+	text-indent: -9999px;
+}
+
+body.login.skye-login-text-logo h1 a {
+	height: auto;
+	min-height: 1.5em;
+	font-size: 1.5rem;
+	font-weight: 600;
+	line-height: 1.3;
+	text-indent: 0;
+	text-wrap: balance;
+	overflow-wrap: anywhere;
+	text-decoration: none;
+}
+
+@media (forced-colors: active) {
+	body.login.skye-login-has-logo h1 a {
+		background-image: none;
+		height: auto;
+		text-indent: 0;
+	}
+
+	body.login.skye-branding :is(input, a, button, select):focus-visible,
+	body.login.skye-branding :is(form, .message, .success, .notice, #login_error) :is(input, a, button, select):focus-visible,
+	body.login.skye-branding .language-switcher select:focus-visible {
+		outline-color: Highlight;
+	}
+}

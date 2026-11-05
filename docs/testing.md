@@ -11,7 +11,7 @@ Auf Basis von 3.2.2 (`d2685a3b7acbc65e67f5d607b23f9c41a967350a`) wurden im isoli
 
 ## Historischer Nachweis Skye 3.0.0
 
-Stand: 04.11.2026, Skye 3.0.0 auf dem Arbeitsbranch `refactor/skye-3`. Dieser Nachweis betrifft das integrierte Basistheme, nicht eine produktive Volksgarage-Installation. Logik, Styling und reine Formatierung sind getrennt in Git nachvollziehbar; [Herkunft](backports.md), [Migration](migration-3.md) und [Freigabe](implementation-scope.md) beschreiben den Umfang.
+Dieser Nachweis führt die Prüfstände nach Version. Die ersten Abschnitte dokumentieren den Basisstand Skye 3.0.0 vom 04.11.2026 auf `refactor/skye-3`; spätere Abschnitte ergänzen die ausdrücklich genannten Änderungen. Die aktuellen Branding- und Quellenprüfungen stehen unter [Skye 3.4.0](#backend-branding-und-quellenhärtung-340). Kundenintegration und Rollout werden jeweils im Kundenprojekt nachgewiesen. Logik, Styling und reine Formatierung sind getrennt in Git nachvollziehbar; [Herkunft](backports.md), [Migration](migration-3.md) und [Freigabe](implementation-scope.md) beschreiben den Umfang.
 
 ## Lokale Umgebung
 
@@ -127,6 +127,20 @@ SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium /absoluter/pfad/nod
 `SKYE_PLAYWRIGHT_MODULE` benennt die separate Playwright-Installation, `SKYE_BROWSER_EXECUTABLE` bei Bedarf die tatsächlich geprüfte Browserdatei. Firefox/WebKit werden ausdrücklich über `SKYE_BROWSER` gewählt. Keine parallelen Critical-Läufe in derselben Site: Die MU-Fixture wird exklusiv angelegt. Fehlende Voraussetzungen ergeben einen Fehler, keinen stillen Skip.
 
 Nicht eingecheckte lokale Rohprotokolle und Fixture-Daten liegen unter `.git/runtime/`: `php-tests/<lauf>/`, `browser-<engine>/result.json` samt Screenshots, `browser-critical-<engine>/result.json` und Setup-/Auditprotokolle. Sie enthalten lokale Installationspfade und gehören nicht ins öffentliche Theme. Die JSON-Ergebnisse nennen die tatsächlich verwendete Core-/PHP-/Browserversion; die Assertionzahl ist keine Prozentangabe zur Codeabdeckung. Der [Releaseexport](release.md) erfasst den sauberen Commit, Inventar und Nutzdatei-Digests in `release.json`; ein Export ist keine bereits erfolgte Veröffentlichung.
+
+## Backend-Branding und Quellenhärtung 3.4.0
+
+Der veröffentlichte Lauf [`42063507261`](https://github.com/rktsky/wptheme.skye/actions/runs/42063507261) für Sourcecommit `ee0d9310a06a6fea2d15894b0f3ea25544a10be1` hat alle neun Jobs erfolgreich abgeschlossen: Asset-/Releaseexport, direktes Node-14-Build/Watch im CentOS-7-Userland, vier unterstützte PHP-/WordPress-Paare sowie Chromium, Firefox und WebKit. Das ist ein tatsächlicher Hosted-Lauf; die folgenden lokalen Nachweise haben ihren eigenen Umfang.
+
+Lokaler Nachweis vom 05.11.2026 auf macOS/arm64 mit PHP 8.3.36. Beide unveränderten WordPress-Versionen 6.8.12 und 7.1.4 führen jeweils alle 17 ausdrücklich klassifizierten PHP-Programme erfolgreich aus. Darin enthalten: je 125 Branding-, 58 Bildkandidaten- und 246 Static-Delivery-Aussagen. Die Branding-Suite umfasst den HTML-Ausgabekontext des nativen Login-Headertexts einschliesslich Site-Namen mit Sonderzeichen. Die neuen Branding- und Bildkandidatenpfade verursachen in diesen Tests keine persistenten SQL-Schreibzugriffe oder HTTP-Aufrufe.
+
+Die Pfadregressionen tauschen Zwischenverzeichnisse und Root-Generationen in einem separaten Prozess aus, während der lesende Prozess einen warmen PHP-Pfadcache hat. Der SourceReader sowie die Branding-Styles lehnen fremde Ziele ab. Zulässige Root-Symlinks und indirekte relative Verknüpfungen bleiben verfügbar; Schleifen, Pfadbudgets, atomare Dateiwechsel, Löschung/Wiederanlage und Speichergrenzen sind abgedeckt.
+
+Node 14.21.3 kompiliert 27 aktuelle Assets. Die acht Build-/Watch-/Release-Testgruppen laufen mit getrenntem Node-24.22.2-Harness und tatsächlichem Node-14-Compiler. Dreizehn gezielte Parsergegenproben prüfen unter Node 14 auch Layerpriorität, alternative Rootselektoren, Kommentare an Eigenschaftsgrenzen und mehrdeutige Farbdefinitionen. Mehrdeutige Fälle brechen ab; sie erzeugen keine geratenen Markenfarben.
+
+Eine private CSS-Renderfixture verwendet die unveränderten tatsächlichen Core-Styles beider Versionen und die gebauten Skye-Skins: 16 Ansichten mit Standard-, Korall-, Weiss- und Gelbpalette, darunter dunkle Websitehintergründe. Chrome 156.0.8078.80 mit Playwright 1.62.1 besteht 296 Renderaussagen und 64 ergänzende Rand-/Schattenprüfungen. Sichtbare Radio-/Checkboxmarkierungen, weisse Formularflächen, Fokus, Links, Buttons und unveränderte native deaktivierte Farben sind geprüft. Der kleinste geprüfte Kontrollrand-/Schattenkontrast liegt bei 4,52:1. Vier Weiss-/Korallansichten wurden zusätzlich visuell gelesen.
+
+Die Renderfixture ist eine gezielte Prüfung synthetischer nativer Controls, kein Nachweis aller echten Dashboardseiten oder physischer Geräte. Kundenansichten, Formularflüsse und die tatsächlichen Foundation-Übernahmen werden in Rocketsky und Francesca Schori separat gegen ihre jeweiligen Ausgangsstände geprüft. Es wird keine neue öffentliche Geschwindigkeitsmessung behauptet. Die Architekturprüfung erfasst 105 eigene PHP-Dateien ohne Befund; der Formatter meldet keine vorgeschlagenen Änderungen.
 
 ## Offene Abnahmegrenzen
 

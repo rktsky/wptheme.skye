@@ -3,13 +3,23 @@
     "main.css": "styles/main.scss",
     "login.css": "styles/login.scss",
     "fontawesome.css": "styles/fontawesome.scss",
-    "mobile-navigation.css": "styles/mobile-navigation.scss"
+    "mobile-navigation.css": "styles/mobile-navigation.scss",
+    "backend.css": "styles/backend.scss"
   },
   "scripts": {
     "main.js": "scripts/main.js",
     "critical-styles.js": "scripts/critical-styles.js",
     "critical-form-gate.js": "scripts/critical-form-gate.js",
     "mobile-navigation.js": "scripts/mobile-navigation.js"
+  },
+  "branding": {
+    "source": "backend.css",
+    "colors": {
+      "primary": "--skye-source-primary",
+      "secondary": "--skye-source-secondary",
+      "background": "--skye-source-background",
+      "text": "--skye-source-text"
+    }
   },
   "performance": {
     "mobileBreakpoint": 576,

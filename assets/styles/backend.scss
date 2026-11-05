@@ -1,0 +1,81 @@
+// Backend colors use the website's build palette; native layout and feedback stay intact.
+@use "general/variables" as v;
+
+:root {
+	--skye-source-primary: #{v.$primary};
+	--skye-source-secondary: #{v.$secondary};
+	--skye-source-background: #{v.$body-bg};
+	--skye-source-text: #{v.$body-color};
+}
+
+body.wp-admin.skye-branding {
+	--wp-admin-theme-color: var(--skye-brand-control-link);
+	--wp-admin-theme-color-rgb: var(--skye-brand-control-rgb);
+	--wp-admin-theme-color-darker-10: var(--skye-brand-control-link);
+	--wp-admin-theme-color-darker-20: var(--skye-brand-control-link);
+	--wp-components-color-accent: var(--skye-brand-control-link);
+	--wp-components-color-accent-inverted: #fff;
+
+	.button-primary:not(:disabled, .disabled, [disabled], [aria-disabled="true"]) {
+		background: var(--skye-brand-primary);
+		border-color: var(--skye-brand-control-link);
+		color: var(--skye-brand-on-primary);
+		text-shadow: none;
+	}
+
+	.button-primary:not(:disabled, .disabled, [disabled], [aria-disabled="true"]):is(:hover, :active) {
+		background: var(--skye-brand-hover);
+		border-color: var(--skye-brand-control-link);
+		color: var(--skye-brand-on-hover);
+	}
+
+	.button-secondary:not(:disabled, .disabled, [disabled], [aria-disabled="true"]),
+	.page-title-action {
+		border-color: var(--skye-brand-control-link);
+		color: var(--skye-brand-control-link);
+	}
+
+	:is(.button, .page-title-action):focus-visible {
+		outline: 2px solid var(--skye-brand-control-link);
+		outline-offset: 2px;
+	}
+
+	:is(input[type="checkbox"], input[type="radio"]) {
+		accent-color: var(--skye-brand-control-link);
+	}
+
+	:is(input:not([type="submit"]):not([type="button"]), select, textarea):focus {
+		border-color: var(--skye-brand-control-link);
+		box-shadow: 0 0 0 1px var(--skye-brand-control-link);
+	}
+
+	.nav-tab-active {
+		border-top-color: var(--skye-brand-primary);
+	}
+
+	#adminmenu :is(li.current, li.wp-has-current-submenu) > a.menu-top,
+	#adminmenu a.menu-top:is(:hover, :focus),
+	#wpadminbar .ab-top-menu > li:is(:hover, .hover) > .ab-item {
+		background: var(--skye-brand-primary);
+		color: var(--skye-brand-on-primary);
+	}
+
+	#adminmenu :is(li.current, li.wp-has-current-submenu) > a.menu-top .wp-menu-image::before,
+	#adminmenu a.menu-top:is(:hover, :focus) .wp-menu-image::before,
+	#wpadminbar .ab-top-menu > li:is(:hover, .hover) > .ab-item .ab-icon::before,
+	#wpadminbar .ab-top-menu > li:is(:hover, .hover) > .ab-item .ab-label {
+		color: var(--skye-brand-on-primary);
+	}
+
+	#adminmenu .wp-submenu a:is(:hover, :focus),
+	#adminmenu .wp-submenu li.current a {
+		color: var(--skye-brand-on-secondary);
+		background: var(--skye-brand-secondary);
+	}
+}
+
+@media (forced-colors: active) {
+	body.wp-admin.skye-branding :is(.button, .page-title-action):focus-visible {
+		outline-color: Highlight;
+	}
+}

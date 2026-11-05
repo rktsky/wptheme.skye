@@ -1,6 +1,14 @@
 # Automatische Medienoptimierung
 
-## Herkunft und Zweck
+## Explizite Auswahl kleinerer responsiver Kandidaten
+
+Ab 3.4 steht `Rocketsky\Skye\Packages\ImageCandidates::prune( $sources, $image_src, $image_meta )` für bereits durch Core ausgewählte `srcset`-Kandidaten bereit. Der Aufrufer wählt den Bildumfang ausdrücklich; Skye registriert dafür keinen globalen Filter. Der ursprüngliche Rocketsky-Adapter bleibt auf das konfigurierte Kundenlogo begrenzt und verwendet dieselbe Entscheidung.
+
+Ein Kandidat entfällt nur bei einer breiteren, zugleich bytekleineren Alternative mit nachgewiesen gleicher Bildart und passender nativer Cropgeometrie. Die gelieferten Metadaten müssen Dateiname, Breite, Höhe und positive Bytezahl eindeutig belegen. Query-basierte Bildoptimierer, fremde Ursprünge, abweichende Formate, mehrdeutige Metadaten und unbekannte Werte behalten ihre nativen Kandidaten. Grenzen: 128 Quellen und 256 Metadatensätze. Die Funktion liest keine Dateien, fragt keine Datenbank ab und verändert weder Medien noch Metadaten.
+
+Herkunft: `wptheme.rocketsky/lib/logo-sources.php`, geprüfter Stand `e18d608`. Die native PNG-/WebP-Regression verwendet die vollständigen ursprünglichen Metadaten. Core liefert vor der Auswahl 830w, 300w und 768w; ausschliesslich das schwerere 768w-Bild entfällt. Das belegt diese Auswahlentscheidung, keine allgemeine Ladezeitverbesserung. [Nativer Hook](https://developer.wordpress.org/reference/hooks/wp_calculate_image_srcset/), [Core-Kandidatenauswahl](https://developer.wordpress.org/reference/functions/wp_calculate_image_srcset/).
+
+## Hintergrundpipeline und Herkunft
 
 Die Pipeline verallgemeinert die abgeschlossenen Website-Entwicklungen `d79c640b` und `f81a8bd7`, geprüft gegen den sauberen Stand `6fecb117`. `MediaStore`, `WebpGenerator` und `NativeSizes` bleiben eigene Packages unter `lib/package/media/`. Die alten Volksgarage-Namen, festen Projekt-Crops und Layout-/Breitenannahmen gehören nicht zur Implementierung.
 

@@ -108,6 +108,5 @@ add_filter( 'wp_preload_resources', __NAMESPACE__ . '\\preload_resources' );
  * @return void
  */
 function ct_login_style() {
-	wp_enqueue_style( 'skye/login', Assets\asset_uri( 'styles/login.css' ), array(), null );
+	\Rocketsky\Skye\Packages\Branding::login_assets();
 }
-add_action( 'login_enqueue_scripts', __NAMESPACE__ . '\\ct_login_style' );

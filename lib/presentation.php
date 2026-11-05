@@ -26,14 +26,16 @@ function skye_content_access_state( $post_id = 0 ) {
 }
 
 /**
- * Prepare the site identity once without making ACF a rendering dependency.
+ * Resolve the existing site identity without generating attachment markup.
  *
- * Native custom logos take precedence; legacy ACF logo values remain supported.
+ * Login and frontend presentation share one native/legacy logo producer, while
+ * callers that need only the URL avoid generating a complete responsive image.
+ * No content or theme options are changed by this read-only resolver.
  *
- * @since 3.0.0
- * @return array{name:string,url:string,logo:string,image:string} Escaped by the brand template.
+ * @since 3.4.0
+ * @return array{name:string,url:string,logo:string,attachment_id:int} Raw identity; escape at output.
  */
-function skye_brand_model() {
+function skye_brand_identity() {
 	$logo = '';
 	$logo_id = (int) get_theme_mod( 'custom_logo' );
 	if ( $logo_id ) {
@@ -50,7 +52,21 @@ function skye_brand_model() {
 			$logo = $value;
 		}
 	}
-	return array( 'name' => get_bloginfo( 'name' ), 'url' => home_url( '/' ), 'logo' => $logo, 'image' => $logo_id ? wp_get_attachment_image( $logo_id, 'full', false, array( 'class' => 'custom-logo', 'alt' => get_bloginfo( 'name' ) ) ) : '' );
+	return array( 'name' => get_bloginfo( 'name' ), 'url' => home_url( '/' ), 'logo' => is_string( $logo ) ? $logo : '', 'attachment_id' => $logo_id );
+}
+
+/**
+ * Prepare the existing frontend identity without making ACF a rendering dependency.
+ *
+ * Native custom logos keep precedence over legacy values. The shared resolver
+ * leaves the original frontend image attributes and component contract intact.
+ *
+ * @since 3.0.0
+ * @return array{name:string,url:string,logo:string,image:string} Escaped by the brand template.
+ */
+function skye_brand_model() {
+	$identity = skye_brand_identity();
+	return array( 'name' => $identity['name'], 'url' => $identity['url'], 'logo' => $identity['logo'], 'image' => $identity['attachment_id'] ? wp_get_attachment_image( $identity['attachment_id'], 'full', false, array( 'class' => 'custom-logo', 'alt' => $identity['name'] ) ) : '' );
 }
 
 /**

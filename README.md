@@ -46,6 +46,7 @@ Der bestehende Loader unterstützt weiterhin Ein-/Zweiargumentaufrufe und Child-
 ## Dokumentation
 
 - [Build, Konfiguration und Abhängigkeiten](docs/build-deployment.md)
+- [Automatisches Backend- und Login-Branding](docs/backend-branding.md)
 - [Performance-Verträge und Grenzen](docs/performance.md)
 - [Native statische Auslieferung, CDN und Core-Update-Setup](docs/website-delivery.md)
 - [Native Mailgrenzen auf Staging](docs/environment-mail.md)
