@@ -378,11 +378,13 @@ final class Branding {
 	/**
 	 * Give the existing login identity anchor its actual site name as accessible text.
 	 *
+	 * Core prints this filter as element content without another escape step.
+	 *
 	 * @since 3.4.0
 	 * @param string $text Earlier native header-logo accessible text.
-	 * @return string Plain website name after branding is available; otherwise the prior text.
+	 * @return string HTML-escaped website name after branding is available; otherwise the prior text.
 	 */
 	public function login_text( $text ) {
-		return $this->login_ready ? wp_strip_all_tags( get_bloginfo( 'name' ) ) : $text;
+		return $this->login_ready ? esc_html( wp_strip_all_tags( get_bloginfo( 'name' ) ) ) : $text;
 	}
 }

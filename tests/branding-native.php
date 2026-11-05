@@ -107,6 +107,19 @@ function branding_legacy_option( $previous ) {
 }
 
 /**
+ * Supply a temporary native site name to verify the actual unescaped Core output boundary.
+ *
+ * The option read filter avoids saving test data or changing the existing fixture identity.
+ *
+ * @since 3.4.0
+ * @param mixed $previous Earlier native option preemption result.
+ * @return string Controlled raw site-name value for this test only.
+ */
+function branding_site_name( $previous ) {
+	return $GLOBALS['branding_name_value'];
+}
+
+/**
  * Count any persistent SQL mutation after setup so UI delivery cannot silently save preferences.
  *
  * @since 3.4.0
@@ -370,6 +383,11 @@ try {
 		$branding_service->login_styles();
 		branding_check( implode( '', wp_styles()->get_data( 'skye/login', 'after' ) ) === $branding_css, 'Repeated native login hook execution must retain one inline token block.' );
 	}
+	foreach ( array( 'A&B Partners' => 'A&amp;B Partners', 'A & Partners <em>Studio</em>' => 'A &amp; Partners Studio' ) as $branding_name_value => $branding_expected_name ) {
+		add_filter( 'pre_option_blogname', 'branding_site_name' );
+		branding_check( apply_filters( 'login_headertext', 'Native' ) === $branding_expected_name, 'The native Core login text output must escape the site name for element content.' );
+		remove_filter( 'pre_option_blogname', 'branding_site_name' );
+	}
 	$branding_service = branding_response();
 	$branding_filtered = false;
 	$branding_logo_override = '';
@@ -453,6 +471,7 @@ try {
 	branding_check( $branding_writes === 0, 'Automatic branding must not write options, user color preferences, roles, attachment records or other SQL data.' );
 	branding_check( $branding_http === 0, 'Branding and logo resolution must make no native HTTP requests.' );
 } finally {
+	remove_filter( 'pre_option_blogname', 'branding_site_name' );
 	remove_filter( 'skye_branding_colors', 'branding_palette_filter' );
 	remove_filter( 'skye_branding_logo', 'branding_logo_filter' );
 	remove_filter( 'theme_mod_custom_logo', 'branding_native_logo' );
