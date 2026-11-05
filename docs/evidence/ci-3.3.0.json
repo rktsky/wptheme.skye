@@ -1,5 +1,5 @@
 {
-  "checked_at_utc": "2026-11-05T15:30:47.884996+00:00",
+  "checked_at_utc": "2026-11-05T16:11:54.238208+00:00",
   "source_commit": "cebddb51d2b5237a22e0644ec18d02af67dae08e",
   "branch": "feature/native-form-media-3.3.0",
   "workflow_run": "https://github.com/rktsky/wptheme.skye/actions/runs/42050753691",
@@ -21,7 +21,75 @@
   "attempt_2": {
     "scope": "Only the cancelled WebKit job and its dependents; no source/vendor changes and no repetition of successful jobs requested",
     "triggered_local": "2026-11-05 16:28 Europe/Zurich",
-    "status": "queued at last actual UI observation"
+    "status": "completed successfully",
+    "actual_latest_attempt_jobs": [
+      {
+        "id": 127342183106,
+        "name": "Node 14 build and watch / CentOS 7 userland",
+        "status": "completed",
+        "conclusion": "success",
+        "all_steps_passed": true
+      },
+      {
+        "id": 127342183303,
+        "name": "Native site / webkit",
+        "status": "completed",
+        "conclusion": "success",
+        "all_steps_passed": true
+      },
+      {
+        "id": 127342184007,
+        "name": "Locked assets and release export",
+        "status": "completed",
+        "conclusion": "success",
+        "all_steps_passed": true
+      },
+      {
+        "id": 127342184569,
+        "name": "PHP 8.4 / WordPress 6.8.12",
+        "status": "completed",
+        "conclusion": "success",
+        "all_steps_passed": true
+      },
+      {
+        "id": 127342184857,
+        "name": "Native site / chromium",
+        "status": "completed",
+        "conclusion": "success",
+        "all_steps_passed": true
+      },
+      {
+        "id": 127342185006,
+        "name": "Native site / firefox",
+        "status": "completed",
+        "conclusion": "success",
+        "all_steps_passed": true
+      },
+      {
+        "id": 127342185134,
+        "name": "PHP 8.3 / WordPress 6.8.12",
+        "status": "completed",
+        "conclusion": "success",
+        "all_steps_passed": true
+      },
+      {
+        "id": 127342185173,
+        "name": "PHP 8.3 / WordPress 7.1.4",
+        "status": "completed",
+        "conclusion": "success",
+        "all_steps_passed": true
+      },
+      {
+        "id": 127342185830,
+        "name": "PHP 8.5 / WordPress 7.1.4",
+        "status": "completed",
+        "conclusion": "success",
+        "all_steps_passed": true
+      }
+    ],
+    "observation": "All nine jobs in the latest attempt are successful, including the native WebKit browser test step. The UI action requested the cancelled job again; successful jobs are also listed with new latest-attempt job IDs.",
+    "total_duration_ui": "1m53s",
+    "browser_coverage": "Headless Chromium, Firefox and WebKit in CI; not physical Safari/iOS/Android or Windows Edge."
   },
   "source_branch_pushed": true,
   "customer_installations_changed": false,
