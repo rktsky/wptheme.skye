@@ -205,7 +205,8 @@ jobs:
         run: |
           npm install --prefix "$RUNNER_TEMP/skye-playwright" --save-exact --ignore-scripts playwright@1.64.1
           npm --prefix "$RUNNER_TEMP/skye-playwright" audit --audit-level=moderate
-          node "$RUNNER_TEMP/skye-playwright/node_modules/playwright/cli.js" install --with-deps '${{ matrix.browser }}'
+          bash tools/testing/browser-dependencies.sh "$RUNNER_TEMP/skye-playwright/node_modules/playwright/cli.js" '${{ matrix.browser }}'
+          node "$RUNNER_TEMP/skye-playwright/node_modules/playwright/cli.js" install '${{ matrix.browser }}'
       - name: Prepare the native SQLite site
         run: python3 tools/testing/setup-site.py --root .git/runtime/site --wordpress-version 7.1.4 --php-binary php
       - name: Check pages, navigation, native fallback and critical delivery
