@@ -4,7 +4,7 @@
  *
  * Plugin Name: Skye Verified Provider Updates
  * Description: Restrict explicitly protected plugin updates to reviewed original files and local integration prerequisites.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Requires at least: 6.8.12
  * Requires PHP: 8.3
  * Author: Rocketsky GmbH
