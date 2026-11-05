@@ -22,6 +22,24 @@ Der normale Build erzeugt minifizierte, mit SHA-256 versionierte CSS-/JS-Dateien
 
 Der Build übernimmt die vollständige Bootstrap-CSS-Konfiguration. Selektive Komponentenimporte sind ein bewusst zu prüfender Projektschritt; die in Volksgarage nicht verwendeten Komponenten werden nicht pauschal aus neuen Projekten entfernt. JavaScript lädt für die vorhandene Navigation die originalen Drawer- und Menu-Module. Weitere Komponenten werden über eigene Einstiegspunkte ausdrücklich ergänzt.
 
+## Skye als Standardtheme
+
+WordPress verwendet `WP_DEFAULT_THEME` für die Standardtheme-Erkennung im Website-Zustand und als Ausweichziel bei einem ungültigen aktiven Theme. Die Einstellung gehört in die jeweilige `wp-config.php`, vor dem Aufruf von `wp-settings.php`:
+
+```php
+define( 'WP_DEFAULT_THEME', 'wptheme.skye' );
+```
+
+`wptheme.skye` ist hier der Ordner unter `wp-content/themes/`. Bei einem anderen Installationsnamen, beispielsweise `skye-3.0.0`, den Wert entsprechend anpassen. WordPress benötigt den Ordnernamen, nicht den Anzeigenamen aus `style.css`. Das Theme muss dort vollständig installiert sein. Eine vorhandene Definition bearbeiten, statt die Konstante ein zweites Mal zu definieren.
+
+WordPress definiert die Konstante bereits vor dem Laden der Theme-`functions.php`. Eine Definition im Theme oder über `after_setup_theme` greift deshalb zu spät. Skye verändert weder die private Core-Standardtheme-Liste noch das Ergebnis der Website-Zustandsprüfung und schreibt keine Installationskonfiguration um.
+
+Ist Skye auch das aktive Theme, erkennt WordPress es damit als Standardtheme; bei einem Defekt desselben Themes gibt es dadurch keine unabhängige Reserve. Ein separat installiertes Skye kann als Standardtheme für ein eigenständiges Kundentheme dienen. Der native Fallback prüft erforderliche Theme-Dateien und behebt keine beliebigen PHP-Laufzeitfehler.
+
+Nach der Konfiguration unter Werkzeuge → Website-Zustand prüfen, ob der Hinweis auf das fehlende Standardtheme entfällt. Hinweise zu verfügbaren Updates oder weiteren ungenutzten Themes bleiben davon unabhängig. Einen tatsächlichen Themewechsel und die Darstellung der Ersatzansicht nur in der Entwicklungsumgebung prüfen.
+
+Quellprüfung am 05.11.2026 gegen die unveränderten WordPress-Versionen 6.8.12 und 7.1.4: Beide prüfen zuerst das durch `WP_DEFAULT_THEME` bezeichnete Theme und setzen den Core-Default vor dem Laden des aktiven Themes. Offizielle Verträge: [Standardtheme-Konstante](https://developer.wordpress.org/reference/functions/wp_templating_constants/), [Website-Zustandsprüfung](https://developer.wordpress.org/reference/classes/wp_site_health/get_test_theme_version/) und [native Themevalidierung](https://developer.wordpress.org/reference/functions/validate_current_theme/). Eine produktive Installation wurde dafür nicht geändert.
+
 ## Fehler und Watch
 
 Alle Kompilierungen und Validierungen laufen zunächst in einem separaten Arbeitsverzeichnis. Erst nach Erfolg werden unveränderliche Dateien ergänzt und die Manifestdatei per Rename ausgetauscht. Ein Fehler lässt das vorherige Manifest und alle von ihm referenzierten Bytes bestehen. Alte Inhaltsdateien bleiben für noch offene Seiten verfügbar. Der Releaseprozess nimmt das Manifest und seine aktuellen Ausgaben sowie Lizenzdateien auf; Quellwerkzeuge gehören nicht ins öffentlich ausführbare Theme.

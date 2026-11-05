@@ -19,6 +19,8 @@ npm run watch
 
 Das Theme mit vollständigem `dist/` in WordPress aktivieren. Ein reiner Quellcheckout ohne Build enthält keine ausgelieferten Styles/Skripte. `watch` baut auch bei relevanten PHP-Änderungen neu; erzeugte Dateien werden nicht manuell gepatcht. Der Build veröffentlicht nur eine vollständige Ausgabe und erhält bei Fehlern den vorherigen Stand.
 
+Skye lässt sich über `WP_DEFAULT_THEME` in der jeweiligen `wp-config.php` als Standardtheme festlegen. Dafür den tatsächlich installierten Themeordner verwenden; das Theme selbst lädt für diese Einstellung zu spät. [Konfiguration und Fallback-Grenzen](docs/build-deployment.md#skye-als-standardtheme).
+
 Vor eigenen Änderungen im Quellcheckout `AGENTS.md` und die [Coding Standards](docs/coding-standards.md) lesen. PHP-/JS-Logik, Styling und reine Formatierung gehören in getrennte Commits mit ihren jeweiligen Prüfnachweisen. Funktionen und Modelle liegen in `lib/`, wiederverwendbares HTML in `components/`, Ansichten in `views/`, SASS und Verhalten in den vorhandenen Assetordnern.
 
 ```php
