@@ -13,6 +13,7 @@ const require = createRequire(import.meta.url);
 const { deriveMobile } = require('../tools/build/mobile-css.cjs');
 const { deriveCritical } = require('../tools/build/critical-hero.cjs');
 const { classesFromSource } = require('../tools/build/critical-sources.cjs');
+const { extractBranding } = require('../tools/build/branding.cjs');
 const postcss = require('postcss');
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const compilerNode = process.env.SKYE_BUILD_NODE || process.execPath;
@@ -121,6 +122,31 @@ async function watchBuild(fixture) {
 	}
 }
 
+test('brand colors follow existing unconditional CSS tokens without parsing frontend markup', () => {
+	const mapping = {primary:'--brand-main', secondary:'--brand-second', background:'--brand-paper', text:'--brand-ink'};
+	const source = '/*! original source */@layer colors;@layer colors{:root{--brand-main:#abc;--brand-second:#123456;--brand-paper:#fff;--brand-ink:#171819}.content{content:";{}\\\""}}';
+	assert.deepEqual(extractBranding(source, mapping), {version:1,colors:{primary:'#aabbcc',secondary:'#123456',background:'#ffffff',text:'#171819'}});
+	assert.equal(extractBranding(source.replace('#abc', '#Dd8686'), mapping).colors.primary, '#dd8686', 'Changing the actual website token changes the derived palette.');
+	assert.equal(extractBranding(source + ':root{--brand-main:#aabbcc}', mapping).colors.primary, '#aabbcc', 'Equivalent static definitions stay unambiguous across layers.');
+	assert.throws(() => extractBranding(source + ':root{--brand-main:#111111}', mapping), /Ambiguous/);
+	assert.throws(() => extractBranding(source + '@layer weaker{:root{--brand-main:#111111}}', mapping), /Ambiguous/);
+	assert.throws(() => extractBranding('@layer low,high;@layer high{' + source + '}@layer low{:root{--brand-main:#111111}}', mapping), /Ambiguous/);
+	for (const selector of [':root[data-theme=dark]', ':ROOT', ':r\\6fot', '.section']) {
+		assert.throws(() => extractBranding(source + selector + '{--brand-main:#111111}', mapping), /literal :root/);
+	}
+	assert.throws(() => extractBranding(source + ':root{--brand\\2d main:#111111}', mapping), /Escaped custom-property/);
+	assert.throws(() => extractBranding(source + ':root{--brand-main/**/:#111111}', mapping), /Ambiguous/);
+	assert.throws(() => extractBranding(source + ':root{--brand-main /* name */ : /* value */ #111111}', mapping), /Ambiguous/);
+	assert.equal(extractBranding(source.replace('--brand-main:#abc', '--brand-main/**/:/* color */#abc'), mapping).colors.primary, '#aabbcc');
+	assert.throws(() => extractBranding(source + '@media(prefers-color-scheme:dark){:root{--brand-main:#000}}', mapping), /Conditional/);
+	assert.throws(() => extractBranding(source.replace('#abc', 'var(--other)'), mapping), /static hex/);
+	assert.throws(() => extractBranding(source.replace('--brand-ink', '--different'), mapping), /Missing static root/);
+	assert.throws(() => extractBranding(source, {...mapping,text:'--brand-ink;evil'}), /explicit custom-property/);
+	assert.throws(() => extractBranding(source + '/*', mapping), /Incomplete/);
+	assert.throws(() => extractBranding(' '.repeat(2*1024*1024+1), mapping), /bounded CSS/);
+	assert.equal(source.includes('--brand-main:#abc'), true, 'Reading the palette does not rewrite the website CSS.');
+});
+
 test('mobile proof recognizes Bootstrap 6 ranges inside unconditional layers only', () => {
 	const css = '@layer a{.base{display:block}@media(width>=576px){.wide{display:flex}}}@supports(display:grid){@media(width>=576px){.unknown{display:grid}}}';
 	const mobile = deriveMobile(css, 'fixture.css', 576);
@@ -170,6 +196,8 @@ test('clean locked assets, failed source and source-watch recovery preserve immu
 		await fs.writeFile(initialConfigFile, JSON.stringify(initialConfig));
 		const manifest = await build(fixture);
 		assert.equal(manifest._performance.version, 1);
+		assert.deepEqual(manifest._branding, {version:1,colors:{primary:'#3b9280',secondary:'#bc974e',background:'#ffffff',text:'#24231d'}});
+		assert.match(manifest['backend.css'], /^styles\/backend-[a-f0-9]{16}\.css$/);
 		assert.ok(Array.isArray(manifest._licenses) && manifest._licenses.length >= 2);
 		assert.equal(new Set(manifest._licenses).size, manifest._licenses.length);
 		assert.ok(manifest._performance.icons['solid/arrow-right'].paths.length > 0);

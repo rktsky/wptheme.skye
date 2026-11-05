@@ -42,10 +42,13 @@ export async function readReleaseAssets(dist) {
 	try { manifest = JSON.parse(bytes.toString('utf8')); }
 	catch { throw new Error('Invalid asset manifest JSON.'); }
 	if (!isObject(manifest)) throw new Error('Invalid asset manifest object.');
-	for (const key of ['main.css', 'main-mobile.css', 'main-critical.css', 'login.css', 'fontawesome.css', 'main.js', 'critical-styles.js', 'critical-form-gate.js', 'mobile-navigation.js', 'mobile-navigation.css']) {
+	for (const key of ['main.css', 'main-mobile.css', 'main-critical.css', 'login.css', 'backend.css', 'fontawesome.css', 'main.js', 'critical-styles.js', 'critical-form-gate.js', 'mobile-navigation.js', 'mobile-navigation.css']) {
 		if (typeof manifest[key] !== 'string') throw new Error('Missing required built asset: ' + key);
 	}
 	const performance = manifest._performance;
+	const branding = manifest._branding;
+	if (!isObject(branding) || branding.version !== 1 || !isObject(branding.colors) ||
+		Object.keys(branding.colors).length !== 4 || ['primary', 'secondary', 'background', 'text'].some(role => !/^#[a-f0-9]{6}$/.test(branding.colors[role]))) throw new Error('Invalid branding manifest contract.');
 	if (!isObject(performance) || performance.version !== 1 || !Number.isInteger(performance.mobileBreakpoint) || performance.mobileBreakpoint < 1 ||
 		!isObject(performance.critical) || !/^[a-z0-9-]+$/.test(performance.critical.id) ||
 		!/^[a-f0-9]{64}$/.test(performance.critical.build_hash) || performance.critical.css !== manifest['main-critical.css'] ||
@@ -64,7 +67,7 @@ export async function readReleaseAssets(dist) {
 	const requested = new Set(manifest._licenses);
 	for (const [key, value] of Object.entries(manifest)) {
 		if (key.startsWith('_')) {
-			if (!['_performance', '_licenses'].includes(key)) throw new Error('Unknown reserved manifest entry.');
+			if (!['_performance', '_licenses', '_branding'].includes(key)) throw new Error('Unknown reserved manifest entry.');
 			continue;
 		}
 		if (!relativeFile(key) || typeof value !== 'string') throw new Error('Invalid asset mapping.');

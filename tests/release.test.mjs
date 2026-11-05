@@ -166,6 +166,10 @@ test('malformed manifests, missing files, symlinks and changed fingerprints fail
 		await assert.rejects(readReleaseAssets(dist), /dependency licenses/);
 		await fs.writeFile(file, JSON.stringify({...manifest, _licenses: manifest._licenses.slice(0, 1)}));
 		await assert.rejects(readReleaseAssets(dist), /dependency licenses/);
+		for (const branding of [null, {...manifest._branding, version:2}, {version:1,colors:{...manifest._branding.colors,primary:'red;display:none'}}, {version:1,colors:{primary:'#ffffff'}}]) {
+			await fs.writeFile(file, JSON.stringify({...manifest, _branding:branding}));
+			await assert.rejects(readReleaseAssets(dist), /branding manifest/);
+		}
 		for (const critical of [{...manifest._performance.critical, sources: []}, {...manifest._performance.critical, sources: [{path: '../escape.php', sha256: '0'.repeat(64)}]}, {...manifest._performance.critical, classes: [{}]}]) {
 			await fs.writeFile(file, JSON.stringify({...manifest, _performance: {...manifest._performance, critical}}));
 			await assert.rejects(readReleaseAssets(dist), /performance manifest/);

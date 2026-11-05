@@ -14,6 +14,7 @@ const require = createRequire(import.meta.url);
 const { deriveMobile } = require('./tools/build/mobile-css.cjs');
 const { deriveCritical } = require('./tools/build/critical-hero.cjs');
 const { readConfiguration, classesFromSource } = require('./tools/build/critical-sources.cjs');
+const { extractBranding } = require('./tools/build/branding.cjs');
 const defaultRoot = path.dirname(fileURLToPath(import.meta.url));
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 
@@ -114,6 +115,7 @@ function validate(config) {
 	for (const [name, entry] of [...Object.entries(config.styles), ...Object.entries(config.scripts)]) {
 		if (!/^[a-z0-9-]+\.(css|js)$/.test(name) || typeof entry !== 'string') throw new Error('Invalid asset entry.');
 	}
+	if (config.branding && (!config.branding.source || !Object.prototype.hasOwnProperty.call(config.styles, config.branding.source))) throw new Error('Branding must refer to a declared stylesheet.');
 }
 
 /** Build without touching live references until every input/transform succeeds. */
@@ -167,6 +169,7 @@ export async function build(root = defaultRoot) {
 			const source = await inside(root, `assets/${entry}`);
 			const compiled = sass.compile(source, { loadPaths: [path.join(root, 'node_modules')], quietDeps: true, style: 'compressed' });
 			const css = compiled.css.replace(/url\((["']?)(\.\.\/(?:fonts|images)\/[^)'"?]+)\1\)/g, (original, quote, url) => manifest[url.slice(3)] ? `url(${quote}../${manifest[url.slice(3)]}${quote})` : original);
+			if (config.branding && name === config.branding.source) manifest._branding = extractBranding(css, config.branding.colors);
 			add(name, 'styles', await optimize(css));
 			if (name === 'main.css') {
 				add('main-mobile.css', 'styles', await optimize(deriveMobile(css, source, config.performance.mobileBreakpoint)));
