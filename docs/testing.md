@@ -11,7 +11,7 @@ Auf Basis von 3.2.2 (`d2685a3b7acbc65e67f5d607b23f9c41a967350a`) wurden im isoli
 
 ## Historischer Nachweis Skye 3.0.0
 
-Stand: 04.11.2026, Skye 3.0.0 auf dem Arbeitsbranch `refactor/skye-3`. Dieser Nachweis betrifft das integrierte Basistheme, nicht eine produktive Volksgarage-Installation. Logik, Styling und reine Formatierung sind getrennt in Git nachvollziehbar; [Herkunft](backports.md), [Migration](migration-3.md) und [Freigabe](implementation-scope.md) beschreiben den Umfang.
+Dieser Nachweis führt die Prüfstände nach Version. Die ersten Abschnitte dokumentieren den Basisstand Skye 3.0.0 vom 04.11.2026 auf `refactor/skye-3`; spätere Abschnitte ergänzen die ausdrücklich genannten Änderungen. Die aktuellen Branding- und Quellenprüfungen stehen unter [Skye 3.4.0](#backend-branding-und-quellenhärtung-340). Kundenintegration und Rollout werden jeweils im Kundenprojekt nachgewiesen. Logik, Styling und reine Formatierung sind getrennt in Git nachvollziehbar; [Herkunft](backports.md), [Migration](migration-3.md) und [Freigabe](implementation-scope.md) beschreiben den Umfang.
 
 ## Lokale Umgebung
 
@@ -129,6 +129,8 @@ SKYE_TEST_ORIGIN=http://127.0.0.1:8973 SKYE_BROWSER=chromium /absoluter/pfad/nod
 Nicht eingecheckte lokale Rohprotokolle und Fixture-Daten liegen unter `.git/runtime/`: `php-tests/<lauf>/`, `browser-<engine>/result.json` samt Screenshots, `browser-critical-<engine>/result.json` und Setup-/Auditprotokolle. Sie enthalten lokale Installationspfade und gehören nicht ins öffentliche Theme. Die JSON-Ergebnisse nennen die tatsächlich verwendete Core-/PHP-/Browserversion; die Assertionzahl ist keine Prozentangabe zur Codeabdeckung. Der [Releaseexport](release.md) erfasst den sauberen Commit, Inventar und Nutzdatei-Digests in `release.json`; ein Export ist keine bereits erfolgte Veröffentlichung.
 
 ## Backend-Branding und Quellenhärtung 3.4.0
+
+Der veröffentlichte Lauf [`42063507261`](https://github.com/rktsky/wptheme.skye/actions/runs/42063507261) für Sourcecommit `ee0d9310a06a6fea2d15894b0f3ea25544a10be1` hat alle neun Jobs erfolgreich abgeschlossen: Asset-/Releaseexport, direktes Node-14-Build/Watch im CentOS-7-Userland, vier unterstützte PHP-/WordPress-Paare sowie Chromium, Firefox und WebKit. Das ist ein tatsächlicher Hosted-Lauf; die folgenden lokalen Nachweise haben ihren eigenen Umfang.
 
 Lokaler Nachweis vom 05.11.2026 auf macOS/arm64 mit PHP 8.3.36. Beide unveränderten WordPress-Versionen 6.8.12 und 7.1.4 führen jeweils alle 17 ausdrücklich klassifizierten PHP-Programme erfolgreich aus. Darin enthalten: je 123 Branding-, 58 Bildkandidaten- und 246 Static-Delivery-Aussagen. Die neuen Branding- und Bildkandidatenpfade verursachen in diesen Tests keine persistenten SQL-Schreibzugriffe oder HTTP-Aufrufe.
 
