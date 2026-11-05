@@ -58,6 +58,14 @@ final class Skye_Guard_Native_Fixture {
 	private $external_stage;
 	/** @var mixed Public result of the most recent actual single/bulk native owner. */
 	private $owner_result;
+	/** @var bool Whether the native priority-nine boundary still sees the protected plugin active. */
+	private $pre_install_was_active = false;
+	/** @var bool One explicit probe changes database theme identity after early package approval. */
+	private $switch_after_approval = false;
+	/** @var string|null Authored native child program for the current theme-change probe. */
+	private $theme_change;
+	/** @var array|null Actual independent-process theme result after package approval. */
+	private $approval_theme;
 
 	private const PLUGIN = 'skye-guard-fixture/main.php';
 	private const OTHER = 'skye-guard-unprotected/main.php';
@@ -239,8 +247,30 @@ final class Skye_Guard_Native_Fixture {
 	public function pre_install( $response, $extra ) {
 		if ( ( $extra['plugin'] ?? '' ) === self::PLUGIN ) {
 			++$this->pre_install_calls;
+			$this->pre_install_was_active = is_plugin_active( self::PLUGIN );
 		}
 		return $response;
+	}
+
+	/**
+	 * Change only authored native theme options after the actual guard approved the ZIP.
+	 *
+	 * This later same-priority filter runs after the MU guard's pre-download
+	 * callback, retaining its exact verified archive path and bytes.
+	 *
+	 * @since 1.0.1
+	 * @param false|string|WP_Error $reply Actual earlier native download reply.
+	 * @param string $package Original package identity, retained unchanged.
+	 * @param WP_Upgrader $upgrader Original native owner, retained unchanged.
+	 * @param array $extra Native package context.
+	 * @return false|string|WP_Error Unchanged native reply after the explicit one-shot probe.
+	 */
+	public function theme_after_approval( $reply, $package, $upgrader, $extra ) {
+		if ( $this->switch_after_approval && is_string( $reply ) && ( $extra['plugin'] ?? '' ) === self::PLUGIN ) {
+			$this->switch_after_approval = false;
+			$this->approval_theme = $this->status_child( $this->theme_change );
+		}
+		return $reply;
 	}
 
 	/**
@@ -406,6 +436,7 @@ final class Skye_Guard_Native_Fixture {
 		$this->pre_install_calls = 0;
 		$this->events = array();
 		$this->late_was_inactive = false;
+		$this->pre_install_was_active = false;
 	}
 
 	/**
@@ -556,7 +587,7 @@ PHP;
 	}
 
 	/**
-	 * Run a fresh real WordPress process for an atomic-record persistence probe.
+	 * Run a fresh real WordPress process for an isolated native state-persistence probe.
 	 *
 	 * @since 1.0.0
 	 * @param string $program Authored bounded PHP probe using the actual runtime.
@@ -617,6 +648,50 @@ PHP;
 	}
 
 	/**
+	 * Refuse an externally changed active theme despite warm native option caches.
+	 *
+	 * Another real WordPress process changes the two autoloaded identities through
+	 * update_option. Parent getters must retain their old values until the actual
+	 * gate independently checks current approval. The child also restores both
+	 * database values in finally, including when this regression fails.
+	 *
+	 * @since 1.0.1
+	 * @param bool $after_approval Whether the external switch occurs after verified ZIP approval.
+	 * @return void
+	 */
+	private function concurrent_theme( $after_approval = false ) {
+		$this->baseline();
+		$warm = array( 'template' => get_option( 'template' ), 'stylesheet' => get_option( 'stylesheet' ) );
+		$this->check( $warm === array( 'template' => get_template(), 'stylesheet' => get_stylesheet() ), 'The parent has matching warm raw and native theme getters before an external switch.' );
+		$this->theme_change = <<<'PHP'
+require $argv[1] . '/wp-load.php';
+update_option( 'template', 'skye-guard-integration' );
+update_option( 'stylesheet', 'skye-guard-integration' );
+echo json_encode( array( 'template' => get_option( 'template' ), 'stylesheet' => get_option( 'stylesheet' ) ) );
+PHP;
+		try {
+			if ( $after_approval ) {
+				$this->switch_after_approval = true;
+				$this->approval_theme = null;
+				$this->reject( 'externally-changed-theme-after-approval', $this->versions['1.1.0'], '1.1.0', 'single', false, false );
+				$this->check( $this->approval_theme === array( 'template' => 'skye-guard-integration', 'stylesheet' => 'skye-guard-integration' ), 'The separate native switch actually follows verified early package approval.' );
+				$this->check( $this->pre_install_calls === 1 && $this->pre_install_was_active, 'Fresh pre-install approval refuses the changed theme before native priority-ten deactivation.' );
+			} else {
+				$changed = $this->status_child( $this->theme_change );
+				$this->check( $changed === array( 'template' => 'skye-guard-integration', 'stylesheet' => 'skye-guard-integration' ), 'A separate native process changes both actual database theme identities.' );
+				$this->check( $warm === array( 'template' => get_option( 'template' ), 'stylesheet' => get_option( 'stylesheet' ) ) && $warm === array( 'template' => get_template(), 'stylesheet' => get_stylesheet() ), 'The parent still holds its old autoloaded theme values without flushing any cache.' );
+				$this->reject( 'externally-changed-theme', $this->versions['1.1.0'], '1.1.0' );
+			}
+			$this->check( $warm === array( 'template' => get_option( 'template' ), 'stylesheet' => get_option( 'stylesheet' ) ) && $warm === array( 'template' => get_template(), 'stylesheet' => get_stylesheet() ), 'The gate leaves all warm public parent theme views untouched after its fresh rejection.' );
+		} finally {
+			$this->switch_after_approval = false;
+			$this->theme_change = null;
+			$restore = 'require $argv[1] . "/wp-load.php"; update_option( "template", ' . var_export( $warm['template'], true ) . ' ); update_option( "stylesheet", ' . var_export( $warm['stylesheet'], true ) . ' ); echo json_encode( array( "template" => get_option( "template" ), "stylesheet" => get_option( "stylesheet" ) ) );';
+			$this->check( $this->status_child( $restore ) === $warm, 'A separate native process restores both original database theme identities even after a failed gate assertion.' );
+		}
+	}
+
+	/**
 	 * Bootstrap native Core and run the full targeted state-preservation sequence.
 	 *
 	 * @since 1.0.0
@@ -647,6 +722,7 @@ PHP;
 		add_filter( 'upgrader_source_selection', array( $this, 'upstream_source_error' ), 5, 4 );
 		add_filter( 'upgrader_source_selection', array( $this, 'source' ), 20, 4 );
 		add_filter( 'pre_http_request', array( $this, 'http' ), PHP_INT_MAX, 3 );
+		add_filter( 'upgrader_pre_download', array( $this, 'theme_after_approval' ), PHP_INT_MAX, 4 );
 		$this->baseline();
 		$this->check( apply_filters( 'auto_update_core', true, (object) array() ) === true, 'Core automatic-update policy is unchanged.' );
 		$this->check( apply_filters( 'auto_update_plugin', null, (object) array( 'plugin' => self::OTHER, 'new_version' => '9.0.0' ) ) === null, 'Unprotected automatic decisions preserve native null.' );
@@ -676,6 +752,8 @@ PHP;
 		update_option( 'stylesheet', 'skye-guard-integration' );
 		$this->reject( 'child-theme-drift', $this->versions['1.1.0'], '1.1.0' );
 		update_option( 'stylesheet', $this->options['stylesheet'] );
+		$this->concurrent_theme();
+		$this->concurrent_theme( true );
 		$this->corrupt_source = true;
 		$this->reject( 'late-source-corruption', $this->versions['1.1.0'], '1.1.0', 'single', false, false );
 		$this->check( $this->late_was_inactive, 'The late-corruption probe actually reaches source selection after native Core deactivation.' );

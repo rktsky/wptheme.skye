@@ -1,0 +1,146 @@
+{
+  "source_commit": "e8009811669b91a718bb64b5a208366bd68400a6",
+  "guard_runtime_source_commit": "58ffa9879eeca619a519703c202ad8e1c9694f27",
+  "guard_version": "1.0.1",
+  "scope": "Hosted source checks before merge; the base theme remains 3.4.0. This evidence is not a customer Stage or production acceptance.",
+  "runs": [
+    {
+      "id": 42114153516,
+      "url": "https://github.com/rktsky/wptheme.skye/actions/runs/42114153516",
+      "event": "push",
+      "head_sha": "e8009811669b91a718bb64b5a208366bd68400a6",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T21:39:40Z"
+    },
+    {
+      "id": 42114160387,
+      "url": "https://github.com/rktsky/wptheme.skye/actions/runs/42114160387",
+      "event": "pull_request",
+      "head_sha": "e8009811669b91a718bb64b5a208366bd68400a6",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-05T21:39:39Z"
+    }
+  ],
+  "jobs": [
+    {
+      "name": "Node 14 build and watch / CentOS 7 userland",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Locked assets and release export",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "PHP 8.4 / WordPress 6.8.12",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Native site / webkit",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "PHP 8.3 / WordPress 6.8.12",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Native site / chromium",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "PHP 8.3 / WordPress 7.1.4",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "PHP 8.5 / WordPress 7.1.4",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Native site / firefox",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "native_guard_results": [
+    {
+      "job": "PHP 8.4 / WordPress 6.8.12",
+      "result": {
+        "wordpress": "6.8.12",
+        "php": "8.4.27",
+        "assertions": 193,
+        "native_http_requests": 1,
+        "core_unchanged": true,
+        "new_php_diagnostics": 0,
+        "multisite": "not tested or claimed",
+        "status": "passed"
+      }
+    },
+    {
+      "job": "PHP 8.3 / WordPress 6.8.12",
+      "result": {
+        "wordpress": "6.8.12",
+        "php": "8.3.36",
+        "assertions": 193,
+        "native_http_requests": 1,
+        "core_unchanged": true,
+        "new_php_diagnostics": 0,
+        "multisite": "not tested or claimed",
+        "status": "passed"
+      }
+    },
+    {
+      "job": "PHP 8.3 / WordPress 7.1.4",
+      "result": {
+        "wordpress": "7.1.4",
+        "php": "8.3.36",
+        "assertions": 193,
+        "native_http_requests": 1,
+        "core_unchanged": true,
+        "new_php_diagnostics": 0,
+        "multisite": "not tested or claimed",
+        "status": "passed"
+      }
+    },
+    {
+      "job": "PHP 8.5 / WordPress 7.1.4",
+      "result": {
+        "wordpress": "7.1.4",
+        "php": "8.5.12",
+        "assertions": 193,
+        "native_http_requests": 1,
+        "core_unchanged": true,
+        "new_php_diagnostics": 0,
+        "multisite": "not tested or claimed",
+        "status": "passed"
+      }
+    }
+  ],
+  "earlier_incomplete_runs": [
+    {
+      "url": "https://github.com/rktsky/wptheme.skye/actions/runs/42110271594",
+      "source": "58ffa9879eeca619a519703c202ad8e1c9694f27",
+      "cause": "WebKit's native Ubuntu package download from the default Azure mirror exceeded the job limit before browser tests. Not a passed WebKit run."
+    },
+    {
+      "url": "https://github.com/rktsky/wptheme.skye/actions/runs/42110533805",
+      "source": "58ffa9879eeca619a519703c202ad8e1c9694f27",
+      "cause": "WebKit's native Ubuntu package download from the default Azure mirror exceeded the job limit before browser tests. Not a passed WebKit run."
+    }
+  ],
+  "ci_configuration": "The unchanged Playwright 1.64.1 dependency installer receives an owned temporary APT configuration with official HTTPS Ubuntu sources, separate lists and the native archive key. Existing APT security configuration remains active; /etc and vendor files are not edited.",
+  "limits": [
+    "No physical Safari/iOS/device acceptance",
+    "No customer-specific plugin approval or Stage installation",
+    "Final master workflow must be checked separately"
+  ]
+}
+

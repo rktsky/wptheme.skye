@@ -392,7 +392,12 @@ final class Guard {
 	/**
 	 * Bind one reviewed provider to the explicitly verified first-party integration.
 	 *
+	 * Public option/theme views must agree with a fresh persisted identity. A long
+	 * updater can retain old autoloaded options after another process switches the
+	 * active theme; old files and cached getters alone cannot approve that update.
+	 *
 	 * @since 1.0.0
+	 * @since 1.0.1 Require a fresh stored theme identity at every approval boundary.
 	 * @param string $plugin Protected native basename.
 	 * @param string $version Exact original version under review.
 	 * @return bool Whether all scoped own-source prerequisite hashes currently match.
@@ -401,11 +406,47 @@ final class Guard {
 		$expected = $this->profiles[$plugin][$version]['prerequisites'] ?? null;
 		$theme = $this->profiles[$plugin][$version]['theme'] ?? null;
 		try {
-			return is_array( $expected ) && is_array( $theme ) && $theme['template'] === get_option( 'template' ) && $theme['stylesheet'] === get_option( 'stylesheet' ) &&
-				$theme['template'] === get_template() && $theme['stylesheet'] === get_stylesheet() && $expected === Profile::prerequisites( WP_CONTENT_DIR, array_keys( $expected ) );
+			if ( ! is_array( $expected ) || ! is_array( $theme ) || $theme['template'] !== get_option( 'template' ) || $theme['stylesheet'] !== get_option( 'stylesheet' ) ||
+				$theme['template'] !== get_template() || $theme['stylesheet'] !== get_stylesheet() || $expected !== Profile::prerequisites( WP_CONTENT_DIR, array_keys( $expected ) ) ) {
+				return false;
+			}
+			$stored = $this->stored_theme();
+			return $stored !== false && $theme['template'] === $stored['template'] && $theme['stylesheet'] === $stored['stylesheet'];
 		} catch ( \Throwable $error ) {
 			return false;
 		}
+	}
+
+	/**
+	 * Read only the two persisted theme identities without altering native option caches.
+	 *
+	 * get_option and the public theme functions share autoloaded request caches.
+	 * wp_load_alloptions(true) refreshes from a persistent cache, not necessarily
+	 * from the database. This narrow prepared read is therefore needed at an
+	 * administrative approval boundary. It performs no writes or cache flushes,
+	 * returns at most two bounded strings and is never called by frontend hooks.
+	 *
+	 * @since 1.0.1
+	 * @return array{template:string,stylesheet:string}|false Fresh native Single Site identities, or refusal on missing/invalid rows or a database error.
+	 * @see https://developer.wordpress.org/reference/functions/wp_load_alloptions/
+	 * @see https://developer.wordpress.org/reference/classes/wpdb/prepare/
+	 */
+	private function stored_theme() {
+		global $wpdb;
+		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT option_name, option_value FROM %i WHERE option_name IN (%s, %s) AND LENGTH(option_value) BETWEEN 1 AND 160 LIMIT 2', $wpdb->options, 'template', 'stylesheet' ), ARRAY_A );
+		if ( ! is_array( $rows ) || count( $rows ) !== 2 || $wpdb->last_error !== '' ) {
+			return false;
+		}
+		$stored = array();
+		foreach ( $rows as $row ) {
+			$name = $row['option_name'] ?? null;
+			$value = $row['option_value'] ?? null;
+			if ( ! in_array( $name, array( 'template', 'stylesheet' ), true ) || ! Profile::theme( $value ) || isset( $stored[$name] ) ) {
+				return false;
+			}
+			$stored[$name] = $value;
+		}
+		return array( 'template' => $stored['template'], 'stylesheet' => $stored['stylesheet'] );
 	}
 
 	/**
