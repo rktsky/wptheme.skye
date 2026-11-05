@@ -3,7 +3,7 @@
 
 $skye_packages = array(
 	'ClassicEditing', 'Images', 'MenuCache', 'NotFound', 'Performance',
-	'FormControls', 'CriticalStyles', 'StaticDelivery', 'DeliverySettings', 'EnvironmentMail', 'MobileNavigation', 'ExternalLinks', 'Branding', 'Icons', 'Register', 'Templates',
+	'FormControls', 'CriticalStyles', 'StaticDelivery', 'DeliverySettings', 'EnvironmentMail', 'MobileNavigation', 'ExternalLinks', 'Branding', 'ImageCandidates', 'Icons', 'Register', 'Templates',
 );
 foreach ( $skye_packages as $skye_package ) {
 	require_once __DIR__ . '/' . $skye_package . '.php';
