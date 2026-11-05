@@ -116,7 +116,7 @@ namespace {
 		'compat.php', 'plugin.php', 'load.php', 'class-wp-error.php', 'cache.php',
 		'functions.php', 'compat-utf8.php', 'utf8.php', 'formatting.php', 'kses.php',
 		'class-wpdb.php', 'class-wp-post.php', 'meta.php', 'post.php', 'revision.php', 'shortcodes.php',
-		'media.php', 'cron.php', 'http.php', 'class-wp-token-map.php',
+		'media.php', 'cron.php', 'http.php', 'general-template.php', 'class-wp-token-map.php',
 		'html-api/html5-named-character-references.php', 'html-api/class-wp-html-attribute-token.php',
 		'html-api/class-wp-html-span.php', 'html-api/class-wp-html-text-replacement.php',
 		'html-api/class-wp-html-decoder.php', 'html-api/class-wp-html-tag-processor.php',
@@ -3167,6 +3167,125 @@ namespace {
 		remove_filter( 'pre_wp_get_loading_optimization_attributes', 'skye_media_test_loading' );
 	}
 
+	/**
+	 * Supply the descriptor to the actual Core preload serializer without a site.
+	 *
+	 * @param array $resources Existing isolated native records.
+	 * @return array The descriptor prepared by the production Images API.
+	 * @since 3.3.0
+	 */
+	function skye_media_test_preload_resources( $resources ) {
+		return array( $GLOBALS['skye_media_preload'] );
+	}
+
+	/**
+	 * Verify explicit responsive preloads against actual native image and hint HTML.
+	 *
+	 * No server, real attachment, image guessing or new codec policy is involved.
+	 * Unknown producers retain their own records and the ordinary image fallback.
+	 *
+	 * @return void
+	 * @since 3.3.0
+	 */
+	function skye_media_test_preloads() {
+		skye_media_test_reset();
+		$metadata = skye_media_test_attachment( 906, 'image/jpeg', 0 );
+		$file = 'fixture-906-48x32.jpg';
+		skye_media_test_image( dirname( get_attached_file( 906, true ) ) . '/' . $file, 'image/jpeg', 48, 32 );
+		$metadata['sizes']['preload-small'] = array( 'file' => $file, 'width' => 48, 'height' => 32, 'mime-type' => 'image/jpeg' );
+		update_post_meta( 906, '_wp_attachment_metadata', $metadata );
+		$revision = sprintf( '%010d:%s', time(), wp_generate_uuid4() );
+		update_post_meta( 906, MediaStore::PENDING_KEY, $revision );
+		skye_media_check( MediaStore::acquire() && WebpGenerator::process( 906, $revision, 3, 6 )['status'] === 'complete', 'Preloads begin with real, complete, verified native WebP alternatives at two compatible widths.' );
+		MediaStore::release();
+		$attributes = array( 'sizes' => '(min-width: 800px) 40vw, 90vw', 'loading' => 'eager', 'fetchpriority' => 'high', 'class' => 'test-portrait', 'alt' => 'Native & exact' );
+		$source = Images::webp_source( 906, 'full' );
+		$hint = Images::webp_preload( 906, 'full', $attributes );
+		skye_media_check( is_array( $hint ) && $hint['imagesrcset'] === $source['srcset'] && $hint['imagesizes'] === $attributes['sizes'] && $hint['type'] === 'image/webp', 'The descriptor uses the same verified WebP candidates and explicit layout slot.' );
+		skye_media_check( ! isset( $hint['href'] ) && ! array_key_exists( 'crossorigin', $hint ) && $hint['fetchpriority'] === 'high', 'The descriptor invents neither a JPEG href nor anonymous CORS.' );
+		add_filter( 'pre_wp_get_loading_optimization_attributes', 'skye_media_test_loading' );
+		$image = wp_get_attachment_image( 906, 'full', false, $attributes );
+		remove_filter( 'pre_wp_get_loading_optimization_attributes', 'skye_media_test_loading' );
+		$tag = new WP_HTML_Tag_Processor( $image );
+		skye_media_check( $tag->next_tag( 'SOURCE' ) && $tag->get_attribute( 'srcset' ) === $hint['imagesrcset'] && $tag->get_attribute( 'sizes' ) === $hint['imagesizes'], 'The actual native Picture component and preload descriptor have identical candidate/slot values.' );
+		skye_media_check( $tag->next_tag( 'IMG' ) && $tag->get_attribute( 'src' ) === $source['jpeg_src'] && $tag->get_attribute( 'loading' ) === 'eager' && $tag->get_attribute( 'alt' ) === $attributes['alt'], 'The original JPEG/PNG fallback and accessibility/loading attributes remain native.' );
+		$GLOBALS['skye_media_preload'] = $hint;
+		add_filter( 'wp_preload_resources', 'skye_media_test_preload_resources' );
+		ob_start();
+		wp_preload_resources();
+		$html = ob_get_clean();
+		remove_filter( 'wp_preload_resources', 'skye_media_test_preload_resources' );
+		unset( $GLOBALS['skye_media_preload'] );
+		$tag = new WP_HTML_Tag_Processor( $html );
+		skye_media_check( $tag->next_tag( 'LINK' ) && $tag->get_attribute( 'imagesrcset' ) === $source['srcset'] && $tag->get_attribute( 'href' ) === null && $tag->get_attribute( 'imagesizes' ) === $attributes['sizes'], 'The real Core serializer emits the responsive WebP hint without a fallback href.' );
+		foreach ( array( '', 'anonymous', 'use-credentials' ) as $cors ) {
+			$with_cors = $attributes + array( 'crossorigin' => $cors );
+			$with_hint = Images::webp_preload( 906, 'full', $with_cors );
+			add_filter( 'pre_wp_get_loading_optimization_attributes', 'skye_media_test_loading' );
+			$with_image = wp_get_attachment_image( 906, 'full', false, $with_cors );
+			remove_filter( 'pre_wp_get_loading_optimization_attributes', 'skye_media_test_loading' );
+			$tag = new WP_HTML_Tag_Processor( $with_image );
+			skye_media_check( $tag->next_tag( 'IMG' ) && $tag->get_attribute( 'crossorigin' ) === $cors && $with_hint['crossorigin'] === $cors, 'Explicit image CORS is retained exactly in both native output and hint.' );
+		}
+		$font = array( 'as' => 'font', 'href' => 'https://example.test/font.woff2', 'crossorigin' => 'anonymous' );
+		skye_media_check( Images::append_webp_preload( array( $font ), 906, 'full', $attributes ) === array( $font, $hint ), 'An unrelated font record is preserved exactly and one image hint is appended.' );
+		$webp_candidate = explode( ', ', $source['srcset'] )[0];
+		$original = wp_get_attachment_image_srcset( 906, 'full' ) ?: $source['jpeg_src'] . ' ' . $source['width'] . 'w';
+		$original_small = '';
+		foreach ( explode( ', ', $original ) as $candidate ) {
+			if ( str_contains( $candidate, $file ) ) {
+				$original_small = $candidate;
+			}
+		}
+		skye_media_check( str_contains( $original, '48w' ) && str_contains( $original, '96w' ) && str_contains( $original_small, $file ), 'Duplicate coverage uses a real native responsive subset beyond the fallback src URL.' );
+		foreach ( array(
+			$hint,
+			array( 'as' => 'image', 'href' => $source['src'] ),
+			array( 'as' => 'image', 'href' => $source['jpeg_src'], 'media' => '(min-width: 600px)' ),
+			array( 'as' => 'image', 'imagesrcset' => $webp_candidate, 'imagesizes' => '40vw' ),
+			array( 'as' => 'image', 'imagesrcset' => $original, 'imagesizes' => '100vw', 'crossorigin' => 'use-credentials' ),
+			array( 'as' => 'image', 'imagesrcset' => $original_small, 'imagesizes' => '50vw' ),
+		) as $existing ) {
+			$records = array( $font, $existing );
+			skye_media_check( Images::append_webp_preload( $records, 906, 'full', $attributes ) === $records, 'An overlapping native/WebP href or responsive candidate set suppresses an additional hint without modifying the existing record.' );
+		}
+		$unrelated = array( 'as' => 'image', 'imagesrcset' => 'https://example.test/unrelated.webp 200w', 'data-provider' => 'preserve' );
+		skye_media_check( Images::append_webp_preload( array( $unrelated ), 906, 'full', $attributes ) === array( $unrelated, $hint ), 'Unrelated image records and unknown provider attributes are preserved verbatim.' );
+		foreach ( array( false, 'bad', array( 'bad' ), array( array( 'as' => 'image', 'imagesrcset' => array() ) ), array( array( 'as' => 'image', 'imagesrcset' => '/relative.webp 200w' ) ), array( array( 'as' => 'image', 'href' => '/relative.jpg' ) ), array_fill( 0, 129, $font ) ) as $records ) {
+			skye_media_check( Images::append_webp_preload( $records, 906, 'full', $attributes ) === $records, 'Uncertain, malformed or over-budget existing hints decline the optional addition unchanged.' );
+		}
+		foreach ( array( 'loading' => 'lazy', 'sizes' => 'auto, 100vw', 'src' => 'https://example.test/changed.jpg', 'srcset' => 'https://example.test/changed.jpg 200w', 'crossorigin' => 'unknown', 'fetchpriority' => 'urgent', 'data-provider' => 'unknown' ) as $key => $value ) {
+			$changed = array_replace( $attributes, array( $key => $value ) );
+			skye_media_check( Images::webp_preload( 906, 'full', $changed ) === false, 'Lazy, source-overriding, unknown or malformed image attributes do not produce a hint.' );
+		}
+		foreach ( array( null, false, new stdClass(), array( 0, 0 ), array( 'width' => 100 ) ) as $size ) {
+			skye_media_check( Images::webp_preload( 906, $size, $attributes ) === false, 'Malformed size requests fail before native image APIs without warnings.' );
+		}
+		foreach ( array( 'wp_get_attachment_image', 'wp_get_attachment_image_attributes', 'image_downsize', 'wp_calculate_image_sizes', 'wp_calculate_image_srcset', 'wp_get_attachment_url', 'get_attached_file', 'wp_get_attachment_metadata', 'pre_wp_get_loading_optimization_attributes' ) as $hook ) {
+			add_filter( $hook, '__return_false', 30 );
+			skye_media_check( Images::webp_preload( 906, 'full', $attributes ) === false && has_filter( $hook, '__return_false' ) === 30, 'Unknown active image filters decline a preload and remain registered unchanged.' );
+			remove_filter( $hook, '__return_false', 30 );
+		}
+		require_once dirname( __DIR__ ) . '/lib/package/StaticDelivery.php';
+		require_once dirname( __DIR__ ) . '/lib/package/DeliverySettings.php';
+		$delivery = ( new ReflectionClass( \Rocketsky\Skye\Packages\DeliverySettings::class ) )->newInstanceWithoutConstructor();
+		foreach ( array( 'wp_get_attachment_image_src' => 'image', 'wp_calculate_image_srcset' => 'srcset', 'wp_get_attachment_url' => 'map' ) as $hook => $method ) {
+			add_filter( $hook, array( $delivery, $method ), 90 );
+		}
+		skye_media_check( Images::webp_preload( 906, 'full', $attributes ) === $hint, 'The actual native Skye delivery callbacks retain the same descriptor while CDN mapping is inactive.' );
+		foreach ( array( 'wp_get_attachment_image_src' => 'image', 'wp_calculate_image_srcset' => 'srcset', 'wp_get_attachment_url' => 'map' ) as $hook => $method ) {
+			remove_filter( $hook, array( $delivery, $method ), 90 );
+		}
+		$GLOBALS['skye_media_missing_component'] = true;
+		skye_media_check( Images::webp_preload( 906, 'full', $attributes ) === false, 'Missing or overridden Picture templates retain the native path without an unpaired hint.' );
+		unset( $GLOBALS['skye_media_missing_component'] );
+		add_filter( 'skye_media_pipeline_enabled', '__return_false' );
+		skye_media_check( Images::webp_preload( 906, 'full', $attributes ) === false, 'Disabling the media pipeline also disables optional WebP hints.' );
+		remove_filter( 'skye_media_pipeline_enabled', '__return_false' );
+		delete_post_meta( 906, '_wp_attachment_metadata' );
+		skye_media_check( Images::webp_preload( 906, 'full', $attributes ) === false && Images::webp_preload( 0, 'full', $attributes ) === false, 'Missing metadata and absent attachments never fall back to a JPEG preload.' );
+	}
+
 	$groups = [];
 	$before_checks = $checks;
 	skye_media_test_png_color_models();
@@ -3233,6 +3352,9 @@ namespace {
 	$before_checks = $checks;
 	skye_media_test_presentation( $images );
 	$groups['presentation_fallback'] = $checks - $before_checks;
+	$before_checks = $checks;
+	skye_media_test_preloads();
+	$groups['responsive_preloads'] = $checks - $before_checks;
 	echo json_encode( [ 'status' => 'pass', 'assertions' => $checks, 'groups' => $groups, 'delivery_gain_bytes' => $GLOBALS['skye_media_gain_evidence'] ?? [], 'php' => PHP_VERSION, 'wordpress' => $wp_version, 'database' => 'SQLite predicates; not an InnoDB/Redis integration test', 'native_http' => 'blocked' ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) . "\n";
 
 }

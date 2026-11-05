@@ -262,6 +262,189 @@ class Images {
 	}
 
 	/**
+	 * Describe one explicitly selected eager image using its actual WebP pipeline.
+	 *
+	 * Pass the same size and attribute array to wp_get_attachment_image(). Explicit
+	 * sizes avoid guessing a layout slot; unknown image rewrites decline the hint
+	 * without changing the native image. No href is emitted, so browsers without
+	 * responsive preload support cannot fetch an additional JPEG fallback.
+	 *
+	 * @param int $attachment_id Native attachment selected by the calling layout.
+	 * @param string|int[] $size The same native size requested for the image.
+	 * @param array $attributes Identical image attributes, including eager loading and sizes.
+	 * @return array|false Native preload attributes, or false for an unproven image.
+	 * @since 3.3.0
+	 */
+	public static function webp_preload( $attachment_id, $size, $attributes ) {
+		if ( is_admin() || ! is_int( $attachment_id ) || $attachment_id < 1 || ! is_array( $attributes ) ||
+			( $attributes['loading'] ?? null ) !== 'eager' || ! is_string( $attributes['sizes'] ?? null ) ||
+			trim( $attributes['sizes'] ) === '' || strlen( $attributes['sizes'] ) > 2048 ||
+			preg_match( '/[<>\x00-\x1f\x7f]|\bauto\b/i', $attributes['sizes'] ) ) {
+			return false;
+		}
+		if ( ( ! is_string( $size ) || $size === '' || strlen( $size ) > 128 ) &&
+			( ! is_array( $size ) || array_keys( $size ) !== array( 0, 1 ) || ! is_int( $size[0] ) || ! is_int( $size[1] ) || $size[0] < 1 || $size[1] < 1 ) ) {
+			return false;
+		}
+		$allowed = array( 'sizes', 'loading', 'fetchpriority', 'crossorigin', 'class', 'alt', 'title', 'decoding', 'width', 'height' );
+		foreach ( $attributes as $name => $value ) {
+			if ( ! in_array( $name, $allowed, true ) || ( ! is_string( $value ) && ! is_int( $value ) ) ) {
+				return false;
+			}
+		}
+		if ( ( isset( $attributes['fetchpriority'] ) && ! in_array( $attributes['fetchpriority'], array( 'high', 'auto', 'low' ), true ) ) ||
+			( isset( $attributes['crossorigin'] ) && ! in_array( $attributes['crossorigin'], array( '', 'anonymous', 'use-credentials' ), true ) ) ) {
+			return false;
+		}
+		if ( ! self::preload_renderer_known() || ( $source = self::webp_source( $attachment_id, $size ) ) === false ) {
+			return false;
+		}
+		$preload = array( 'as' => 'image', 'type' => 'image/webp', 'imagesrcset' => $source['srcset'], 'imagesizes' => $attributes['sizes'] );
+		foreach ( array( 'fetchpriority', 'crossorigin' ) as $name ) {
+			if ( array_key_exists( $name, $attributes ) ) {
+				$preload[$name] = $attributes[$name];
+			}
+		}
+		return $preload;
+	}
+
+	/**
+	 * Append a responsive hint only when existing image hints cannot duplicate it.
+	 *
+	 * Use this on wp_preload_resources after other producers (normally priority
+	 * 100, after Skye's native CDN mapper). Existing records remain byte-for-byte
+	 * unchanged, including CORS/media.
+	 * Overlap with either original or WebP candidates suppresses the new hint,
+	 * even for href-less JPEG srcsets or subsets. Unparseable image hints decline
+	 * the addition rather than guessing, replacing another producer, or fetching.
+	 *
+	 * @param array|mixed $resources Existing native preload records.
+	 * @param int $attachment_id Native attachment selected by the calling layout.
+	 * @param string|int[] $size The same native size requested for the image.
+	 * @param array $attributes Identical eager image attributes.
+	 * @return array|mixed Unchanged input, or the original records plus one hint.
+	 * @since 3.3.0
+	 */
+	public static function append_webp_preload( $resources, $attachment_id, $size, $attributes ) {
+		if ( ! is_array( $resources ) || count( $resources ) > 128 ||
+			( $preload = self::webp_preload( $attachment_id, $size, $attributes ) ) === false ) {
+			return $resources;
+		}
+		$source = self::webp_source( $attachment_id, $size );
+		$urls = self::preload_candidate_urls( $source['srcset'] );
+		$native = wp_get_attachment_image_srcset( $attachment_id, $size );
+		$originals = $native === false ? array() : self::preload_candidate_urls( $native );
+		if ( $urls === false || $originals === false ) {
+			return $resources;
+		}
+		$urls = array_merge( $urls, $originals, array( $source['src'], $source['jpeg_src'] ) );
+		foreach ( $resources as $resource ) {
+			if ( ! is_array( $resource ) ) {
+				return $resources;
+			}
+			if ( ( $resource['as'] ?? null ) !== 'image' ) {
+				continue;
+			}
+			$candidates = array();
+			if ( array_key_exists( 'imagesrcset', $resource ) ) {
+				$candidates = self::preload_candidate_urls( $resource['imagesrcset'] );
+				if ( $candidates === false ) {
+					return $resources;
+				}
+			}
+			if ( array_key_exists( 'href', $resource ) ) {
+				if ( ! is_string( $resource['href'] ) || ! preg_match( '~\Ahttps?://[^\s<>]+\z~i', $resource['href'] ) ) {
+					return $resources;
+				}
+				$candidates[] = $resource['href'];
+			}
+			if ( ! $candidates || array_intersect( $urls, $candidates ) ) {
+				return $resources;
+			}
+		}
+		$resources[] = $preload;
+		return $resources;
+	}
+
+	/**
+	 * Require the native picture renderer and unchanged image-selection hooks.
+	 *
+	 * A preload runs before image output and cannot safely predict third-party
+	 * rewrites. Unknown filters/templates retain their native rendering path.
+	 *
+	 * @return bool Whether the shared source and explicit sizes reach the image.
+	 * @since 3.3.0
+	 */
+	private static function preload_renderer_known() {
+		global $wp_filter;
+		if ( ! function_exists( 'skye_component_html' ) ) {
+			return false;
+		}
+		foreach ( array( 'image_downsize', 'wp_get_attachment_image_src', 'wp_get_attachment_image_attributes',
+			'wp_get_attachment_url', 'get_attached_file', 'wp_get_attachment_metadata',
+			'wp_calculate_image_sizes', 'wp_calculate_image_srcset', 'wp_calculate_image_srcset_meta',
+			'wp_get_attachment_image_context', 'pre_wp_get_loading_optimization_attributes', 'wp_get_loading_optimization_attributes' ) as $hook ) {
+			if ( isset( $wp_filter[$hook] ) && ! $wp_filter[$hook] instanceof \WP_Hook ) {
+				return false;
+			}
+			foreach ( $wp_filter[$hook]->callbacks ?? array() as $priority => $callbacks ) {
+				foreach ( $callbacks as $callback ) {
+					$function = $callback['function'] ?? null;
+					$method = array( 'wp_get_attachment_image_src' => 'image', 'wp_calculate_image_srcset' => 'srcset', 'wp_get_attachment_url' => 'map' )[$hook] ?? '';
+					if ( $priority !== 90 || $method === '' || ! is_array( $function ) || count( $function ) !== 2 ||
+						! is_object( $function[0] ) || get_class( $function[0] ) !== DeliverySettings::class ||
+						$function[1] !== $method || ( $callback['accepted_args'] ?? 0 ) !== 1 ) {
+						return false;
+					}
+				}
+			}
+		}
+		if ( ! ( $wp_filter['wp_get_attachment_image'] ?? null ) instanceof \WP_Hook ) {
+			return false;
+		}
+		$callbacks = $wp_filter['wp_get_attachment_image']->callbacks;
+		if ( count( $callbacks ) !== 1 || count( $callbacks[10] ?? array() ) !== 1 ) {
+			return false;
+		}
+		$callback = reset( $callbacks[10] );
+		$function = $callback['function'] ?? null;
+		if ( ! is_array( $function ) || count( $function ) !== 2 || ! is_object( $function[0] ) ||
+			get_class( $function[0] ) !== __CLASS__ || $function[1] !== 'picture' || ( $callback['accepted_args'] ?? 0 ) !== 5 ) {
+			return false;
+		}
+		return realpath( locate_template( 'components/media/picture.php', false, false ) ) === realpath( dirname( __DIR__, 2 ) . '/components/media/picture.php' );
+	}
+
+	/**
+	 * Read bounded absolute srcset candidates without changing their URLs.
+	 *
+	 * Only native width/density descriptors are accepted. Relative/data URLs or
+	 * malformed provider records decline an optional hint, never image output.
+	 *
+	 * @param string|mixed $srcset Existing responsive candidate list.
+	 * @return string[]|false Exact candidate URLs, or false if comparison is unsafe.
+	 * @since 3.3.0
+	 */
+	private static function preload_candidate_urls( $srcset ) {
+		if ( ! is_string( $srcset ) || $srcset === '' || strlen( $srcset ) > 16384 ) {
+			return false;
+		}
+		$candidates = explode( ',', $srcset );
+		if ( count( $candidates ) > 64 ) {
+			return false;
+		}
+		$urls = array();
+		foreach ( $candidates as $candidate ) {
+			if ( ! preg_match( '~\A\s*(https?://[^\s<>,]+)\s+(?:[1-9][0-9]*w|(?:[1-9][0-9]*(?:\.[0-9]+)?|0\.[0-9]*[1-9][0-9]*)x)\s*\z~i', $candidate, $parts ) ||
+				! wp_parse_url( $parts[1], PHP_URL_HOST ) || wp_parse_url( $parts[1], PHP_URL_USER ) !== null ) {
+				return false;
+			}
+			$urls[] = $parts[1];
+		}
+		return $urls;
+	}
+
+	/**
 	 * Wrap one native image with a verified WebP source and preserve its fallback.
 	 *
 	 * The original image HTML retains alt text, sizes, and loading priority.
