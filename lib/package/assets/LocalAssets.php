@@ -3,6 +3,8 @@
 
 namespace Rocketsky\Skye\Packages\Assets;
 
+require_once __DIR__ . '/PathIdentity.php';
+
 /** Keep source packages immutable and fail back to native delivery on storage errors. */
 final class LocalAssets {
 	/**
@@ -10,6 +12,8 @@ final class LocalAssets {
 	 *
 	 * No HTTP requests, arbitrary filesystem paths or request-supplied filenames
 	 * enter this boundary. Child/plugin symlink roots remain explicitly supported.
+	 * Source identities are refreshed on every call. Immutable source bytes may
+	 * be reused within one request, but registration/provider decisions are not.
 	 *
 	 * @since 3.1.0
 	 * @param string $url Registered canonical or configured delivery URL.
@@ -17,14 +21,8 @@ final class LocalAssets {
 	 * @return array|false Source bytes/path/hash or false for an unknown source.
 	 */
 	public static function read( $url, $extension ) {
-		static $sources = array();
 		$url = apply_filters( 'skye_canonical_asset_url', $url );
-		$key = $extension . ':' . ( is_string( $url ) ? $url : '' );
-		if ( array_key_exists( $key, $sources ) ) {
-			return $sources[$key];
-		}
-		$sources[$key] = false;
-		if ( ! is_string( $url ) || ! in_array( $extension, array( 'css', 'js' ), true ) ) {
+		if ( ! is_string( $url ) || strlen( $url ) > 4096 || ! in_array( $extension, array( 'css', 'js' ), true ) ) {
 			return false;
 		}
 		$parts = wp_parse_url( $url );
@@ -47,20 +45,115 @@ final class LocalAssets {
 				( $parts['port'] ?? null ) !== ( $base['port'] ?? null ) || ! str_starts_with( $parts['path'], $prefix ) ) {
 				continue;
 			}
-			$directory = realpath( $root[1] );
-			$path = realpath( trailingslashit( $root[1] ) . substr( $parts['path'], strlen( $prefix ) ) );
-			if ( ! $directory || ! $path || ! str_starts_with( $path, $directory . DIRECTORY_SEPARATOR ) ||
-				! is_file( $path ) || ! is_readable( $path ) || filesize( $path ) > 1048576 ) {
-				continue;
+			$source = self::source( trailingslashit( $root[1] ) . substr( $parts['path'], strlen( $prefix ) ), $root[1] );
+			if ( $source ) {
+				return array( 'bytes' => $source['bytes'], 'path' => $source['path'], 'url' => $url, 'sha256' => $source['sha256'] );
 			}
-			$bytes = file_get_contents( $path, false, null, 0, 1048577 );
-			if ( ! is_string( $bytes ) || strlen( $bytes ) > 1048576 ) {
-				return false;
-			}
-			$sources[$key] = array( 'bytes' => $bytes, 'path' => $path, 'url' => $url, 'sha256' => hash( 'sha256', $bytes ) );
-			return $sources[$key];
 		}
 		return false;
+	}
+
+	/**
+	 * Read one stable public source without retaining stale or unbounded request data.
+	 *
+	 * Every lookup refreshes the logical path and its allowed root, including cache
+	 * hits. Changed identities release their old bytes. Descriptor and final path
+	 * identities must agree around a bounded read; failed reads are not cached.
+	 * At most 128 sources/eight MiB remain in memory. Immutable files and atomic
+	 * deployment are required: same-stat in-place mutations are not detectable.
+	 *
+	 * @since 3.4.0
+	 * @param string $file Absolute source candidate derived from a native public root.
+	 * @param string $root Actual native root, including a supported root symlink.
+	 * @return array{bytes:string,path:string,sha256:string}|false Stable source or refusal.
+	 */
+	private static function source( $file, $root ) {
+		static $sources = array();
+		static $total = 0;
+		$identity = self::source_identity( $file, $root );
+		if ( isset( $sources[$file] ) && $sources[$file]['identity'] !== $identity ) {
+			$total -= strlen( $sources[$file]['source']['bytes'] );
+			unset( $sources[$file] );
+		}
+		if ( false === $identity ) {
+			return false;
+		}
+		if ( isset( $sources[$file] ) ) {
+			return $sources[$file]['source'];
+		}
+		if ( count( $sources ) >= 128 || $total + $identity['stat']['size'] > 8388608 ) {
+			return false;
+		}
+		$stream = @fopen( $identity['path'], 'rb' );
+		if ( false === $stream ) {
+			return false;
+		}
+		try {
+			if ( self::stat_identity( fstat( $stream ) ) !== $identity['stat'] ) {
+				return false;
+			}
+			$bytes = stream_get_contents( $stream, 1048577 );
+			if ( ! is_string( $bytes ) || strlen( $bytes ) !== $identity['stat']['size'] ||
+				self::stat_identity( fstat( $stream ) ) !== $identity['stat'] || self::source_identity( $file, $root ) !== $identity ) {
+				return false;
+			}
+		} finally {
+			fclose( $stream );
+		}
+		$source = array( 'bytes' => $bytes, 'path' => $identity['path'], 'sha256' => hash( 'sha256', $bytes ) );
+		$sources[$file] = array( 'identity' => $identity, 'source' => $source );
+		$total += strlen( $bytes );
+		return $source;
+	}
+
+	/**
+	 * Refresh a canonical regular-file identity inside the current native root.
+	 *
+	 * Resolving the root and candidate anew preserves intentional root symlinks
+	 * while rejecting file/directory symlink escapes and disappearing deployments.
+	 * No directory contents or unrelated filesystem paths are inventoried.
+	 *
+	 * @since 3.4.0
+	 * @param string $file Absolute source candidate from the reviewed URL mapping.
+	 * @param string $root Current native source root.
+	 * @return array{path:string,root:string,stat:array}|false Current identity or refusal.
+	 */
+	private static function source_identity( $file, $root ) {
+		$directory = PathIdentity::canonical( $root );
+		$path = PathIdentity::canonical( $file );
+		if ( ! $directory || ! $path || ! str_starts_with( $path, $directory . DIRECTORY_SEPARATOR ) ) {
+			return false;
+		}
+		clearstatcache( true, $path );
+		$stat = self::stat_identity( @lstat( $path ) );
+		if ( false === $stat || realpath( $path ) !== $path || ! is_readable( $path ) ) {
+			return false;
+		}
+		return array( 'path' => $path, 'root' => $directory, 'stat' => $stat );
+	}
+
+	/**
+	 * Compare only native regular-file identity fields across path and open handle.
+	 *
+	 * Type and size checks prevent malformed or unsupported filesystem records
+	 * from reaching arithmetic, hashing or the request-local source cache.
+	 *
+	 * @since 3.4.0
+	 * @param array|false $stat Native lstat/fstat record.
+	 * @return array|false Exact bounded identity, or false for unsupported records.
+	 */
+	private static function stat_identity( $stat ) {
+		$identity = array();
+		foreach ( array( 'dev', 'ino', 'mode', 'size', 'mtime', 'ctime' ) as $key ) {
+			if ( ! is_array( $stat ) || ! isset( $stat[$key] ) || ! is_int( $stat[$key] ) ) {
+				return false;
+			}
+			$identity[$key] = $stat[$key];
+		}
+		if ( $stat['dev'] < 0 || $stat['ino'] < 0 || $stat['mode'] < 0 || ( $stat['mode'] & 0170000 ) !== 0100000 || $stat['size'] < 0 || $stat['size'] > 1048576 ) {
+			return false;
+		}
+		return $identity;
 	}
 
 	/**
