@@ -8,12 +8,36 @@
 	--skye-source-text: #{v.$body-color};
 }
 
+// Match Core's plain-link specificity so semantic delete/status/tab colors remain authoritative.
+:where(body.wp-admin.skye-branding) a {
+	color: var(--skye-brand-admin-link);
+}
+
+:where(body.wp-admin.skye-branding) a:is(:hover, :active, :focus) {
+	color: var(--skye-brand-admin-link-hover);
+}
+
+// Core 6.8 still hard-codes link-button colors; match its scope while retaining destructive/disabled controls.
+:where(body.wp-admin.skye-branding).wp-core-ui .button-link:not(:where(.button-link-delete, :disabled, .disabled, [disabled], [aria-disabled="true"])) {
+	color: var(--skye-brand-admin-link);
+}
+
+:where(body.wp-admin.skye-branding).wp-core-ui .button-link:not(:where(.button-link-delete, :disabled, .disabled, [disabled], [aria-disabled="true"])):is(:hover, :active, :focus) {
+	color: var(--skye-brand-admin-link-hover);
+}
+
+// This native Core branch uses a fixed 2px focus ring; newer branches retain their variable-based geometry.
+:where(body.wp-admin.skye-branding.branch-6-8).wp-core-ui .button-link:not(:where(.button-link-delete, :disabled, .disabled, [disabled], [aria-disabled="true"])):focus {
+	box-shadow: 0 0 0 2px var(--skye-brand-admin-link);
+}
+
 body.wp-admin.skye-branding {
-	--wp-admin-theme-color: var(--skye-brand-control-link);
-	--wp-admin-theme-color-rgb: var(--skye-brand-control-rgb);
-	--wp-admin-theme-color-darker-10: var(--skye-brand-control-link);
-	--wp-admin-theme-color-darker-20: var(--skye-brand-control-link);
-	--wp-components-color-accent: var(--skye-brand-control-link);
+	--wp-admin-theme-color: var(--skye-brand-admin-link);
+	--wp-admin-theme-color-rgb: var(--skye-brand-admin-rgb);
+	--wp-admin-theme-color--rgb: var(--skye-brand-admin-rgb);
+	--wp-admin-theme-color-darker-10: var(--skye-brand-admin-link-hover);
+	--wp-admin-theme-color-darker-20: var(--skye-brand-admin-link-hover);
+	--wp-components-color-accent: var(--skye-brand-admin-link);
 	--wp-components-color-accent-inverted: #fff;
 
 	.button-primary:not(:disabled, .disabled, [disabled], [aria-disabled="true"]) {
@@ -54,23 +78,42 @@ body.wp-admin.skye-branding {
 	}
 
 	#adminmenu :is(li.current, li.wp-has-current-submenu) > a.menu-top,
+	#adminmenu li.menu-top:hover,
+	#adminmenu li.menu-top:hover > a.menu-top,
+	#adminmenu li.opensub > a.menu-top,
+	#adminmenu .wp-has-current-submenu .wp-submenu-head,
 	#adminmenu a.menu-top:is(:hover, :focus),
-	#wpadminbar .ab-top-menu > li:is(:hover, .hover) > .ab-item {
+	#wpadminbar .ab-top-menu > li:is(:hover, .hover) > .ab-item,
+	#wpadminbar .ab-top-menu > li > .ab-item:focus {
 		background: var(--skye-brand-primary);
 		color: var(--skye-brand-on-primary);
 	}
 
 	#adminmenu :is(li.current, li.wp-has-current-submenu) > a.menu-top .wp-menu-image::before,
+	#adminmenu li:is(:hover, .opensub) > a.menu-top .wp-menu-image::before,
 	#adminmenu a.menu-top:is(:hover, :focus) .wp-menu-image::before,
-	#wpadminbar .ab-top-menu > li:is(:hover, .hover) > .ab-item .ab-icon::before,
-	#wpadminbar .ab-top-menu > li:is(:hover, .hover) > .ab-item .ab-label {
+	#wpadminbar .ab-top-menu > li:is(:hover, .hover) > .ab-item::before,
+	#wpadminbar .ab-top-menu > li > .ab-item:focus::before,
+	#wpadminbar > #wp-toolbar > .ab-top-menu > li:is(:hover, .hover) > .ab-item .ab-icon::before,
+	#wpadminbar > #wp-toolbar > .ab-top-menu > li > .ab-item:focus .ab-icon::before,
+	#wpadminbar > #wp-toolbar > .ab-top-menu > li:is(:hover, .hover) > .ab-item .ab-label,
+	#wpadminbar > #wp-toolbar > .ab-top-menu > li > .ab-item:focus .ab-label {
 		color: var(--skye-brand-on-primary);
 	}
 
 	#adminmenu .wp-submenu a:is(:hover, :focus),
-	#adminmenu .wp-submenu li.current a {
+	#adminmenu .wp-submenu li.current a,
+	#wpadminbar .quicklinks .ab-sub-wrapper .ab-item:is(:hover, :focus),
+	#wpadminbar .quicklinks .ab-sub-wrapper .menupop.hover > .ab-item {
 		color: var(--skye-brand-on-secondary);
 		background: var(--skye-brand-secondary);
+	}
+
+	#wpadminbar .quicklinks .ab-sub-wrapper .ab-item:is(:hover, :focus) strong,
+	#wpadminbar .quicklinks .ab-sub-wrapper .menupop.hover > .ab-item strong,
+	#wpadminbar .quicklinks .ab-sub-wrapper .ab-item:is(:hover, :focus)::before,
+	#wpadminbar .quicklinks .ab-sub-wrapper .menupop.hover > .ab-item::before {
+		color: var(--skye-brand-on-secondary);
 	}
 }
 
