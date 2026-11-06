@@ -232,6 +232,7 @@ final class Branding {
 	 * project CSS. Missing palettes deliberately emit no native-color overrides.
 	 *
 	 * @since 3.4.0
+	 * @since 3.4.1 Administration link tones cover native white and light-gray surfaces.
 	 * @param array $colors Complete validated primary, secondary, background and text colors.
 	 * @return string Scoped CSS declaration block, or an empty native fallback.
 	 */
@@ -241,6 +242,8 @@ final class Branding {
 		}
 		$colors['control-text'] = self::legible( $colors['text'], '#ffffff' );
 		$colors['control-link'] = self::legible( $colors['primary'], '#ffffff' );
+		$colors['admin-link'] = self::legible( $colors['primary'], '#f0f0f0' );
+		$colors['admin-link-hover'] = self::mix( $colors['admin-link'], '#000000', 0.12 );
 		$colors['text'] = self::legible( $colors['text'], $colors['background'] );
 		$colors['on-primary'] = self::foreground( $colors['primary'] );
 		$colors['on-secondary'] = self::foreground( $colors['secondary'] );
@@ -250,6 +253,7 @@ final class Branding {
 		$colors['on-hover'] = self::foreground( $colors['hover'] );
 		$declarations = '--skye-brand-primary-rgb:' . self::rgb( $colors['primary'] ) . ';';
 		$declarations .= '--skye-brand-control-rgb:' . self::rgb( $colors['control-link'] ) . ';';
+		$declarations .= '--skye-brand-admin-rgb:' . self::rgb( $colors['admin-link'] ) . ';';
 		foreach ( $colors as $key => $value ) {
 			$declarations .= '--skye-brand-' . $key . ':' . $value . ';';
 		}
