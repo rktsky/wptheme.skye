@@ -349,6 +349,11 @@ try {
 		branding_check( $branding_tokens['primary'] === $branding_primary && branding_readable( $branding_tokens['on-primary'], $branding_tokens['primary'] ) && branding_readable( $branding_tokens['on-secondary'], $branding_tokens['secondary'] ), 'Automatic button foregrounds must preserve the exact brand surface while meeting normal-text contrast.' );
 		branding_check( branding_readable( $branding_tokens['link'], $branding_tokens['background'] ) && branding_readable( $branding_tokens['text'], $branding_tokens['background'] ) && branding_readable( $branding_tokens['on-hover'], $branding_tokens['hover'] ), 'Generated link, body and hover text must meet independently calculated contrast.' );
 		branding_check( branding_readable( $branding_tokens['control-text'], '#ffffff' ) && branding_readable( $branding_tokens['control-link'], '#ffffff' ), 'Native white login controls must have independently readable text and links even for light brand accents.' );
+		foreach ( array( '#ffffff', '#f0f0f1', '#f0f0f0' ) as $branding_admin_surface ) {
+			branding_check( branding_readable( $branding_tokens['admin-link'], $branding_admin_surface ) && branding_readable( $branding_tokens['admin-link-hover'], $branding_admin_surface ), 'Normal and interactive administrative links must meet contrast on native white and light-gray surfaces.' );
+		}
+		preg_match( '/--skye-brand-admin-rgb:([0-9]+,[0-9]+,[0-9]+);/', $branding_css, $branding_admin_rgb );
+		branding_check( ( $branding_admin_rgb[1] ?? '' ) === implode( ',', array_map( 'hexdec', str_split( substr( $branding_tokens['admin-link'], 1 ), 2 ) ) ), 'Both native administrative RGB aliases must be supplied from the same readable link tone.' );
 		preg_match( '/--skye-brand-control-rgb:([0-9]+,[0-9]+,[0-9]+);/', $branding_css, $branding_control_rgb );
 		preg_match( '/--skye-brand-primary-rgb:([0-9]+,[0-9]+,[0-9]+);/', $branding_css, $branding_primary_rgb );
 		branding_check( ( $branding_control_rgb[1] ?? '' ) === implode( ',', array_map( 'hexdec', str_split( substr( $branding_tokens['control-link'], 1 ), 2 ) ) ) && ( $branding_primary_rgb[1] ?? '' ) === implode( ',', array_map( 'hexdec', str_split( substr( $branding_primary, 1 ), 2 ) ) ), 'Native control RGB must match its readable white-surface color while original brand RGB remains unchanged.' );

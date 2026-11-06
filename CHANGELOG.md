@@ -1,5 +1,11 @@
 # Änderungen
 
+## 3.4.1
+
+- Offene und aktive Adminmenüs behalten die Markenfarben, wenn der Mauszeiger vom Hauptlink ins Untermenü wechselt. Icons, Tastaturfokus und die entsprechenden Adminbar-Zustände sind einbezogen.
+- Normale Verwaltungslinks verwenden einen lesbaren Markenton auf weissen und nativen hellgrauen Flächen. Native Löschfarben, Statushinweise und Fokusmarkierungen bleiben erhalten; beide nativen RGB-Variablenformen sind angebunden.
+- Die Korrektur baut ausschliesslich auf dem ausgelieferten 3.4.0-Quellstand `b78d1177c18042a2371611a763ffd8f14989aede` auf. Öffentliche Frontendstyles und Loginstyles werden nicht geändert.
+
 ## 3.4.0
 
 - Backend- und Loginfarben entstehen aus der bestehenden Websitepalette. Das Login verwendet die vorhandene Logoquelle oder den Websitenamen; Kundenthemes können ihre bereits verwendeten Producer anbinden. Keine zweite redaktionelle Konfiguration und keine Änderung der Authentifizierung.

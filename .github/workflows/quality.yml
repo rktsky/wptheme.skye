@@ -225,6 +225,7 @@ jobs:
           if (!ready) throw new Error('The isolated PHP site did not become ready.');
           JS
           node tests/browser.cjs
+          node tests/browser-branding.cjs
           node tests/browser-critical.cjs
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
@@ -232,6 +233,7 @@ jobs:
           name: browser-${{ matrix.browser }}
           path: |
             .git/runtime/browser-${{ matrix.browser }}/
+            .git/runtime/browser-branding-${{ matrix.browser }}/
             .git/runtime/browser-critical-${{ matrix.browser }}/
             .git/runtime/browser-server.log
           include-hidden-files: true
