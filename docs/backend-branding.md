@@ -41,4 +41,16 @@ Native Enqueue- und Login-Hooks übernehmen die Auslieferung. Die Palette wird a
 
 Buttontext und Linktöne werden anhand der WCAG-sRGB-Luminanz auf mindestens 4,5:1 geprüft beziehungsweise angepasst. Für die weisse native Loginform gibt es eigene lesbare Text-/Linktöne; sie übernimmt nicht blind die Textfarbe eines dunklen Websitehintergrunds. Fokus und Forced-Colors-Textfallback bleiben sichtbar. Das ersetzt keine vollständige Geräte- oder Barrierefreiheitsabnahme.
 
+### Vollständige native Menüzustände ab 3.4.1
+
+WordPress hält ein offenes Hauptmenü über `li.opensub`, während der Mauszeiger bereits im Untermenü steht. Der Hauptlink selbst ist dann weder `:hover` noch `:focus`. Das Backendstylesheet umfasst deshalb diesen nativen Elternzustand, den direkten LI-Hover, aktuelle Einträge und die dazugehörigen Icons. Die Adminbar erhält die entsprechenden Fokus-, geöffneten Eltern- und Untermenüzustände. Sichtbarkeit, Ereignisbehandlung und Positionierung bleiben bei Core.
+
+Gewöhnliche Links verwenden bewusst nur die Spezifität der nativen `a`- beziehungsweise `a:hover/:active/:focus`-Regeln. Höher spezifische Core-Regeln für Löschaktionen, Statusmeldungen und ausgewählte Tabs bleiben wirksam. Es gibt keine globale Entfernung von Outline oder Boxshadow. Die nativen WordPress-Farbvariablen einschliesslich `--wp-admin-theme-color-rgb` und `--wp-admin-theme-color--rgb` verwenden denselben geprüften Verwaltungston.
+
+Core 6.8 verwendet auch für normale Linkbuttons noch feste Farben. Ein begrenzter Farb-Fallback nimmt Löschaktionen und deaktivierte Controls ausdrücklich aus. Nur unter der nativen `branch-6-8`-Klasse erhält der bestehende 2px-Fokusschatten diesen Ton; neuere Core-Zweige behalten ihre native variablenbasierte Geometrie.
+
+Die zusätzlichen `admin-link`- und `admin-link-hover`-Tokens erreichen mindestens 4,5:1 auf Weiss, `#f0f0f0` und `#f0f0f1`; die vorhandenen Website- und Loginfarben bleiben erhalten. Das Paket wird weiterhin über die native Abhängigkeit `colors` nach dem tatsächlich gewählten Farbschema geladen. Es registriert kein zweites Farbschema und schreibt keine Benutzerpräferenz.
+
+`tests/branding-native.php` prüft die tatsächlichen WordPress-Registrierungen und unabhängig berechneten Kontraste. `tests/browser-branding.cjs` verwendet unveränderte Core-Styles für Fresh, Modern und Blue sowie zwei unterschiedliche Markenpaletten. Echte Maus-/Fokusaktionen prüfen die Cascade an vorbereiteten nativen UI-Zuständen einschliesslich des geöffneten Elternmenüs. Die bestehende Browser-CI führt den Test mit ihren drei Engines aus; lokale Läufe und tatsächliche CI-/Kundenabnahmen sind getrennte Nachweise.
+
 Primärquellen: [Admin-Assets](https://developer.wordpress.org/reference/hooks/admin_enqueue_scripts/), [Login-Assets](https://developer.wordpress.org/reference/hooks/login_enqueue_scripts/), [native Inline-Styles](https://developer.wordpress.org/reference/functions/wp_add_inline_style/), [Login-Link](https://developer.wordpress.org/reference/hooks/login_headerurl/), [zugänglicher Login-Text](https://developer.wordpress.org/reference/hooks/login_headertext/), [WCAG-Kontrastberechnung](https://www.w3.org/TR/WCAG22/#dfn-relative-luminance). API- und Quellprüfung am 05.11.2026; tatsächliche Läufe stehen im [Prüfnachweis](testing.md).

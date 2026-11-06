@@ -1,5 +1,15 @@
 # Tatsächlicher Prüfnachweis
 
+## Backend-Cascade 3.4.1 · 06.11.2026
+
+Isolierte Basis ist der tatsächlich installierte 3.4.0-Commit `b78d1177c18042a2371611a763ffd8f14989aede`, nicht der spätere Master. Der normale Build läuft mit Node 14.21.3 und dem unveränderten Lockgraph. Nur die Ausgabe `backend.css` ändert sich; alle übrigen Manifestwerte und referenzierten Assetbytes sind gegen den belegten b78-Export unverändert.
+
+Die nativen Brandingtests bestehen unter PHP 8.3.36 mit WordPress 7.1.4 und 6.8.12 jeweils 153 Assertions. Ein unabhängiger zweiter Lauf bestätigt beide Ergebnisse. Die Tests melden keine persistenten SQL-Schreibzugriffe oder HTTP-Aufrufe; Benutzer-Farbschemata werden nicht gespeichert.
+
+Der begrenzte Core-CSS-Browsernachweis unter Chrome 156.0.8078.80 auf macOS umfasst zwei Paletten sowie native Basis-, Modern- und Blue-Styles: 108 Zustandsassertions auf 7.1.4 und 114 auf 6.8.12. Die vorbereiteten nativen UI-Zustände werden mit echten Maus-/Fokusaktionen geprüft. Der Zusatz auf 6.8 bestätigt, dass der Linkbutton-Fokusschatten seine ursprüngliche 2px-Geometrie behält. Der Test wartet auf echte Core-Transitions, statt sie abzuschalten. Die drei bestehenden Browser-CI-Jobs führen diesen zusätzlichen Test aus; ihre tatsächlichen Läufe sind dadurch nicht behauptet.
+
+Dies ist kein bereits ausgerollter Kundenstand und keine Abnahme durch echte Safari-, Firefox-, Windows- oder Touch-Geräte. Eine tatsächliche authentifizierte Kundenansicht, Freigabe, Veröffentlichung und Installation werden im Kundenprojekt separat nachgewiesen. Private Protokolle und Inventare liegen im Rocketsky-Arbeitsverzeichnis unter `.runtime/skye-branding-341-20261106/`.
+
 ## Ergänzung 05.11.2026 – vorbereiteter Skye-3.3.0-Quellstand
 
 Auf Basis von 3.2.2 (`d2685a3b7acbc65e67f5d607b23f9c41a967350a`) wurden im isolierten Branch `work/native-form-media-contracts` die generischen Formulargrenzen und die explizite responsive WebP-Vorladung ergänzt. Der ursprüngliche Quellcheckout und installierte Kunden-/Herstellerpakete bleiben unverändert. Es gab keinen Push, Kundenrollout oder automatisches Fork-Upgrade.
