@@ -131,5 +131,5 @@ private Builder sowie den nativen Feedloop. Ein harmloser registrierter Shortcod
 belegt die unterschiedliche Ausführungsgrenze: Beim Builderauszug wird der
 inaktive Editor nicht ausgeführt; bei REST/Feed lief der originale frühere
 Coreformatter bereits, sein inaktives Ergebnis fehlt aber im endgültigen Inhalt.
-Die tatsächliche lokale Browserabnahme und die noch offenen CI-/Exportgrenzen
-stehen im [gemeinsamen Prüfstand](project-learnings-3.5.0.md#lokaler-prüfstand).
+Die tatsächliche lokale Browserabnahme sowie CI- und Exportnachweise stehen
+im [gemeinsamen Prüfstand](project-learnings-3.5.0.md#lokaler-prüfstand).

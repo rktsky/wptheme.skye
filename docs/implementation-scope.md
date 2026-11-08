@@ -32,9 +32,9 @@ behalten ihre nativen Verträge. Projekte müssen Callback, Absatztrennung und
 Exportwege vor dem Merge prüfen; eine automatische Kundenmigration ist damit
 nicht verbunden. [Öffentliche Quellen](public-content-sources.md) und
 [aktueller Prüfstand](project-learnings-3.5.0.md#lokaler-prüfstand) dokumentieren
-Umsetzung und Grenzen. Die lokalen Laufzeitprüfungen sind abgeschlossen. Der
-finale CI-Lauf, der saubere Export und die Übernahme in `master` werden getrennt
-belegt; der frühere grüne CI-Lauf ersetzt diese Nachweise nicht.
+Umsetzung und Grenzen sowie die lokalen Laufzeit-, CI- und Exportnachweise
+dieses erweiterten Quellstands. Die Übernahme in `master` verwendet dieselbe
+Prüfkette; Kundeninstallationen bleiben unverändert.
 
 ## Frühere Freigaben
 

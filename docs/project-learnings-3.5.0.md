@@ -1,7 +1,7 @@
 # Übernommene Projekt-Learnings 3.5.0
 
 Geprüft am 8. November 2026 gegen Skye 3.4.1, `9d96fc8`.
-Der eigene Kandidat liegt auf `feature/project-learnings-3.5.0`; die
+Die Rückführung entstand auf `feature/project-learnings-3.5.0`; die
 Laufzeitänderungen sind in Logikcommit `8ea3dae` und Stylecommit `277f7a5` getrennt.
 Kundenprojekte wurden als Quellen gelesen; Änderungen erfolgen im eigenen
 Skye-Quellstand. Core, Originalplugins und Abhängigkeiten behalten ihre Bytes.
@@ -156,7 +156,7 @@ bevor ACF ablehnt. Die [Teilupdategrenze](editor-sources.md#grenze-bei-abgelehnt
 bleibt auch ohne JavaScript bestehen. Eine gemeinsame Transaktion und eine
 vollständige No-JavaScript-Browserabnahme werden daraus nicht abgeleitet.
 
-### Herkunft und offene Abschlussarbeiten
+### Herkunft und CI-Nachweise
 
 Die privaten Fixtures verwendeten getrennte Providerinstallationen. Alle
 1949 Yoast- und 627 ACF-Free-Dateien stimmen mit WordPress.org-Prüfsummen überein.
@@ -169,11 +169,28 @@ Providerdatei wurde für eine passende Prüfsumme oder Versionsgrenze geändert.
 Die bereinigten Einzelbelege
 liegen ausserhalb des Repos unter `outputs/skye-project-learnings-20261108/`.
 
-GitHub Actions bestand bei `0be2590` mit allen neun Jobs. Dieser frühere Lauf
-deckt die neuen Module im aktuellen Endstand nicht ab. Die finale CI, ein
-sauberer Export des abschliessenden Commits und die Übernahme in `master`
-sind noch offen. Der finale Zusammenfassungsbeleg
-wird an diese tatsächlichen Quellstände gebunden.
+Der vollständige Code- und Dokumentationsstand `ec1ca115bc0c1a4108dd621a292a3fa4f39a8c8c`
+bestand am 08.11.2026 im ersten Versuch alle neun
+[GitHub-Actions-Jobs](https://github.com/rktsky/wptheme.skye/actions/runs/42485521065):
+CentOS-7-Userland mit Node-14-Build/Watch, Assets/Releaseexport, vier
+PHP-/WordPress-Kombinationen und Chromium/Firefox/WebKit. Die PHP-Matrix
+umfasst 8.3/8.4 mit WordPress 6.8.12 sowie 8.3/8.5 mit WordPress 7.1.4.
+
+Der saubere lokale Export desselben Commits enthält 122 inventarisierte Dateien.
+Alle Dateiprüfsummen und das genaue Inventar stimmen; die Quellenmodule,
+nativen Komponenten und vier Analyse-/Quellenassetrollen sind enthalten.
+Entwicklungsprogramme, Assetsourcen und interne Dokumentation sind ausgeschlossen.
+`release.json` hat SHA-256
+`d43864825f099c07732b0dc8f44d0ec429ea6a00d1435f9e40905e9ed7f2339c`.
+Der Export lief mit Node 14.21.3 und Bootstrap 6.0.0-alpha.1; es wurde kein ZIP
+erstellt. Die bereinigten Belege heissen `release-ec1ca11-proof.json` und
+`backend-final-2c4b43f7.json`.
+
+Der anschliessende Dokumentationsabschluss ändert keine Laufzeitdateien.
+Weitere Pushes werden erneut vollständig geprüft; der aktuelle
+[master-Prüfstand](https://github.com/rktsky/wptheme.skye/actions?query=branch%3Amaster)
+steht in GitHub Actions. Kundenübernahmen erfordern weiterhin ihre eigene
+Migrationsabnahme; diese Basisänderung rollt keine Website aus.
 
 Die Dateipfad-Microbench belegt keinen bestimmten Seitengewinn. Neue
 FPM-/PageSpeed-Messungen und eine physische Geräteabnahme wurden für dieses
