@@ -59,6 +59,21 @@ The optional page-builder template reads an ACF flexible-content field named `pa
 
 The Classic Editor remains available for native content. A separate Classic Editor plugin is optional; Skye enforces classic editing itself. Previously stored block content continues to render through WordPress.
 
+### Yoast and editorial analysis
+
+Install Yoast SEO and the original **ACF Content Analysis for Yoast SEO** separately
+when the project uses ACF. Skye provides an [opt-in analysis bridge](docs/yoast-analysis.md)
+for the project's actual content source. A complete builder projection can include
+its real headings, links, images and selected records. The original ACF collector
+remains the fallback until a valid project callback is ready. No layout names,
+editorial copy or analysis scores are supplied by the starter.
+
+The [SEO acceptance workflow](docs/seo-acceptance.md) covers native editor checks,
+social-image priorities, language variants, sitemaps and optional Yoast discovery.
+The [crawler audit](docs/crawler-audit.md) compares anonymous public responses with
+search-crawler request profiles. It is a separate development tool and does not
+change indexing or bot policies.
+
 ## Performance and security
 
 Skye uses native WordPress asset registration, dependency order and script strategies. The build produces content-hashed assets, full and mobile CSS, and source-bound critical CSS. It can generate an icon subset from the project's explicit inventory; complete icon styles remain the default until the project confirms coverage. Full page styles also remain the default. Progressive delivery requires a project-verified first viewport; unknown registrations, layouts and form providers retain their native delivery. See the [performance contracts](docs/performance.md) and [native form boundaries](docs/forms-native-contracts.md).
@@ -71,6 +86,11 @@ Admin colors and the login logo follow the existing site palette and brand ident
 
 Project performance and browser coverage need their own checks. The [verification record](docs/testing.md) distinguishes measured results, test fixtures and remaining device coverage.
 
+The three legacy theme settings use Core's finite option-cache priming before
+ordinary native reads. Physical POSIX asset paths use a fresh native fast path;
+aliases retain the bounded security checks. [Project learnings in 3.5.0](docs/project-learnings-3.5.0.md)
+record these backports and the reviewed project-specific exclusions.
+
 ## Development
 
 Read [AGENTS.md](AGENTS.md) and the [coding standards](docs/coding-standards.md) before making changes. Keep application code and data access in `lib/`, HTML in components and views, styles in Sass, and behavior in JavaScript. Commit logic, styling and formatting separately with their relevant verification evidence.
@@ -82,6 +102,10 @@ WordPress, plugins and third-party packages retain their original files and upda
 The detailed guides below are currently in German.
 
 - [Build, configuration and dependencies](docs/build-deployment.md)
+- [Yoast analysis integration](docs/yoast-analysis.md)
+- [SEO acceptance](docs/seo-acceptance.md)
+- [Public crawler audit](docs/crawler-audit.md)
+- [Project learnings in 3.5.0](docs/project-learnings-3.5.0.md)
 - [Backend and login branding](docs/backend-branding.md)
 - [Performance contracts and limits](docs/performance.md)
 - [Native delivery, CDN and Core update setup](docs/website-delivery.md)
@@ -97,6 +121,7 @@ The detailed guides below are currently in German.
 - [Backport provenance](docs/backports.md)
 - [Testing and remaining coverage](docs/testing.md)
 - [Release export and checks](docs/release.md)
+- [Legacy Git and release boundaries](docs/release-compatibility.md)
 
 ## License
 

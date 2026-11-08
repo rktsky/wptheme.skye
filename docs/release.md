@@ -9,12 +9,12 @@ node --version # v14.21.3
 npm --version # 6.14.18
 npm ci --ignore-scripts
 npm audit --audit-level=moderate
-node tools/release.mjs /absoluter/existierender/elternordner/skye-3.2.0
+node tools/release.mjs /absoluter/existierender/elternordner/skye-3.5.0
 ```
 
 Der Zielordner darf noch nicht existieren und muss ausserhalb des Quellcheckouts liegen. Das Programm baut den normalen Assetstand, prüft den unveränderten Gitstand nochmals und exportiert den erfassten Commit über `git archive` in ein temporäres Verzeichnis. Es schreibt keine ZIP-Datei und veröffentlicht oder installiert nichts. Nach abgeschlossener Prüfung wird das vorbereitete Verzeichnis an den Zielpfad verschoben. Vorhandene Ziele werden abgelehnt; ein Fehler entfernt ausschliesslich das vom Programm angelegte temporäre Verzeichnis.
 
-`.gitattributes` ist die verbindliche Exportgrenze. Tests, Tools, CI-Konfiguration, Entwicklungsassets, Paketmanifeste und Entwicklungskonfiguration gehören nicht zum ausgelieferten Theme. Lokale `info/attributes`-Überschreibungen werden abgelehnt; globale Attributdateien verändern diesen Export nicht. Symlinks und Submodule sind keine zulässigen Releasequellen. Ignorierte Dateien unter den Build-Quellbereichen werden abgelehnt, damit etwa eine lokale `.env` nicht versehentlich als Bild-/Fontasset gebaut wird.
+`.gitattributes` ist die verbindliche Exportgrenze. Tests, Tools, interne Dokumentation, CI-Konfiguration, Entwicklungsassets, Paketmanifeste und Entwicklungskonfiguration gehören nicht zum ausgelieferten Theme. Der Publisher verweigert zusätzlich einen Export mit `docs/`. Für das Webroot den geprüften Export verwenden, nicht das vollständige Quellrepository. Lokale `info/attributes`-Überschreibungen werden abgelehnt; globale Attributdateien verändern diesen Export nicht. Symlinks und Submodule sind keine zulässigen Releasequellen. Ignorierte Dateien unter den Build-Quellbereichen werden abgelehnt, damit etwa eine lokale `.env` nicht versehentlich als Bild-/Fontasset gebaut wird.
 
 Es werden ausschliesslich die im gerade erzeugten `dist/assets.json` referenzierten Dateien und die dort ausdrücklich ausgewiesenen aktuellen `_licenses` übernommen. Jedes Asset muss eine reguläre lokale Datei mit passendem Inhaltsfingerprint sein. Pfadtraversal, Wrapper, Symlinks, fehlende Dateien, leere Lizenzen, ungültiges JSON und unvollständige Performanceverträge brechen den Export ab. Alte weiterhin im lokalen `dist/` vorhandene Hashdateien werden nicht mitgeliefert. Das ist von der absichtlichen Aufbewahrung alter Dateien bei einem laufenden Deployment zu unterscheiden.
 
@@ -23,6 +23,11 @@ vollständige Parent-Buildartefakte vorhanden sein. Der Export prüft ihre
 Inhaltsfingerprints und liefert sie samt nativem Paket und Komponenten mit;
 das installierte Theme benötigt weder Node noch die ausgeschlossenen
 Entwicklungssourcen. Ein Childmanifest ersetzt diese Paketartefakte nicht.
+
+Ab 3.5 gehört auch `yoast-analysis.js` zum vollständigen Paketbuild. Die Datei
+wird nur bei einer gültigen Editorintegration geladen. Für Git 1.8 bleibt die
+saubere Exportprüfung über den [engen Legacy-Fallback](release-compatibility.md)
+erhalten; ein unbekannter Gitfehler bricht weiterhin ab.
 
 Die eigene Theme-Lizenz sowie die fünf Original-Lizenzen von Bootstrap, Font Awesome und Floating UI bleiben enthalten. Die erfassten Critical-PHP-Quellen müssen im Export denselben SHA-256-Digest wie im Build haben. `release.json` dokumentiert Commit, Theme-/Bootstrap-Version, verwendete Node-Version und SHA-256-Digests sämtlicher Nutzdateien. Die Datei inventarisiert sich selbst nicht. Theme- und Paketversion müssen übereinstimmen. `.nvmrc` und `.npmrc` bleiben als Entwicklungskonfiguration aus dem Release ausgeschlossen. Ein sauberes Exportverzeichnis ist ein überprüfbares Artefakt und kein Nachweis über eine bereits erfolgte Veröffentlichung.
 

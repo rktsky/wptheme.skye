@@ -1,5 +1,14 @@
 # Freigegebener Umfang
 
+Erweiterung vom 08.11.2026: SEO-Learnings der Rocketsky-Website und weitere
+abgeschlossene generische Verträge der umgesetzten Projekte im Basistheme
+übernehmen. Ausgangspunkt ist das frische `origin/master` bei `9d96fc8`
+(Skye 3.4.1); die Umsetzung erfolgt isoliert auf
+`feature/project-learnings-3.5.0`. Kundenprojekte dienen als gelesene Quellen.
+Ihre laufenden Arbeiten, Installationen und Originalplugins werden nicht geändert.
+Neue eigene Datenbankabfragen, VM-/Storage-Eingriffe und pauschale Übernahmen
+projektspezifischer Optimierungsfreigaben gehören nicht zu diesem Umfang.
+
 Freigabe vom 03.11.2026:
 
 > Einverstanden, setze die aktualisierte Vorlage vollständig um. Die Änderungen am Skye-Originalrepository sind freigegeben. Redis und ACF Pro bleiben separat. Halte Dich strikt an die Coding-, Commit- und Dokumentationsregeln.

@@ -43,9 +43,8 @@ Prüfprozess den nötigen Cachewechsel bereits selbst verdeckt.
 Mit originalem WordPress 7.1.4 bestanden ausserdem die bestehenden Gruppen
 Static Delivery mit 246, vollständiges CSS mit 52 und Assetverträge mit
 35 Assertions. Darunter liegen die vorhandenen Root-/Quellgrenzen und
-prozessübergreifenden Readerfälle. Die Critical-Styles-Gruppe benötigt den
-vollständigen aktuellen Asset-Build und gehört zur abschliessenden Matrix;
-ein erster Lauf ohne Build konnte keine gültige Critical-Manifest-ID lesen.
+prozessübergreifenden Readerfälle. Nach dem vollständigen integrierten Build
+bestand auch die Critical-Styles-Gruppe mit 54 Assertions.
 Ein Windows-Lauf und ein neuer FPM-Seitenvergleich wurden für diesen
 Quellstand lokal nicht durchgeführt.
 

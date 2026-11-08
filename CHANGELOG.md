@@ -1,5 +1,16 @@
 # Änderungen
 
+## 3.5.0
+
+- Optionale Yoast-Analyseanbindung für vollständige Projektprojektionen der aktiven Inhaltsquelle. Der originale ACF-Collector bleibt bei fehlendem oder verweigertem Callback erhalten. Keine automatischen Feldsammler, Score-Schreibzugriffe oder Änderungen an Social-Metadaten.
+- Native Batch-Abfrage der drei bisherigen Theme-Einstellungen; `get_option()` und gezielte Invalidierung bleiben erhalten.
+- Frischer POSIX-Pfadfastpath aus Francesca; bestehende Eingabegrenzen, Aliasprüfung und Windows-Verhalten bleiben erhalten.
+- Releaseexport mit engem Git-1.8-Fallback und Ausschluss der internen Quelldokumentation. Der Publisher prüft diesen Ausschluss zusätzlich.
+- Generischer öffentlicher Crawleraudit aus Rocketsky und eine SEO-Abnahme mit nativen Yoast-/ACF-Verträgen.
+
+Herkunft, Projektausschlüsse und tatsächliche Prüfungen:
+[Projekt-Learnings 3.5.0](docs/project-learnings-3.5.0.md).
+
 ## 3.4.1
 
 - Offene und aktive Adminmenüs behalten die Markenfarben, wenn der Mauszeiger vom Hauptlink ins Untermenü wechselt. Icons, Tastaturfokus und die entsprechenden Adminbar-Zustände sind einbezogen.
