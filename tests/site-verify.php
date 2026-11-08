@@ -73,6 +73,33 @@ unlink( $external );
 if ( metadata_exists( 'post', $article->ID, 'custom_teasertext' ) ) {
 	skye_site_check( 'UNMIGRATED_FIXTURE_VALUE' === get_post_meta( $article->ID, 'custom_teasertext', true ), 'Actual HTTP rendering does not migrate or delete stored legacy metadata' );
 }
+$batch_options = array( 'theme_options_theme_logo' => '0', 'theme_options_favicon' => false, 'theme_options_gmakey' => '' );
+foreach ( $batch_options as $name => $value ) {
+	$missing = new stdClass();
+	skye_site_check( $missing === get_option( $name, $missing ), 'The isolated batch fixture owns a previously absent option: ' . $name );
+}
+try {
+	foreach ( $batch_options as $name => $value ) {
+		skye_site_check( add_option( $name, $value, '', false ), 'Create only an owned non-autoloaded native fixture option.' );
+		wp_cache_delete( $name, 'options' );
+	}
+	wp_cache_delete( 'notoptions', 'options' );
+	$GLOBALS['theme_options'] = null;
+	$queries_before_batch = $wpdb->num_queries;
+	$batch_result = get_theme_options();
+	$batch_queries = $wpdb->num_queries - $queries_before_batch;
+	skye_site_check( array( 'theme_logo' => '0', 'favicon' => '', 'gmakey' => '' ) === $batch_result, 'Cold native option reads preserve zero and empty values, including Core storing scalar false as an empty string.' );
+	skye_site_check( 1 === $batch_queries, 'Three cold non-autoloaded settings require one actual native query.' );
+	get_theme_options();
+	skye_site_check( $wpdb->num_queries === $queries_before_batch + 1, 'A warm read adds no native query.' );
+	update_option( 'theme_options_gmakey', 'NATIVE_BATCH_UPDATE' );
+	skye_site_check( 'NATIVE_BATCH_UPDATE' === get_theme_options()['gmakey'], 'A native update invalidates the primed request snapshot.' );
+} finally {
+	foreach ( $batch_options as $name => $value ) {
+		delete_option( $name );
+	}
+}
+skye_site_check( array( 'theme_logo' => false, 'favicon' => false, 'gmakey' => false ) === get_theme_options(), 'Native deletion restores the original absence of every owned option.' );
 $option_name = 'theme_options_gmakey';
 $missing_option = new stdClass();
 $saved_option = get_option( $option_name, $missing_option );

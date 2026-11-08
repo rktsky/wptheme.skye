@@ -137,6 +137,19 @@ function get_option( $key, $default = false ) {
 }
 
 /**
+ * Observe the finite native priming request without emulating its database cache.
+ *
+ * Real cache/query semantics are verified separately in the native site fixture.
+ *
+ * @since 3.5.0
+ * @param string[] $options Explicit native option names requested by production.
+ * @return void
+ */
+function wp_prime_option_caches( $options ) {
+	security_check( array( 'theme_options_theme_logo', 'theme_options_favicon', 'theme_options_gmakey' ) === $options, 'Only the three owned legacy options are primed.' );
+}
+
+/**
  * Supply blog identity so the actual request cache can be tested across switches.
  *
  * @since 3.0.0

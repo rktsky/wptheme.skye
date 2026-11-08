@@ -75,8 +75,11 @@ add_action( 'acf/save_post', 'skye_authorize_theme_options', 5 );
  *
  * Avoid persisting a duplicate unbounded transient of the same native options.
  * The historical global remains available to child-theme presentation code.
+ * Native batch priming combines cold non-autoloaded reads while each get_option
+ * retains its own filters, defaults and raw value semantics.
  *
  * @since 2021-02-03
+ * @since 3.5.0 Prime the finite native option set before ordinary reads.
  * @return array{theme_logo:mixed,favicon:mixed,gmakey:mixed} Raw stored values.
  */
 function get_theme_options() {
@@ -86,8 +89,14 @@ function get_theme_options() {
 	if ( ! is_array( $theme_options ) || $loaded_blog !== $blog_id ) {
 		$theme_options = array();
 		$loaded_blog = $blog_id;
-		foreach ( array( 'theme_logo', 'favicon', 'gmakey' ) as $key ) {
-			$theme_options[ $key ] = get_option( 'theme_options_' . $key, false );
+		$names = array(
+			'theme_options_theme_logo' => 'theme_logo',
+			'theme_options_favicon' => 'favicon',
+			'theme_options_gmakey' => 'gmakey',
+		);
+		wp_prime_option_caches( array_keys( $names ) );
+		foreach ( $names as $option => $key ) {
+			$theme_options[ $key ] = get_option( $option, false );
 		}
 	}
 	return $theme_options;
