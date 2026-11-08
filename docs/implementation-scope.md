@@ -1,5 +1,7 @@
 # Freigegebener Umfang
 
+## Erweiterung 3.5.0
+
 Erweiterung vom 08.11.2026: SEO-Learnings der Rocketsky-Website und weitere
 abgeschlossene generische Verträge der umgesetzten Projekte im Basistheme
 übernehmen. Ausgangspunkt ist das frische `origin/master` bei `9d96fc8`
@@ -8,6 +10,33 @@ abgeschlossene generische Verträge der umgesetzten Projekte im Basistheme
 Ihre laufenden Arbeiten, Installationen und Originalplugins werden nicht geändert.
 Neue eigene Datenbankabfragen, VM-/Storage-Eingriffe und pauschale Übernahmen
 projektspezifischer Optimierungsfreigaben gehören nicht zu diesem Umfang.
+
+Zusätzlicher Umfang vom 08.11.2026: Die Quellenumschaltung zwischen
+Seitenbaukasten und Standardeditor wird ebenfalls vollständig in der eigenen
+Skye-Basis umgesetzt. Beide ungespeicherten Entwürfe, native ACF-/Core-Saves,
+aktive Validierung, öffentliche Ausgabe und Yoast-Analyse bilden einen gemeinsamen
+Vertrag. Kleine erforderliche Kompatibilitätsänderungen sind eingeschlossen:
+ein gebundener leerer Builder beziehungsweise eine gespeicherte Builderquelle
+mit verlorenem Profil verwendet nicht den inaktiven Editor als Ersatz;
+Komponentenüberschreibungen werden an Dispatcher und reine native Ausgabe
+angepasst. Feldschemata und Inhalte der Kundenprojekte werden nicht automatisch
+migriert. Die [Quellenwahldokumentation](editor-sources.md) beschreibt den
+bekannten Providerumfang und die erforderliche Projektabnahme.
+
+Die öffentliche Quellenabgrenzung gehört zu dieser Umsetzung. Automatische
+Builderauszüge, native öffentliche REST-/Feed-Inhalte und Yoast-Auszugvariablen
+dürfen nicht auf den aufbewahrten Editorentwurf zurückfallen. Ohne gültigen
+semantischen PHP-Callback bleiben diese Builderexporte leer. Manuelle Auszüge,
+explizite SEO-/Social-Beschreibungen und autorisierte native REST-Edit-Leser
+behalten ihre nativen Verträge. Projekte müssen Callback, Absatztrennung und
+Exportwege vor dem Merge prüfen; eine automatische Kundenmigration ist damit
+nicht verbunden. [Öffentliche Quellen](public-content-sources.md) und
+[aktueller Prüfstand](project-learnings-3.5.0.md#lokaler-prüfstand) dokumentieren
+Umsetzung und Grenzen. Die lokalen Laufzeitprüfungen sind abgeschlossen. Der
+finale CI-Lauf, der saubere Export und die Übernahme in `master` werden getrennt
+belegt; der frühere grüne CI-Lauf ersetzt diese Nachweise nicht.
+
+## Frühere Freigaben
 
 Freigabe vom 03.11.2026:
 

@@ -14,7 +14,7 @@ Create a standalone copy or fork for the customer theme, for example `wptheme.cu
 
 - WordPress **6.8.12** or later and PHP **8.3** or later, using a compatible Core/PHP pair. The [test matrix](docs/testing.md) records the actual combinations checked.
 - **Node 14.21.3 / npm 6.14.18** for build and watch, pinned in `.nvmrc`, `package.json` and `package-lock.json`. This preserves the existing CentOS 7 build workflow. Node 14 no longer receives upstream security fixes; the [build documentation](docs/build-deployment.md) explains the runtime limits and separate Node 24 test setup.
-- **ACF PRO** when using its flexible-content builder. Install, license and update the original plugin separately. The base theme also renders native WordPress content without ACF.
+- **ACF PRO** when using its flexible-content builder. Install, license and update the original plugin separately. Native editor content also renders without ACF; a bound builder still needs its actual field profile.
 
 Redis is optional infrastructure, installed and configured separately. Skye includes neither ACF PRO nor a persistent object-cache drop-in.
 
@@ -55,18 +55,51 @@ The loader also preserves one- and two-argument calls and native child-theme ove
 
 ### ACF page building
 
-The optional page-builder template reads an ACF flexible-content field named `pagebuilder` and renders each layout through its matching `components/pagebuilder/` component. Define the fields and layouts in the customer project. Skye supplies the integration point and native content fallback; it does not ship a ready-made layout catalogue or builder field definitions.
+The [source chooser](docs/editor-sources.md) keeps the Classic Editor and ACF
+builder drafts in their original stores and selects one for rendering and analysis.
+Both the standard page route and `templates/pagebuilder.php` use the shared source
+dispatcher. The default builder field is `pagebuilder`; each layout uses its
+matching `components/pagebuilder/` component. Define the actual fields and layouts
+in the customer project. Skye does not ship a layout catalogue or field definitions.
+
+The chooser preserves native inputs and synchronizes existing TinyMCE values
+before switching or submitting. Its visibility and inactive-draft validation
+integration requires the reviewed ACF PRO 6.8.11 contract. Unknown provider
+contracts keep the native interfaces visible and retain native validation.
+
+Core and ACF keep separate save phases. A rejected direct POST can already
+have updated Core content before ACF validation fails; the chooser does not add
+a shared transaction or rollback. See the [negative-save boundary](docs/editor-sources.md#grenze-bei-abgelehnten-speicheraufrufen).
+
+When merging 3.5, review source and component overrides. A bound builder no longer
+publishes the inactive editor when its content is empty; an explicitly saved
+builder also stays bound if its field profile disappears. Pure native editor
+markup now belongs in `components/page/native.php`; `components/page/content.php`
+is the source dispatcher. The [migration details](docs/editor-sources.md#rendering-und-übernahme-bestehender-projekte)
+explain the required project checks.
+
+Public builder REST content, feeds and automatic excerpts use the same explicit
+PHP semantic callback through [SourcePublicContext](docs/public-content-sources.md).
+Without a valid projection, those builder exports stay empty. Review
+`skye_yoast_analysis_content` and the actual export responses before merging.
+Manual excerpts, explicit SEO/social descriptions and authorized native REST
+edit reads retain their native rules.
 
 The Classic Editor remains available for native content. A separate Classic Editor plugin is optional; Skye enforces classic editing itself. Previously stored block content continues to render through WordPress.
 
 ### Yoast and editorial analysis
 
 Install Yoast SEO and the original **ACF Content Analysis for Yoast SEO** separately
-when the project uses ACF. Skye provides an [opt-in analysis bridge](docs/yoast-analysis.md)
-for the project's actual content source. A complete builder projection can include
-its real headings, links, images and selected records. The original ACF collector
-remains the fallback until a valid project callback is ready. No layout names,
-editorial copy or analysis scores are supplied by the starter.
+when the project uses ACF. The ready source chooser connects automatically to the
+[analysis bridge](docs/yoast-analysis.md): builder mode excludes the inactive
+editor before the original ACF collector, and editor mode keeps Core content.
+The collector itself remains unchanged. Unknown source readiness retains native
+analysis.
+
+A project may add a complete semantic projection with its actual headings,
+links, images and selected records. No layout names, editorial copy or analysis
+scores are supplied by the starter. Other ACF fields retain their original
+provider behavior; the bridge does not infer the meaning of unknown layouts.
 
 The [SEO acceptance workflow](docs/seo-acceptance.md) covers native editor checks,
 social-image priorities, language variants, sitemaps and optional Yoast discovery.
@@ -102,6 +135,8 @@ WordPress, plugins and third-party packages retain their original files and upda
 The detailed guides below are currently in German.
 
 - [Build, configuration and dependencies](docs/build-deployment.md)
+- [Builder and native editor sources](docs/editor-sources.md)
+- [Public excerpts, REST and feeds](docs/public-content-sources.md)
 - [Yoast analysis integration](docs/yoast-analysis.md)
 - [SEO acceptance](docs/seo-acceptance.md)
 - [Public crawler audit](docs/crawler-audit.md)

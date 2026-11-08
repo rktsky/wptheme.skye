@@ -2,11 +2,29 @@
 
 ## 3.5.0
 
-- Optionale Yoast-Analyseanbindung für vollständige Projektprojektionen der aktiven Inhaltsquelle. Der originale ACF-Collector bleibt bei fehlendem oder verweigertem Callback erhalten. Keine automatischen Feldsammler, Score-Schreibzugriffe oder Änderungen an Social-Metadaten.
+- Gemeinsame Quellenwahl für Classic Editor und ACF-Baukasten. Beide Entwürfe behalten ihre nativen Speicherwege; der Controller erhält ungespeicherte Inputs und synchronisiert vorhandene TinyMCE-Instanzen. Die eng begrenzte inaktive Validierung verwendet das geprüfte ACF-PRO-6.8.11-Profil ohne Fehlerreset oder Vendoränderung.
+- Automatische Yoast-Kopplung an die bereite Quellenwahl. Der originale ACF-Collector bleibt erhalten; semantische Projektionen sind zusätzlich möglich. Keine Score-Schreibzugriffe. Die PHP-Projektion kann Yoasts Bildsuche beeinflussen; Social-Bildprioritäten werden im Projekt geprüft.
+- `SourcePublicContext` bindet automatische Auszüge, native öffentliche REST-/Feed-Inhalte und Yoast-Auszugvariablen an die aktive Quelle. Der inaktive ACF-Root wird im öffentlichen Editor-REST vor der Werteaufbereitung ausgeschlossen.
 - Native Batch-Abfrage der drei bisherigen Theme-Einstellungen; `get_option()` und gezielte Invalidierung bleiben erhalten.
 - Frischer POSIX-Pfadfastpath aus Francesca; bestehende Eingabegrenzen, Aliasprüfung und Windows-Verhalten bleiben erhalten.
 - Releaseexport mit engem Git-1.8-Fallback und Ausschluss der internen Quelldokumentation. Der Publisher prüft diesen Ausschluss zusätzlich.
 - Generischer öffentlicher Crawleraudit aus Rocketsky und eine SEO-Abnahme mit nativen Yoast-/ACF-Verträgen.
+
+Bei der Übernahme beachten: Ein gebundener Builder fällt bei leerem Inhalt nicht
+mehr auf den inaktiven Editor zurück. Eine ausdrücklich gespeicherte Builderwahl
+bleibt auch bei verlorenem Feldprofil verbindlich. `components/page/content.php`
+ist jetzt der Dispatcher; reine native Editorüberschreibungen gehören nach
+`components/page/native.php`. [Quellenwahl und Migration](docs/editor-sources.md).
+Öffentliche Builderexporte über REST, Feeds und automatische Auszüge bleiben
+ohne gültigen semantischen PHP-Callback leer. Vor dem Merge den Callback und
+die Exportwege prüfen. Manuelle Auszüge, explizite SEO-/Social-Beschreibungen
+und autorisierte native REST-Edit-Leser behalten ihre nativen Verträge.
+[Öffentliche Quellenabgrenzung](docs/public-content-sources.md).
+
+Core- und ACF-Saves bleiben getrennt. Bei direktem POST kann eine spätere
+ACF-Ablehnung bereits gespeicherten Coreinhalt nicht zurücknehmen. Die
+[Teilupdategrenze](docs/editor-sources.md#grenze-bei-abgelehnten-speicheraufrufen)
+ist Teil der Fehlerabnahme; eine gemeinsame Transaktion wird nicht zugesagt.
 
 Herkunft, Projektausschlüsse und tatsächliche Prüfungen:
 [Projekt-Learnings 3.5.0](docs/project-learnings-3.5.0.md).

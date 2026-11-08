@@ -24,14 +24,52 @@ Inhaltsfingerprints und liefert sie samt nativem Paket und Komponenten mit;
 das installierte Theme benötigt weder Node noch die ausgeschlossenen
 Entwicklungssourcen. Ein Childmanifest ersetzt diese Paketartefakte nicht.
 
-Ab 3.5 gehört auch `yoast-analysis.js` zum vollständigen Paketbuild. Die Datei
-wird nur bei einer gültigen Editorintegration geladen. Für Git 1.8 bleibt die
+Ab 3.5 gehören `yoast-analysis.js`, `content-sources.js`,
+`content-sources-yoast.js` und `content-sources.css` zum vollständigen Paketbuild.
+Fehlende Rolleneinträge werden im Export abgelehnt. Die Ressourcen werden nur
+in ihrer gültigen Backendintegration geladen. Der native Quellencontroller und
+sein Yoast-Adapter sind deshalb auch ohne semantisches Kundenmodell vollständig
+im Export vorhanden. Für Git 1.8 bleibt die
 saubere Exportprüfung über den [engen Legacy-Fallback](release-compatibility.md)
 erhalten; ein unbekannter Gitfehler bricht weiterhin ab.
 
 Die eigene Theme-Lizenz sowie die fünf Original-Lizenzen von Bootstrap, Font Awesome und Floating UI bleiben enthalten. Die erfassten Critical-PHP-Quellen müssen im Export denselben SHA-256-Digest wie im Build haben. `release.json` dokumentiert Commit, Theme-/Bootstrap-Version, verwendete Node-Version und SHA-256-Digests sämtlicher Nutzdateien. Die Datei inventarisiert sich selbst nicht. Theme- und Paketversion müssen übereinstimmen. `.nvmrc` und `.npmrc` bleiben als Entwicklungskonfiguration aus dem Release ausgeschlossen. Ein sauberes Exportverzeichnis ist ein überprüfbares Artefakt und kein Nachweis über eine bereits erfolgte Veröffentlichung.
 
 Git, `tar`, die dokumentierte Node-/npm-Laufzeit und die aus dem Lockfile installierten Buildabhängigkeiten sind Voraussetzungen. Eine installierte Produktionssite oder Produktionszugangsdaten werden für den Export nicht benötigt.
+
+## Übernahme von 3.5 in vorhandene Projekte
+
+Vor dem Merge Rootfeld, native ACF-Gruppen, eigene Quellencontroller und
+Analyseadapter prüfen. Source-Conditional-Logic am gesamten Builder durch den
+[Quellenvertrag](editor-sources.md) ersetzen. Keine alten Sichtbarkeitscontroller
+oder Leaf-Ausschlüsse parallel übernehmen.
+
+Ein gebundener leerer Builder darf keinen inaktiven Editor veröffentlichen.
+Eine gültig gespeicherte Builderwahl bleibt auch bei verlorenem Feldprofil
+verbindlich. Diese Verhaltensänderung einschliesslich leerer alter Builderseiten
+im Projekt ausdrücklich prüfen. Nicht verwaltete unbekannte Altprofile behalten
+ihren nativen Fallback.
+
+Auch [SourcePublicContext](public-content-sources.md) ändert die öffentlichen
+Exporte: Automatische Builderauszüge, native öffentliche REST-Inhalte und
+Feedvolltext bleiben ohne gültige semantische PHP-Projektion leer. Den Callback
+`skye_yoast_analysis_content` deshalb vor dem Merge anhand der tatsächlichen
+Layouts prüfen und die Exportantworten abnehmen. Manuelle Auszüge, explizite
+SEO-/Social-Beschreibungen und autorisierte native REST-Edit-Leser behalten
+ihre nativen Verträge.
+
+`components/page/content.php` ist jetzt der gemeinsame Dispatcher;
+`components/page/native.php` enthält die reine `the_content()`-Ausgabe mit
+Pagination. Eigene Overrides entsprechend ihrem tatsächlichen Zweck anpassen,
+ohne den nativen Fallback wieder in den Dispatcher zurückzuführen. Danach den
+kompletten Ablauf mit beidseits ungespeicherten Änderungen, visuellen Editoren,
+normalem noncegebundenem Save und Reload beider Quellen abnehmen. Ein sauberer
+Export oder eine bestandene VM-Suite ersetzt diesen Browser-/Speichernachweis
+nicht. Einen abgelehnten Browser-Save mit AJAX-Vorprüfung und einen direkten
+POST ohne diese Vorprüfung getrennt prüfen. Core kann im zweiten Fall schon
+persistiert sein, bevor ACF ablehnt; der Quellenvertrag führt keine gemeinsame
+Transaktion ein. Der aktuelle Prüfstand gehört in den
+[Projektlern-Nachweis](project-learnings-3.5.0.md).
 
 ## Prüfprogramme
 

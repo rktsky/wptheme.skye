@@ -1,6 +1,7 @@
 # SEO-Abnahme eines Skye-Projekts
 
-Skye stellt Komponenten und eine optionale [Yoast-Anbindung](yoast-analysis.md)
+Skye stellt eine gemeinsame [Quellenwahl](editor-sources.md), deren
+[Yoast-Anbindung](yoast-analysis.md) und optionale semantische Projektionen
 bereit. Die Website erhält ihre Suchmetadaten, Sprachen und Inhalte im jeweiligen
 WordPress-Projekt. Ein Themeupdate legt keine Fokusphrasen fest, erzeugt keine
 Bewertungen und ändert keine Indexierung.
@@ -18,23 +19,59 @@ erscheint. Ein Seitenbaukasten benötigt dafür eine zum Layout passende Projekt
 und Bilder mit ihren tatsächlichen Alternativtexten. Interne IDs, API-Felder,
 inaktive Entwürfe und versteckte Einstellungen sind kein Seiteninhalt. Schon
 vorhandene Projektadapter vor einer neuen Anbindung prüfen; Inhalte nicht zweimal
-beitragen. Der native ACF-Collector bleibt ohne gültige Skye-Projektion erhalten.
+beitragen. Der native ACF-Collector bleibt erhalten. Die bereite Quellenwahl entfernt nur
+den inaktiven Core-Eingang beziehungsweise dessen ACF-Append; unbekannte
+Layoutsemantik wird dadurch noch nicht als vollständig abgebildet behauptet.
 
-Eine eigene Quellenwahl darf beide Fassungen speichern, aber nur die aktive
-rendern und analysieren. Die Umschaltung allein belegt keine verlustfreie
-Bearbeitung. Beide Quellen ungespeichert ändern, wechseln, über das native Formular
-mit gültiger Nonce speichern, neu laden und beide neuen Werte prüfen. ACFs
-Conditional Logic kann ausgeblendete Inputs deaktivieren und aus `FormData`
-entfernen. Eine Sichtbarkeitssteuerung darf native Inputs deshalb nicht entfernen
-oder deaktivieren. Ohne den eigenen funktionsfähigen Controller bleiben beide
-Oberflächen sichtbar. Dies ist ein Projektvertrag; Skye liefert keine universelle
-Quellenumschaltung für unbekannte Feldgruppen.
+Skyes Quellenwahl bewahrt beide Fassungen in ihren ursprünglichen Speichern
+und verwendet nur die gewählte Quelle für Rendering und Analyse. Beim Merge
+die echten Rootkeys, Feldgruppen und Komponentenüberschreibungen an den
+[Quellenvertrag](editor-sources.md) anbinden. Ganze Wurzelbaukästen dürfen nicht
+mehr per Source-Conditional-Logic deaktiviert werden.
+
+Für die Abnahme beide Quellen ungespeichert ändern, wechseln, über das native
+Formular mit gültiger Nonce speichern, neu laden und beide neuen Werte prüfen.
+Dabei auch den visuellen TinyMCE-Editor verwenden. Ein unvollständiger inaktiver
+Builderentwurf muss erhalten bleiben; seine Aktivierung muss wieder die normale
+Validierung auslösen. Frühere fremde Fehler, falsche Nonces, fehlende Rechte und
+unbekannte Callbackfenster dürfen nicht durch die Ausnahme verschwinden. Ohne
+eigenen bereiten Controller bleiben beide Oberflächen sichtbar und die native
+Feldprüfung aktiv.
+
+Auch einen abgelehnten Save getrennt prüfen. Core kann bei einem direkten
+POST oder ohne AJAX-Vorprüfung bereits `post_content` speichern, bevor ACF seine
+Felder ablehnt. Eine Fehlermeldung belegt keine gemeinsame Rücknahme. Die
+[Core-/ACF-Teilupdategrenze](editor-sources.md#grenze-bei-abgelehnten-speicheraufrufen)
+gilt zusätzlich zum Erhalt der ungespeicherten Inputs. In der negativen
+Browserprobe nachweisen, dass die native AJAX-Prüfung den normalen POST stoppt,
+und anschliessend die tatsächlichen Werte beider Speicher sowie die
+Quellenauswahl kontrollieren.
+
+Ausdrücklich gespeicherte Builderwahl mit leerem Inhalt beziehungsweise
+entferntem Feldprofil separat prüfen: Der aufbewahrte Editor darf dabei nicht
+öffentlich werden. Die reine native Inhaltskomponente ist ab 3.5
+`components/page/native.php`; `components/page/content.php` ist der Dispatcher.
+
+Vor dem Merge den semantischen PHP-Callback `skye_yoast_analysis_content` mit den
+tatsächlichen Layouts prüfen. Die [öffentliche Quellenabgrenzung](public-content-sources.md)
+verwendet ihn auch für automatische Builderauszüge, native öffentliche
+REST-Inhalte und Feedvolltext. Ohne gültige Projektion bleiben diese
+Builderexporte leer. Die Antworten nach einem Quellenwechsel und bei fehlendem
+Mapper getrennt zurücklesen; auch Yoasts automatische Auszugvariable prüfen.
+Manuelle Auszüge, explizite SEO-/Social-Beschreibungen und autorisierte native
+REST-Edit-Leser müssen ihre nativen Werte behalten. Ein erfolgreicher
+Editoranalyse-Test belegt diese Exportwege nicht.
 
 Yoasts PHP-Analysefilter dient auch der Bildsuche für Social-Metadaten. Nach einer
 Projektion deshalb Open Graph, Twitter, Beitragsbild und explizite Social-Bilder
 erneut prüfen. Eigene Adapter beobachten die nativen Providerobjekte und verändern
 keinen ORM-Zustand, um Abfragen oder Meldungen zu verstecken. Gemeinsame Firmen-
-oder Kartenmodelle erst laden, wenn die tatsächliche Sektion sie benötigt.
+oder Kartenmodelle erst laden, wenn die tatsächliche Sektion sie benötigt. Nach
+einem echten Quellenwechsel ausserdem die daraus abgeleiteten Metadaten erneut
+lesen. Der Source-Marker wird nach dem nativen ACF-Save gespeichert; Yoast 28.8
+hängt seinen Post-Indexer an `wp_insert_post`, nach Cores `save_post`. Diese
+Quellenreihenfolge allein ersetzt keinen Save-/Readback-Nachweis. Ein manueller
+Eingriff in Yoasts ORM darf einen veralteten Ableitungszustand nicht verdecken.
 
 ## Redaktion und technische Prüfung
 
