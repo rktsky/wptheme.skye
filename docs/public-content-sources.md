@@ -99,7 +99,7 @@ WordPress- oder Plugin-Exporter.
 
 Geprüft wurden die lokalen Quellen von WordPress 7.1.4, Yoast SEO 28.8 und der
 unveränderten ACF-PRO-6.8.11-Referenz. Ihre Herkunft und die Grenzen des
-Prüfsummenabgleichs stehen im [gemeinsamen Nachweis](project-learnings-3.5.0.md#herkunft-und-offene-abschlussarbeiten).
+Prüfsummenabgleichs stehen im [gemeinsamen Nachweis](project-learnings-3.5.0.md#herkunft-und-ci-nachweise).
 Entscheidend sind Core
 `wp_trim_excerpt`, `WP_REST_Posts_Controller::prepare_item_for_response` und
 `get_the_content_feed`, Yoasts
