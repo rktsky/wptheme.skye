@@ -1,0 +1,6 @@
+// Hide only the exact panes marked by the verified controller; native form controls stay enabled.
+#post[data-skye-content-sources-ready="true"][data-skye-content-source="builder"] #postdivrich[data-skye-content-source-panel="editor"],
+#post[data-skye-content-sources-ready="true"][data-skye-content-source="editor"] .acf-field[data-skye-content-source-panel="builder"],
+#post[data-skye-content-sources-ready="true"][data-skye-content-source="editor"] .acf-postbox[data-skye-content-source-group="builder"] {
+	display: none !important;
+}
