@@ -3,7 +3,7 @@
 
 namespace Rocketsky\Skye\Packages\Assets;
 
-/** Refresh bounded logical and symlink-target prefixes before native canonicalization. */
+/** Resolve fresh physical paths directly and retain bounded native alias traversal. */
 final class PathIdentity {
 	/** @var int Maximum components in one absolute candidate, including its root. */
 	private const MAX_DEPTH = 64;
@@ -17,15 +17,16 @@ final class PathIdentity {
 	/**
 	 * Resolve a fresh local identity, retaining supported native root symlinks.
 	 *
-	 * Clearing only the leaf misses cached intermediate directories. Clear each
-	 * logical prefix and inspect actual links, then refresh their target prefixes
-	 * including the remaining suffix. Native realpath still performs the final
-	 * canonicalization; callers decide whether the result belongs to their root.
-	 * Depth, prefix and link budgets reject loops or excessive paths. No global
-	 * realpath-cache flush, directory scan or request-local identity cache is used.
+	 * A fresh native POSIX realpath resolves an already physical spelling without
+	 * inspecting every ancestor twice. Clear PHP's request-local filesystem caches
+	 * first, including cached parent aliases. Alias and noncanonical paths retain
+	 * the original bounded prefix/link walk; Windows keeps that complete path.
+	 * Callers still enforce source roots and descriptor identity around their read.
+	 * No identity, root decision, source byte or eligibility result is cached here.
 	 *
 	 * @since 3.4.0
-	 * @param string $path Absolute native local candidate.
+	 * @since 3.5.0 Resolve fresh exact POSIX paths without repeated prefix inspections.
+	 * @param mixed $path Absolute native local candidate; other values are refused.
 	 * @return string|false Current canonical path, or a bounded refusal.
 	 * @see https://www.php.net/manual/en/function.clearstatcache.php
 	 * @see https://www.php.net/manual/en/function.readlink.php
@@ -34,6 +35,16 @@ final class PathIdentity {
 		$original = self::prefixes( $path );
 		if ( false === $original ) {
 			return false;
+		}
+		if ( DIRECTORY_SEPARATOR === '/' ) {
+			clearstatcache( true );
+			$resolved = @realpath( $path );
+			if ( false === $resolved ) {
+				return false;
+			}
+			if ( $resolved === ( $path === '/' ? '/' : rtrim( $path, '/' ) ) ) {
+				return $resolved;
+			}
 		}
 		$candidate = $path;
 		$seen = array();
@@ -89,7 +100,7 @@ final class PathIdentity {
 	 * candidate remains absolute and is ultimately interpreted by native PHP.
 	 *
 	 * @since 3.4.0
-	 * @param string $path Candidate before any filesystem lookup.
+	 * @param mixed $path Candidate before any filesystem lookup.
 	 * @return string[]|false Root-first prefixes or an invalid/excessive-path refusal.
 	 */
 	private static function prefixes( $path ) {
