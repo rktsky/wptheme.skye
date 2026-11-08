@@ -251,7 +251,11 @@ test('malformed manifests, missing files, symlinks and changed fingerprints fail
 	const file = path.join(dist, 'assets.json');
 	const original = await fs.readFile(file);
 	const manifest = JSON.parse(original.toString());
+	const withoutAnalysis = {...manifest};
+	delete withoutAnalysis['yoast-analysis.js'];
 	try {
+		await fs.writeFile(file, JSON.stringify(withoutAnalysis));
+		await assert.rejects(readReleaseAssets(dist), /Missing required built asset: yoast-analysis\.js/);
 		await fs.writeFile(file, '{invalid');
 		await assert.rejects(readReleaseAssets(dist), /manifest JSON/);
 		await fs.writeFile(file, JSON.stringify({...manifest, _licenses: []}));

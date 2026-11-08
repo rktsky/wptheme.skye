@@ -42,7 +42,7 @@ export async function readReleaseAssets(dist) {
 	try { manifest = JSON.parse(bytes.toString('utf8')); }
 	catch { throw new Error('Invalid asset manifest JSON.'); }
 	if (!isObject(manifest)) throw new Error('Invalid asset manifest object.');
-	for (const key of ['main.css', 'main-mobile.css', 'main-critical.css', 'login.css', 'backend.css', 'fontawesome.css', 'main.js', 'critical-styles.js', 'critical-form-gate.js', 'mobile-navigation.js', 'mobile-navigation.css']) {
+	for (const key of ['main.css', 'main-mobile.css', 'main-critical.css', 'login.css', 'backend.css', 'fontawesome.css', 'main.js', 'critical-styles.js', 'critical-form-gate.js', 'mobile-navigation.js', 'mobile-navigation.css', 'yoast-analysis.js']) {
 		if (typeof manifest[key] !== 'string') throw new Error('Missing required built asset: ' + key);
 	}
 	const performance = manifest._performance;
