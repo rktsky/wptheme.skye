@@ -6,6 +6,7 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const source = fs.readFileSync(path.join(__dirname, '../assets/scripts/yoast-analysis.js'), 'utf8');
+const coupling = fs.readFileSync(path.join(__dirname, '../assets/scripts/content-sources-yoast.js'), 'utf8');
 
 /**
  * Run the production bridge with the original collector's documented append position.
@@ -15,6 +16,8 @@ const source = fs.readFileSync(path.join(__dirname, '../assets/scripts/yoast-ana
  */
 function fixture(options = {}) {
 	const events = new Map();
+	const sourceEvents = new Map();
+	const document = {addEventListener: (name, callback) => sourceEvents.set(name, callback)};
 	const timers = new Map();
 	let nextTimer = 0;
 	let reloads = 0;
@@ -38,10 +41,12 @@ function fixture(options = {}) {
 	};
 	if (!options.lateYoast) window.YoastSEO = {app, analysis: {worker: {}}};
 	if (options.foreignGlobal) window.SkyeYoastAnalysis = options.foreignGlobal;
-	const context = vm.createContext({window, jQuery: () => ({on: (name, callback) => events.set(name, callback)}), Promise});
+	const context = vm.createContext({window, document, jQuery: () => ({on: (name, callback) => events.set(name, callback)}), Promise});
 	vm.runInContext(source, context);
 	return {
 		window, app, modifications, plugins, timers,
+		couple() { vm.runInContext(coupling, context); },
+		sourceChanged() { sourceEvents.get('skye:content-source:change')?.({detail: {source:'untrusted event payload'}}); },
 		get reloads() { return reloads; },
 		ready() { window.YoastSEO = {app, analysis: {worker: {}}}; events.get('YoastSEO:ready')?.(); },
 		flush() { const callbacks = [...timers.values()]; timers.clear(); callbacks.forEach(callback => callback()); },
@@ -170,4 +175,132 @@ test('later foreign content modifiers retain their native position after the exp
 	assert.equal(f.window.SkyeYoastAnalysis.refresh('fixture'), false);
 	f.flush();
 	assert.equal(f.reloads, 0);
+});
+
+
+test('source policy alone keeps the native collector while excluding the inactive source', () => {
+	const f = fixture();
+	let mode = 'builder';
+	let reads = 0;
+	let collectorInput;
+	const policy = () => { reads++; return mode; };
+	f.modifications.push({priority: 9, callback: input => { collectorInput = input; return input; }});
+	assert.equal(f.window.SkyeYoastAnalysis.setSource('fixture', policy), true);
+	assert.equal(f.plugins.length, 1);
+	assert.equal(f.analyze('<p>Inactive editor.</p>'), '<p>Native ACF collector.</p>');
+	assert.equal(collectorInput, '', 'The real append receives no inactive editor text.');
+	assert.equal(reads, 1, 'A pipeline uses one source decision.');
+	mode = 'editor';
+	assert.equal(f.analyze('<p>Current editor.</p>'), '<p>Current editor.</p>');
+	assert.equal(collectorInput, '<p>Current editor.</p>');
+	assert.equal(reads, 2);
+	assert.equal(f.window.SkyeYoastAnalysis.setSource('other', policy), false);
+	assert.equal(f.window.SkyeYoastAnalysis.setSource('fixture', null), false);
+	assert.equal(f.window.SkyeYoastAnalysis.setSource('fixture', () => mode), false);
+	assert.equal(f.window.SkyeYoastAnalysis.setSource('fixture', policy), true);
+});
+
+test('a valid source keeps its native active fallback when optional semantics are absent or fail', () => {
+	const f = fixture();
+	let mode = 'builder';
+	let result = null;
+	let fail = false;
+	f.window.SkyeYoastAnalysis.setSource('fixture', () => mode);
+	assert.equal(f.window.SkyeYoastAnalysis.register('fixture', (before, combined) => {
+		assert.ok(before.includes('editor'));
+		if (fail) throw new Error('Unavailable semantic mapping');
+		return result;
+	}), true, 'Semantic adapters can register after the source policy.');
+	for (result of [null, false, 0, {}, Promise.resolve('Unknown asynchronous value')]) {
+		assert.equal(f.analyze('Inactive editor.'), '<p>Native ACF collector.</p>');
+		mode = 'editor';
+		assert.equal(f.analyze('Current editor.'), 'Current editor.');
+		mode = 'builder';
+	}
+	fail = true;
+	assert.equal(f.analyze('Inactive editor.'), '<p>Native ACF collector.</p>');
+	mode = 'editor';
+	assert.equal(f.analyze('Current editor.'), 'Current editor.');
+	fail = false;
+	result = '<h1>Actual mapped active source.</h1>';
+	assert.equal(f.analyze('Current editor.'), result);
+	assert.equal(f.plugins.length, 1);
+});
+
+test('unavailable source decisions preserve full native input and never invoke a semantic replacement', () => {
+	const f = fixture();
+	let selected;
+	let fail = false;
+	let semanticCalls = 0;
+	f.window.SkyeYoastAnalysis.setSource('fixture', () => {
+		if (fail) throw new Error('Controller not ready');
+		return selected;
+	});
+	f.window.SkyeYoastAnalysis.register('fixture', () => { semanticCalls++; return 'Must not run.'; });
+	for (selected of [undefined, null, false, 'unknown', 0, {}, Promise.resolve('builder')]) {
+		assert.equal(f.analyze('Native editor.'), 'Native editor.<p>Native ACF collector.</p>');
+	}
+	fail = true;
+	assert.equal(f.analyze('Native editor.'), 'Native editor.<p>Native ACF collector.</p>');
+	assert.equal(semanticCalls, 0);
+});
+
+test('source-only initialization, changed apps and partial registration failures retain native boundaries', () => {
+	const early = fixture({lateYoast: true});
+	early.window.SkyeYoastAnalysis.setSource('fixture', () => 'builder');
+	assert.equal(early.plugins.length, 0);
+	early.ready();
+	assert.equal(early.plugins.length, 1);
+	assert.equal(early.analyze('Inactive editor.'), '<p>Native ACF collector.</p>');
+	const late = fixture({lateYoast: true});
+	late.ready();
+	late.window.SkyeYoastAnalysis.setSource('fixture', () => 'editor');
+	assert.equal(late.analyze('Current editor.'), 'Current editor.');
+	late.window.YoastSEO.app = {};
+	assert.equal(late.analyze('Native editor.'), 'Native editor.<p>Native ACF collector.</p>');
+	for (const options of [{throwPlugin:true}, {throwModification:true}]) {
+		const broken = fixture(options);
+		assert.equal(broken.window.SkyeYoastAnalysis.setSource('fixture', () => 'builder'), false);
+		assert.equal(broken.analyze('Native editor.'), 'Native editor.<p>Native ACF collector.</p>');
+	}
+});
+
+test('the coupler observes ready state and genuine source changes without trusting event payloads', () => {
+	const f = fixture();
+	let mode = null;
+	f.couple();
+	assert.equal(f.plugins.length, 0);
+	f.window.SkyeContentSources = {getSource: () => mode};
+	f.sourceChanged();
+	assert.equal(f.plugins.length, 0, 'An existing but unready controller remains native.');
+	mode = 'builder';
+	f.sourceChanged();
+	assert.equal(f.analyze('Inactive editor.'), '<p>Native ACF collector.</p>');
+	mode = 'editor';
+	f.sourceChanged();
+	assert.equal(f.analyze('Current editor.'), 'Current editor.');
+	mode = null;
+	f.sourceChanged();
+	assert.equal(f.analyze('Native editor.'), 'Native editor.<p>Native ACF collector.</p>');
+	mode = 'builder';
+	f.window.SkyeContentSources = {getSource: () => 'builder'};
+	f.sourceChanged();
+	assert.equal(f.analyze('Native editor.'), 'Native editor.<p>Native ACF collector.</p>', 'A replacement controller is not silently adopted.');
+});
+
+test('a controller ready before the coupler works with late Yoast and unknown configurations stay native', () => {
+	const f = fixture({lateYoast:true});
+	f.window.SkyeContentSources = {getSource: () => 'editor'};
+	f.couple();
+	assert.equal(f.plugins.length, 0);
+	f.ready();
+	assert.equal(f.analyze('Current editor.'), 'Current editor.');
+	const unknown = fixture({config:{id:'<invalid>'}});
+	unknown.window.SkyeContentSources = {getSource: () => 'builder'};
+	unknown.couple();
+	assert.equal(unknown.analyze('Native.'), 'Native.<p>Native ACF collector.</p>');
+	const throwing = fixture();
+	throwing.window.SkyeContentSources = {getSource() { throw new Error('Unavailable controller'); }};
+	throwing.couple();
+	assert.equal(throwing.plugins.length, 0);
 });

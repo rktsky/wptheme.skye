@@ -311,9 +311,11 @@ try {
 	}
 	core_check( $queries === core_calls( 'get_posts' ), 'Ordinary views do not launch suggestion/random/archive-configuration queries.' );
 	core_check( 0 === core_calls( 'update_field' ) && 0 === core_calls( 'delete_post_meta' ), 'Actual public single rendering performs no legacy content migration.' );
+	$pagination_calls = core_calls( 'wp_link_pages' );
 	ob_start();
 	skye_render_pagebuilder();
 	core_check( 'Native content' === ob_get_clean(), 'Absent optional row API retains complete native content.' );
+	core_check( core_calls( 'wp_link_pages' ) === $pagination_calls + 1, 'The actual native component delegates pagination once; this isolated boundary does not reproduce Core pagination.' );
 	$navigation = skye_navigation_model();
 	$brand = skye_brand_model();
 	$nav_html = skye_component_html( 'navigation', false, array( 'navigation' => $navigation, 'brand' => $brand ) );

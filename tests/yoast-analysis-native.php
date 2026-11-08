@@ -20,10 +20,14 @@ if ( wp_get_environment_type() !== 'local' || ! defined( 'DB_ENGINE' ) || DB_ENG
 }
 require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
 require_once ABSPATH . 'wp-admin/includes/screen.php';
+require_once ABSPATH . 'wp-admin/includes/template.php';
+require_once dirname( __DIR__ ) . '/lib/package/ContentSources.php';
 require_once dirname( __DIR__ ) . '/lib/package/YoastAnalysis.php';
 
 use Rocketsky\Skye\Packages\YoastAnalysis;
+use Rocketsky\Skye\Packages\ContentSources;
 
+new ContentSources();
 new YoastAnalysis();
 $analysis_checks = 0;
 $analysis_project_result = null;
@@ -77,6 +81,36 @@ function analysis_editor( $previous, $post ) {
 }
 
 /**
+ * Select only this process-local source fixture without changing saved metadata.
+ * @since 3.5.0
+ * @param mixed $previous Earlier metadata decision.
+ * @param int $object_id Exact Core metadata owner.
+ * @param string $key Requested metadata key.
+ * @param bool $single Whether the caller requests one value.
+ * @return mixed Controlled source for this fixture, otherwise the unchanged decision.
+ */
+function analysis_source_metadata( $previous, $object_id, $key, $single ) {
+	if ( $object_id === $GLOBALS['analysis_post']->ID && $key === ContentSources::META_KEY ) {
+		return $GLOBALS['analysis_source_choice'];
+	}
+	return $previous;
+}
+
+/**
+ * Bind the original ACF local-field fixture without colliding with customer field names.
+ * @since 3.5.0
+ * @param array $previous Earlier default source profile.
+ * @param WP_Post $post Exact source owner.
+ * @return array This fixture's finite key/name pair or the original profile.
+ */
+function analysis_source_configuration( $previous, $post ) {
+	if ( $post->ID !== $GLOBALS['analysis_post']->ID ) {
+		return $previous;
+	}
+	return ! empty( $GLOBALS['analysis_source_no_field'] ) ? array( 'name' => 'analysis_missing_builder', 'key' => 'field_skye_analysis_missing' ) : array( 'name' => 'analysis_fixture_builder', 'key' => 'field_skye_analysis_root' );
+}
+
+/**
  * Point the package to this source checkout through Core's public path filter.
  * @since 3.5.0
  * @param string $directory Original theme directory.
@@ -110,12 +144,16 @@ function analysis_native_collector() {
 
 $analysis_original_post = $GLOBALS['post'] ?? null;
 $analysis_original_scripts = $GLOBALS['wp_scripts'] ?? null;
+$analysis_original_styles = $GLOBALS['wp_styles'] ?? null;
 $analysis_original_screen = $GLOBALS['current_screen'] ?? null;
+$analysis_original_meta_boxes = $GLOBALS['wp_meta_boxes'] ?? null;
+$analysis_original_type_now = $GLOBALS['typenow'] ?? null;
+$analysis_original_admin_page = $GLOBALS['pagenow'] ?? null;
 $analysis_original_user = get_current_user_id();
-$analysis_posts = get_posts( array( 'post_type' => 'page', 'post_status' => 'publish', 'posts_per_page' => 1, 'has_password' => false ) );
+$analysis_posts = get_posts( array( 'post_type' => 'page', 'post_status' => 'publish', 'posts_per_page' => 1, 'has_password' => false, 'meta_query' => array( array( 'key' => ContentSources::META_KEY, 'compare' => 'NOT EXISTS' ) ) ) );
 $analysis_admins = get_users( array( 'role' => 'administrator', 'number' => 1, 'fields' => 'ID' ) );
 if ( ! $analysis_posts || ! $analysis_admins ) {
-	throw new RuntimeException( 'The disposable fixture requires a native published Sample Page and its installation administrator.' );
+	throw new RuntimeException( 'The disposable fixture requires a native published unmanaged Sample Page and its installation administrator.' );
 }
 $analysis_post = $analysis_posts[0];
 add_filter( 'pre_http_request', 'analysis_no_http', PHP_INT_MAX );
@@ -226,15 +264,103 @@ try {
 	$GLOBALS['post']->post_type = 'post';
 	YoastAnalysis::enqueue( 'post.php' );
 	analysis_check( ! wp_script_is( 'skye-yoast-analysis', 'registered' ), 'A mismatched screen/post identity cannot select an editor adapter.' );
+	if ( function_exists( 'acf_add_local_field_group' ) && defined( 'ACF_VERSION' ) && ACF_VERSION === '6.8.11' ) {
+		$GLOBALS['post'] = $analysis_post;
+		acf_add_local_field_group( array(
+			'key' => 'group_skye_analysis_sources', 'title' => 'Isolated analysis source fixture',
+			'fields' => array( array( 'key' => 'field_skye_analysis_root', 'name' => 'analysis_fixture_builder', 'label' => 'Builder', 'type' => 'flexible_content', 'layouts' => array() ) ),
+			'location' => array( array( array( 'param' => 'post_type', 'operator' => '==', 'value' => 'page' ) ) ),
+		) );
+		add_filter( 'skye_content_sources', 'analysis_source_configuration', 10, 2 );
+		add_filter( 'get_post_metadata', 'analysis_source_metadata', 10, 4 );
+		$analysis_source_choice = 'builder';
+		analysis_check( ContentSources::analysis_source( $analysis_post ) === 'builder', 'The current original ACF field definition identifies the actual source scope.' );
+		analysis_check( apply_filters( 'wpseo_pre_analysis_post_content', '<img src="https://example.test/inactive.jpg">', $analysis_post ) === '', 'An unmapped builder never exposes inactive editor images through PHP analysis.' );
+		if ( class_exists( 'WPSEO_Content_Images' ) ) {
+			$images = new WPSEO_Content_Images();
+			$source_post = clone $analysis_post;
+			$source_post->post_content = '<img src="https://example.test/inactive.jpg">';
+			analysis_check( $images->get_images( $source_post->ID, $source_post ) === array(), 'The unchanged native Yoast image finder sees no inactive editor image in unmapped builder mode.' );
+		}
+		$analysis_source_no_field = true;
+		analysis_check( ContentSources::field( $analysis_post ) === array() && apply_filters( 'wpseo_pre_analysis_post_content', 'Inactive editor.', $analysis_post ) === '', 'Stored builder choice prevents inactive editor fallback after its original field profile disappears.' );
+		$analysis_source_no_field = false;
+		add_filter( 'skye_yoast_analysis_content', 'analysis_project', 10, 3 );
+		$analysis_project_result = '<h1>Visible builder.</h1><img src="https://example.test/visible-builder.jpg">';
+		analysis_check( apply_filters( 'wpseo_pre_analysis_post_content', 'Inactive editor.', $analysis_post ) === $analysis_project_result, 'A deliberate semantic mapper can supply actual active builder content.' );
+		$analysis_project_result = null;
+		analysis_check( apply_filters( 'wpseo_pre_analysis_post_content', 'Inactive editor.', $analysis_post ) === '', 'An unavailable semantic mapper retains the active empty builder fallback.' );
+		$analysis_throw = true;
+		analysis_check( apply_filters( 'wpseo_pre_analysis_post_content', 'Inactive editor.', $analysis_post ) === '', 'A failing builder mapper cannot restore inactive editor content.' );
+		$analysis_throw = false;
+		$analysis_source_choice = 'editor';
+		$analysis_project_result = '<p>Inactive builder mapping.</p>';
+		$analysis_project_calls = 0;
+		analysis_check( apply_filters( 'wpseo_pre_analysis_post_content', 'Current editor.', $analysis_post ) === 'Current editor.', 'A known editor source retains Core content rather than an inactive semantic builder mapper.' );
+		analysis_check( $analysis_project_calls === 0, 'Known editor mode does not invoke an inactive builder mapper.' );
+		if ( class_exists( 'WPSEO_Content_Images' ) ) {
+			$images = new WPSEO_Content_Images();
+			$source_post = clone $analysis_post;
+			$source_post->post_content = '<img src="https://example.test/current-editor.jpg">';
+			analysis_check( $images->get_images( $source_post->ID, $source_post ) === array( 'https://example.test/current-editor.jpg' ), 'The unchanged native Yoast image finder retains the active editor image.' );
+		}
+		remove_filter( 'skye_yoast_analysis_content', 'analysis_project', 10 );
+		remove_filter( 'skye_yoast_analysis_editor', 'analysis_editor', 10 );
+		$GLOBALS['post'] = $analysis_post;
+		$GLOBALS['typenow'] = $analysis_post->post_type;
+		$GLOBALS['pagenow'] = 'post.php';
+		// The actual native form registers its metabox callback on load-post.php.
+		do_action( 'load-post.php' );
+		do_action( 'add_meta_boxes', $analysis_post->post_type, $analysis_post );
+		analysis_check( ContentSources::position_supported( $analysis_post ), 'The original ACF post-form lifecycle positions its actual builder box before the source integration is enabled.' );
+		$GLOBALS['wp_scripts'] = new WP_Scripts();
+		$GLOBALS['wp_styles'] = new WP_Styles();
+		wp_register_script( 'acf-input', '/fixture-registered-acf-input.js', array( 'jquery' ), '6.8.11', true );
+		analysis_native_collector();
+		ContentSources::enqueue( 'post.php' );
+		YoastAnalysis::enqueue( 'post.php' );
+		analysis_check( wp_script_is( 'skye-content-sources-yoast', 'enqueued' ), 'A verified source editor gets the native collector coupling without a project semantic adapter.' );
+		analysis_check( wp_scripts()->registered['skye-content-sources-yoast']->deps === array( 'skye-yoast-analysis', 'skye-content-sources' ), 'Core resolves the coupler after both verified owned APIs.' );
+		analysis_check( wp_scripts()->get_data( 'skye-yoast-analysis', 'data' ) === 'var SkyeYoastAnalysisConfig = {"id":"skye-content-sources"};', 'The default source integration localizes only its bounded identity.' );
+		$GLOBALS['wp_scripts'] = new WP_Scripts();
+		$GLOBALS['wp_styles'] = new WP_Styles();
+		wp_register_script( 'acf-input', '/fixture-registered-acf-input.js', array( 'jquery' ), '6.8.11', true );
+		analysis_native_collector();
+		ContentSources::enqueue( 'post.php' );
+		wp_register_script( 'fixture-project-analysis', '/fixture-owned-project.js', array( 'skye-yoast-analysis' ), null, true );
+		add_filter( 'skye_yoast_analysis_editor', 'analysis_editor', 10, 2 );
+		$analysis_editor_config = array( 'id' => 'fixture', 'script' => 'fixture-project-analysis' );
+		YoastAnalysis::enqueue( 'post.php' );
+		analysis_check( wp_script_is( 'fixture-project-analysis', 'enqueued' ) && wp_script_is( 'skye-content-sources-yoast', 'enqueued' ), 'A project semantic adapter and native source policy can be loaded together.' );
+		analysis_check( wp_scripts()->get_data( 'skye-yoast-analysis', 'data' ) === 'var SkyeYoastAnalysisConfig = {"id":"fixture"};', 'The source coupler uses the current explicit project identity without its own fixed ID.' );
+		remove_filter( 'skye_yoast_analysis_editor', 'analysis_editor', 10 );
+		$GLOBALS['wp_scripts'] = new WP_Scripts();
+		$GLOBALS['wp_styles'] = new WP_Styles();
+		wp_register_script( 'acf-input', '/fixture-registered-acf-input.js', array( 'jquery' ), '6.8.11', true );
+		analysis_native_collector();
+		ContentSources::enqueue( 'post.php' );
+		wp_deregister_script( 'skye-content-sources' );
+		wp_register_script( 'skye-content-sources', '/foreign-source-controller.js', array( 'jquery', 'acf-input' ), null, true );
+		YoastAnalysis::enqueue( 'post.php' );
+		analysis_check( ! wp_script_is( 'skye-yoast-analysis', 'registered' ), 'A foreign source controller cannot enable the default source-policy bridge.' );
+		remove_filter( 'skye_content_sources', 'analysis_source_configuration', 10 );
+		remove_filter( 'get_post_metadata', 'analysis_source_metadata', 10 );
+	}
 	analysis_check( $analysis_http === 0, 'No analysis callback or enqueue performs HTTP.' );
 	echo 'PASS ' . $analysis_checks . " native Yoast scope, identity, fallback and script-contract assertions; no CMS writes or transport.\n";
 } finally {
 	remove_filter( 'skye_yoast_analysis_content', 'analysis_project', 10 );
 	remove_filter( 'skye_yoast_analysis_editor', 'analysis_editor', 10 );
 	remove_filter( 'pre_http_request', 'analysis_no_http', PHP_INT_MAX );
+	remove_filter( 'skye_content_sources', 'analysis_source_configuration', 10 );
+	remove_filter( 'get_post_metadata', 'analysis_source_metadata', 10 );
 	remove_filter( 'template_directory', 'analysis_source_directory' );
 	$GLOBALS['post'] = $analysis_original_post;
 	$GLOBALS['wp_scripts'] = $analysis_original_scripts;
+	$GLOBALS['wp_styles'] = $analysis_original_styles;
 	$GLOBALS['current_screen'] = $analysis_original_screen;
+	$GLOBALS['wp_meta_boxes'] = $analysis_original_meta_boxes;
+	$GLOBALS['typenow'] = $analysis_original_type_now;
+	$GLOBALS['pagenow'] = $analysis_original_admin_page;
 	wp_set_current_user( $analysis_original_user );
 }

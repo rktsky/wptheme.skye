@@ -53,6 +53,7 @@ jobs:
           "$SKYE_TEST_NODE" --test tests/critical-loader.test.cjs
           "$SKYE_TEST_NODE" --test tests/mobile-navigation.test.cjs
           "$SKYE_TEST_NODE" --test tests/yoast-analysis.test.cjs
+          "$SKYE_TEST_NODE" --test tests/content-sources.test.cjs
           "$SKYE_TEST_NODE" --test tests/release.test.mjs
           python3 tools/test-audit-crawlers.py
       - name: Prove a clean committed release export

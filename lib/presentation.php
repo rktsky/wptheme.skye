@@ -261,29 +261,51 @@ function skye_render_main_view() {
 }
 
 /**
- * Render optional ACF flexible content through existing component overrides.
+ * Render only the chosen native or ACF source through existing component overrides.
  *
- * Missing ACF or missing layouts retain native content; access is checked before
- * rows or custom values are read. A layout name cannot escape components/.
+ * Unmanaged missing/unknown ACF profiles retain native fallback. An explicit
+ * builder stays bound even when its provider or layouts are missing, so an
+ * inactive editor cannot become public. Access precedes custom-field reads.
+ * Native fallback has its own component and cannot re-enter source dispatch.
  *
  * @since 3.0.0
+ * @since 3.5.0 Honors the independent source choice and strict saved-builder boundary.
  * @return void
  */
 function skye_render_pagebuilder() {
 	if ( 'allowed' !== skye_content_access_state() ) {
-		the_content();
+		get_component( 'page/native' );
 		return;
 	}
+	if ( class_exists( Rocketsky\Skye\Packages\ContentSources::class ) && Rocketsky\Skye\Packages\ContentSources::mode() !== 'builder' ) {
+		get_component( 'page/native' );
+		return;
+	}
+	$field_name = 'pagebuilder';
+	$bound_builder = false;
+	$post = get_post( get_the_ID() );
+	if ( $post instanceof WP_Post && class_exists( Rocketsky\Skye\Packages\ContentSources::class ) ) {
+		$config = Rocketsky\Skye\Packages\ContentSources::configuration( $post );
+		$field_name = $config['name'] ?? 'pagebuilder';
+		$bound_builder = Rocketsky\Skye\Packages\ContentSources::analysis_source( $post ) === 'builder';
+		if ( get_post_meta( $post->ID, Rocketsky\Skye\Packages\ContentSources::META_KEY, true ) === 'builder' ) {
+			$field = Rocketsky\Skye\Packages\ContentSources::field( $post );
+			if ( ! $field ) {
+				return;
+			}
+			$field_name = $field['key'];
+		}
+	}
 	$rendered = false;
-	if ( function_exists( 'have_rows' ) && have_rows( 'pagebuilder' ) ) {
-		while ( have_rows( 'pagebuilder' ) ) {
+	if ( function_exists( 'have_rows' ) && have_rows( $field_name ) ) {
+		while ( have_rows( $field_name ) ) {
 			the_row();
 			$layout = get_row_layout();
 			$rendered = get_component( 'pagebuilder', $layout, array( 'row' => get_row( true ) ) ) || $rendered;
 		}
 	}
-	if ( ! $rendered ) {
-		the_content();
+	if ( ! $rendered && ! $bound_builder ) {
+		get_component( 'page/native' );
 	}
 }
 

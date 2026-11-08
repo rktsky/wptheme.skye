@@ -188,6 +188,8 @@ class CoreFixture {
 			case 'the_content':
 				echo 'Native content';
 				return null;
+			case 'wp_link_pages':
+				return '';
 			case 'get_search_form':
 			case 'register_post_type':
 			case 'status_header':
@@ -1158,6 +1160,20 @@ function is_feed( ...$args ) {
  */
 function the_content() {
 	CoreFixture::call( __FUNCTION__, array() );
+}
+
+/**
+ * Record pagination delegation with an explicit empty API outcome, without copying Core pagination logic.
+ *
+ * Real pagination behavior belongs to the separate native WordPress tests; this
+ * fixture only proves the actual component calls the expected public boundary.
+ *
+ * @since 3.5.0
+ * @param mixed ...$args Actual component-supplied native pagination arguments.
+ * @return string Empty isolated API response, never a synthetic pagination renderer.
+ */
+function wp_link_pages( ...$args ) {
+	return CoreFixture::call( __FUNCTION__, $args );
 }
 
 /** Minimal native-query boundary used only to observe the legacy denial response. */

@@ -13,6 +13,7 @@ const execute = promisify(execFile);
 const source = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const compilerNode = process.env.SKYE_BUILD_NODE || process.execPath;
 const reportPrefix = '__SKYE_RELEASE_TEST__';
+const contentSourceRoles = ['content-sources.js', 'content-sources-yoast.js', 'content-sources.css'];
 const gitEnvironment = {...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_AUTHOR_NAME: 'Skye Fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid', GIT_COMMITTER_NAME: 'Skye Fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid'};
 let temporary;
 let root;
@@ -118,6 +119,11 @@ test('clean HEAD export ships only verified current assets and licenses', {timeo
 	assert.ok(metadata.files['dist/assets.json']);
 	assert.ok(Object.keys(metadata.files).some(file => file.startsWith('dist/licenses/bootstrap-')));
 	const manifest = JSON.parse(await fs.readFile(path.join(root, 'dist/assets.json'), 'utf8'));
+	for (const role of contentSourceRoles) {
+		assert.equal(typeof manifest[role], 'string', 'A complete source-switching release declares ' + role);
+		assert.ok(metadata.files['dist/' + manifest[role]], 'Each source-switching role belongs to the exported release inventory.');
+		assert.deepEqual(await fs.readFile(path.join(output, 'dist', manifest[role])), await fs.readFile(path.join(root, 'dist', manifest[role])), 'The release retains the actual compiled source-switching bytes.');
+	}
 	assert.ok(Array.isArray(manifest._licenses) && manifest._licenses.length >= 2);
 	for (const license of manifest._licenses) assert.ok(metadata.files['dist/' + license], 'Every current provider license belongs to the release inventory.');
 });
@@ -251,11 +257,15 @@ test('malformed manifests, missing files, symlinks and changed fingerprints fail
 	const file = path.join(dist, 'assets.json');
 	const original = await fs.readFile(file);
 	const manifest = JSON.parse(original.toString());
-	const withoutAnalysis = {...manifest};
-	delete withoutAnalysis['yoast-analysis.js'];
 	try {
-		await fs.writeFile(file, JSON.stringify(withoutAnalysis));
-		await assert.rejects(readReleaseAssets(dist), /Missing required built asset: yoast-analysis\.js/);
+		for (const role of ['yoast-analysis.js', ...contentSourceRoles]) {
+			const withoutRole = {...manifest};
+			delete withoutRole[role];
+			await fs.writeFile(file, JSON.stringify(withoutRole));
+			await assert.rejects(readReleaseAssets(dist), error => error.message === 'Missing required built asset: ' + role);
+			await fs.writeFile(file, JSON.stringify({...manifest, [role]:null}));
+			await assert.rejects(readReleaseAssets(dist), error => error.message === 'Missing required built asset: ' + role);
+		}
 		await fs.writeFile(file, '{invalid');
 		await assert.rejects(readReleaseAssets(dist), /manifest JSON/);
 		await fs.writeFile(file, JSON.stringify({...manifest, _licenses: []}));
@@ -277,6 +287,14 @@ test('malformed manifests, missing files, symlinks and changed fingerprints fail
 		await fs.writeFile(file, JSON.stringify({...manifest, 'main.css': '../escape.css'}));
 		await assert.rejects(readReleaseAssets(dist), /path|fingerprint/);
 		await fs.writeFile(file, original);
+		for (const role of contentSourceRoles) {
+			const target = path.join(dist, manifest[role]);
+			const bytes = await fs.readFile(target);
+			try {
+				await fs.writeFile(target, 'Changed source-switching payload after build.');
+				await assert.rejects(readReleaseAssets(dist), /fingerprint mismatch/);
+			} finally { await fs.writeFile(target, bytes); }
+		}
 		const target = path.join(dist, manifest['main.js']);
 		const bytes = await fs.readFile(target);
 		await fs.writeFile(target, 'Changed after build.');

@@ -11,7 +11,9 @@
     "critical-styles.js": "scripts/critical-styles.js",
     "critical-form-gate.js": "scripts/critical-form-gate.js",
     "mobile-navigation.js": "scripts/mobile-navigation.js",
-    "yoast-analysis.js": "scripts/yoast-analysis.js"
+    "yoast-analysis.js": "scripts/yoast-analysis.js",
+    "content-sources.js": "scripts/content-sources.js",
+    "content-sources-yoast.js": "scripts/content-sources-yoast.js"
   },
   "branding": {
     "source": "backend.css",
