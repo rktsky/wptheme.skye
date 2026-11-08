@@ -13,3 +13,4 @@
 /README.tpl.md export-ignore
 /.nvmrc export-ignore
 /.npmrc export-ignore
+/docs export-ignore

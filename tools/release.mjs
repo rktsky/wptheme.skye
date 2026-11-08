@@ -88,17 +88,48 @@ export async function readReleaseAssets(dist) {
 	return { manifest, files };
 }
 
+/**
+ * Resolve Git's actual local attributes path, retaining modern worktree rules.
+ * Git 1.8 echoes the unknown --git-path option and its argument, sometimes
+ * failing with its exact unknown-revision diagnostic. Only those recognised
+ * responses permit --git-dir; other failures must retain their native error.
+ */
+async function releaseAttributesPath(root) {
+	const legacyOutput = '--git-path\ninfo/attributes\n';
+	const legacyDiagnostic = "fatal: ambiguous argument 'info/attributes': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]'\n";
+	const legacyDiagnostics = new Set([legacyDiagnostic, 'warning: ignoring broken ref info/attributes.\n'.repeat(2) + legacyDiagnostic]);
+	let response;
+	try {
+		response = await execute('git', ['rev-parse', '--git-path', 'info/attributes'], {cwd: root, env: {...process.env, LC_ALL:'C', LANG:'C'}});
+	} catch (error) {
+		if (error.code !== 128 || error.stdout !== legacyOutput || !legacyDiagnostics.has(error.stderr)) throw error;
+		response = error;
+	}
+	const output = response.stdout;
+	if (output === legacyOutput) {
+		if (response.stderr !== '' && !legacyDiagnostics.has(response.stderr)) throw new Error('Unrecognized legacy Git attributes response.');
+		const gitDirectory = (await execute('git', ['rev-parse', '--git-dir'], {cwd: root})).stdout.replace(/\n$/, '');
+		if (gitDirectory === '' || gitDirectory.startsWith('--') || /[\0\r\n]/.test(gitDirectory)) throw new Error('Unrecognized Git directory response.');
+		const directory = path.resolve(root, gitDirectory);
+		if (!(await fs.stat(directory)).isDirectory()) throw new Error('Git directory must be an existing directory.');
+		return path.join(directory, 'info', 'attributes');
+	}
+	const attributes = output.replace(/\n$/, '');
+	if (attributes === '' || attributes.startsWith('--') || /[\0\r\n]/.test(attributes) || !/(?:^|\/)info\/attributes$/.test(attributes)) throw new Error('Unrecognized Git attributes path response.');
+	return path.resolve(root, attributes);
+}
+
 /** Check tracked and ignored build inputs before and after compilation. */
 async function cleanRevision(root) {
 	const top = (await execute('git', ['rev-parse', '--show-toplevel'], {cwd: root})).stdout.trim();
 	if (await fs.realpath(top) !== root) throw new Error('Release root must be the Git checkout root.');
-	const status = (await execute('git', ['status', '--porcelain=v1', '--untracked-files=all'], {cwd: root})).stdout;
+	const status = (await execute('git', ['status', '--porcelain', '--untracked-files=all'], {cwd: root})).stdout;
 	if (status !== '') throw new Error('Release requires a clean committed worktree.');
 	const ignored = (await execute('git', ['ls-files', '--others', '--ignored', '--exclude-standard', '-z', '--', 'assets', 'components', 'views', 'templates', 'lib', 'tools/build'], {cwd: root})).stdout;
 	if (ignored !== '') throw new Error('Ignored build inputs must be removed before release.');
-	const localAttributes = (await execute('git', ['rev-parse', '--git-path', 'info/attributes'], {cwd: root})).stdout.trim();
+	const localAttributes = await releaseAttributesPath(root);
 	try {
-		if ((await fs.readFile(path.resolve(root, localAttributes), 'utf8')).trim() !== '') throw new Error('Release export rules must be committed, not set in Git info/attributes.');
+		if ((await fs.readFile(localAttributes, 'utf8')).trim() !== '') throw new Error('Release export rules must be committed, not set in Git info/attributes.');
 	} catch (error) { if (error.code !== 'ENOENT') throw error; }
 	return (await execute('git', ['rev-parse', 'HEAD'], {cwd: root})).stdout.trim();
 }
@@ -154,7 +185,7 @@ export async function release({root = defaultRoot, output} = {}) {
 	let staging = await fs.mkdtemp(path.join(parent, '.skye-release-'));
 	try {
 		await extractRevision(root, revision, staging);
-		for (const name of ['.git', 'tests', 'tools', '.github', 'node_modules', 'assets', 'package.json', 'package-lock.json', 'build.mjs', 'AGENTS.md', '.php-cs-fixer.dist.php', '.editorconfig', '.nvmrc', '.npmrc', 'README.tpl.md']) {
+		for (const name of ['.git', 'tests', 'tools', 'docs', '.github', 'node_modules', 'assets', 'package.json', 'package-lock.json', 'build.mjs', 'AGENTS.md', '.php-cs-fixer.dist.php', '.editorconfig', '.nvmrc', '.npmrc', 'README.tpl.md']) {
 			try { await fs.lstat(path.join(staging, name)); throw new Error('Development path leaked through git archive: ' + name); }
 			catch (error) { if (error.code !== 'ENOENT') throw error; }
 		}

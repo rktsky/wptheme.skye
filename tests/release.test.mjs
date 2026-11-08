@@ -21,7 +21,7 @@ let compilerVersion;
 let releaseVersion;
 
 /** Execute the actual fixture release compiler separately from the modern harness. */
-async function release(options) {
+async function release(options, environment = {}) {
 	const program = `
 		import {pathToFileURL} from 'url';
 		const report = value => console.log(${JSON.stringify(reportPrefix)} + JSON.stringify({node:process.version,executable:process.execPath,...value}));
@@ -35,7 +35,7 @@ async function release(options) {
 	`;
 	let execution;
 	try {
-		execution = await execute(compilerNode, ['--input-type=module', '--eval', program, JSON.stringify(options), path.join(root, 'tools/release.mjs')], {cwd:source, env:gitEnvironment, timeout:60000, killSignal:'SIGKILL', maxBuffer:16*1024*1024});
+		execution = await execute(compilerNode, ['--input-type=module', '--eval', program, JSON.stringify(options), path.join(root, 'tools/release.mjs')], {cwd:source, env:{...gitEnvironment,...environment}, timeout:60000, killSignal:'SIGKILL', maxBuffer:16*1024*1024});
 	} catch (error) {
 		if (!error.stdout?.split('\n').some(value => value.startsWith(reportPrefix))) throw error;
 		execution = error;
@@ -81,6 +81,8 @@ before(async () => {
 	await fs.writeFile(path.join(root, 'style.css'), `/*\nTheme Name: Skye release fixture\nVersion: ${releaseVersion}\n*/\n`);
 	await fs.writeFile(path.join(root, 'functions.php'), '<?php /** Source export fixture. */\n');
 	await fs.writeFile(path.join(root, 'README.md'), 'Committed release fixture.\n');
+	await fs.mkdir(path.join(root, 'docs'));
+	await fs.writeFile(path.join(root, 'docs', 'security.md'), 'Synthetic internal source audit, never a public runtime asset.\n');
 	await fs.mkdir(path.join(root, 'tests'));
 	await fs.writeFile(path.join(root, 'tests', 'never-run.php'), '<?php throw new RuntimeException("Development code leaked");\n');
 	await git('init', '--quiet');
@@ -101,7 +103,7 @@ test('clean HEAD export ships only verified current assets and licenses', {timeo
 	assert.equal(result.revision, revision);
 	assert.equal(result.bootstrap, '6.0.0-alpha.1');
 	assert.equal(await fs.readFile(path.join(output, 'README.md'), 'utf8'), 'Committed release fixture.\n');
-	for (const item of ['tests', 'tools', 'assets', 'node_modules', '.git', 'package.json', 'package-lock.json', '.gitattributes']) {
+	for (const item of ['tests', 'tools', 'docs', 'assets', 'node_modules', '.git', 'package.json', 'package-lock.json', '.gitattributes']) {
 		await assert.rejects(fs.lstat(path.join(output, item)), {code: 'ENOENT'});
 	}
 	await assert.rejects(fs.stat(path.join(output, 'dist', 'stale-not-in-manifest.css')), {code: 'ENOENT'});
@@ -138,6 +140,96 @@ test('dirty, ignored, local-only export rules and unsafe output are rejected bef
 	await fs.writeFile(path.join(output, 'keep.txt'), 'Keep existing user data.');
 	await assert.rejects(release({root, output}), /already exists/);
 	assert.equal(await fs.readFile(path.join(output, 'keep.txt'), 'utf8'), 'Keep existing user data.');
+});
+
+/** Provide only recognized old-Git command responses; all other calls use real Git. */
+async function legacyGit(mode) {
+	const directory = path.join(temporary, 'git-shim');
+	await fs.mkdir(directory, {recursive:true});
+	const realGit = (await execute('which', ['git'], {env:gitEnvironment})).stdout.trim();
+	const filename = path.join(directory, 'git');
+	const legacyError = "fatal: ambiguous argument 'info/attributes': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]'\n";
+	const program = `#!${compilerNode}
+const fs = require('fs');
+const {spawnSync} = require('child_process');
+const args = process.argv.slice(2);
+fs.appendFileSync(process.env.SKYE_FIXTURE_GIT_LOG, JSON.stringify(args) + '\\n');
+if (args.join(' ') === 'rev-parse --git-path info/attributes') {
+	const mode = process.env.SKYE_FIXTURE_GIT_MODE;
+	if (mode === 'unknown') { process.stderr.write('Synthetic Git I/O failure.\\n'); process.exit(74); }
+	if (mode === 'malformed') { process.stdout.write('--unrecognized\\n'); process.exit(0); }
+	process.stdout.write('--git-path\\ninfo/attributes\\n');
+	if (mode === 'zero') process.exit(0);
+	if (mode === 'broken-ref') process.stderr.write('warning: ignoring broken ref info/attributes.\\n'.repeat(2));
+	process.stderr.write(${JSON.stringify(legacyError)});
+	if (mode === 'unexpected-diagnostic') process.stderr.write('An additional unrecognized diagnostic.\\n');
+	process.exit(128);
+}
+if (process.env.SKYE_FIXTURE_GIT_MODE === 'bad-directory' && args.join(' ') === 'rev-parse --git-dir') {
+	process.stdout.write('--unexpected\\n'); process.exit(0);
+}
+const result = spawnSync(${JSON.stringify(realGit)}, args, {stdio:'inherit'});
+if (result.error) { process.stderr.write(result.error.name + '\\n'); process.exit(1); }
+process.exit(result.status === null ? 1 : result.status);
+`;
+	await fs.writeFile(filename, program, {mode:0o700});
+	const log = path.join(temporary, 'git-' + mode + '.jsonl');
+	await fs.writeFile(log, '');
+	return {PATH:directory + path.delimiter + process.env.PATH, SKYE_FIXTURE_GIT_MODE:mode, SKYE_FIXTURE_GIT_LOG:log};
+}
+
+test('recognized Git 1.8 replies retain full clean exports and attribute guards', {timeout:180000}, async () => {
+	for (const mode of ['zero', 'failure', 'broken-ref']) {
+		const environment = await legacyGit(mode);
+		const output = path.join(temporary, 'legacy-' + mode);
+		const result = await release({root, output}, environment);
+		assert.equal(result.revision, revision);
+		await assert.rejects(fs.lstat(path.join(output, 'docs')), {code:'ENOENT'});
+		const calls = (await fs.readFile(environment.SKYE_FIXTURE_GIT_LOG, 'utf8')).trim().split('\n').map(line => JSON.parse(line));
+		assert.ok(calls.some(args => args.join(' ') === 'rev-parse --git-dir'));
+		assert.ok(calls.some(args => args.join(' ') === 'status --porcelain --untracked-files=all'));
+		assert.ok(!calls.some(args => args.includes('--porcelain=v1')));
+	}
+	const environment = await legacyGit('failure');
+	try {
+		await fs.writeFile(path.join(root, '.git/info/attributes'), '*.php export-ignore\n');
+		await assert.rejects(release({root, output:path.join(temporary, 'legacy-override')}, environment), /export rules must be committed/);
+	} finally { await fs.rm(path.join(root, '.git/info/attributes'), {force:true}); }
+});
+
+test('unknown Git errors and malformed path replies never open the legacy fallback', async () => {
+	for (const mode of ['unknown', 'malformed', 'unexpected-diagnostic', 'bad-directory']) {
+		const environment = await legacyGit(mode);
+		const output = path.join(temporary, 'git-rejected-' + mode);
+		await assert.rejects(release({root, output}, environment), mode === 'unknown' ? /Synthetic Git I\/O failure/ : mode === 'unexpected-diagnostic' ? /unrecognized diagnostic/ : /Unrecognized Git/);
+		await assert.rejects(fs.lstat(output), {code:'ENOENT'});
+		const calls = (await fs.readFile(environment.SKYE_FIXTURE_GIT_LOG, 'utf8')).trim().split('\n').map(line => JSON.parse(line));
+		assert.equal(calls.some(args => args.join(' ') === 'rev-parse --git-dir'), mode === 'bad-directory');
+	}
+});
+
+test('modern linked worktrees still refuse their actual shared local attributes', async () => {
+	const worktree = path.join(temporary, 'linked');
+	await git('worktree', 'add', '--quiet', '--detach', worktree, revision);
+	const response = await execute('git', ['rev-parse', '--git-path', 'info/attributes'], {cwd:worktree, env:gitEnvironment});
+	const attributes = path.resolve(worktree, response.stdout.trim());
+	try {
+		await fs.mkdir(path.dirname(attributes), {recursive:true});
+		await fs.writeFile(attributes, '*.php export-ignore\n');
+		await assert.rejects(release({root:worktree, output:path.join(temporary, 'worktree-override')}), /export rules must be committed/);
+	} finally { await fs.rm(attributes, {force:true}); }
+});
+
+test('missing committed documentation exclusion is rejected instead of publishing internal evidence', {timeout:180000}, async () => {
+	const output = path.join(temporary, 'leaked-docs');
+	try {
+		const attributes = path.join(root, '.gitattributes');
+		await fs.writeFile(attributes, (await fs.readFile(attributes, 'utf8')).replace(/^\/docs export-ignore\n/m, ''));
+		await git('add', '.gitattributes');
+		await git('commit', '--quiet', '-m', 'Exercise missing documentation exclusion');
+		await assert.rejects(release({root, output}), /Development path leaked through git archive: docs/);
+		await assert.rejects(fs.lstat(output), {code:'ENOENT'});
+	} finally { await git('reset', '--hard', revision); }
 });
 
 test('committed archive substitutions cannot change the critical sources used by the build', {timeout: 180000}, async () => {
