@@ -10,7 +10,8 @@
     "main.js": "scripts/main.js",
     "critical-styles.js": "scripts/critical-styles.js",
     "critical-form-gate.js": "scripts/critical-form-gate.js",
-    "mobile-navigation.js": "scripts/mobile-navigation.js"
+    "mobile-navigation.js": "scripts/mobile-navigation.js",
+    "yoast-analysis.js": "scripts/yoast-analysis.js"
   },
   "branding": {
     "source": "backend.css",
