@@ -138,6 +138,7 @@ jobs:
       - name: Verify the pinned original WP-CLI runtime
         run: |
           curl --fail --show-error --silent --location --proto '=https' --proto-redir '=https' \
+            --retry 3 --retry-delay 2 --retry-max-time 45 \
             https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar \
             --output "$SKYE_WP_CLI"
           echo "ce34ddd838f7351d6759068d09793f26755463b4a4610a5a5c0a97b68220d85c  $SKYE_WP_CLI" | sha256sum --check --status
