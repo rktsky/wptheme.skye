@@ -84,6 +84,14 @@ try {
 		wp_cache_delete( $name, 'options' );
 	}
 	wp_cache_delete( 'notoptions', 'options' );
+	$queries_before_individual_reads = $wpdb->num_queries;
+	foreach ( $batch_options as $name => $value ) {
+		get_option( $name, false );
+	}
+	skye_site_check( 3 === $wpdb->num_queries - $queries_before_individual_reads, 'The native unprimed comparison performs three actual cold option queries.' );
+	foreach ( $batch_options as $name => $value ) {
+		wp_cache_delete( $name, 'options' );
+	}
 	$GLOBALS['theme_options'] = null;
 	$queries_before_batch = $wpdb->num_queries;
 	$batch_result = get_theme_options();

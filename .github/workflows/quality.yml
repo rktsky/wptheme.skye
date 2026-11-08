@@ -52,7 +52,9 @@ jobs:
           "$SKYE_TEST_NODE" --test tests/build.test.mjs
           "$SKYE_TEST_NODE" --test tests/critical-loader.test.cjs
           "$SKYE_TEST_NODE" --test tests/mobile-navigation.test.cjs
+          "$SKYE_TEST_NODE" --test tests/yoast-analysis.test.cjs
           "$SKYE_TEST_NODE" --test tests/release.test.mjs
+          python3 tools/test-audit-crawlers.py
       - name: Prove a clean committed release export
         run: '"$SKYE_BUILD_NODE" tools/release.mjs "$RUNNER_TEMP/skye-release"'
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
