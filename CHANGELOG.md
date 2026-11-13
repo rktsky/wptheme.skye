@@ -1,5 +1,10 @@
 # Änderungen
 
+## 3.5.1
+
+- Fehlende Komponenten können über `skye_component_template` durch lesbare lokale PHP-Komponenten eines Plugins ergänzt werden. Bestehende Child-/Theme-Komponenten haben weiterhin Vorrang; die explizite Zeilenübergabe und reservierte Loader-Variablen bleiben erhalten.
+- Der Resolververtrag `SKYE_COMPONENT_RESOLVER_VERSION` erlaubt Plugins, ihre Baukastenelemente erst bei vorhandener Render-Anbindung anzubieten. Stream-Wrapper, ungültige Pfade und fehlgeschlagene Resolver werden abgelehnt. [Vertrag und tatsächliche Prüfung](docs/component-resolver.md).
+
 ## 3.5.0
 
 - Gemeinsame Quellenwahl für Classic Editor und ACF-Baukasten. Beide Entwürfe behalten ihre nativen Speicherwege; der Controller erhält ungespeicherte Inputs und synchronisiert vorhandene TinyMCE-Instanzen. Die eng begrenzte inaktive Validierung verwendet das geprüfte ACF-PRO-6.8.11-Profil ohne Fehlerreset oder Vendoränderung.
