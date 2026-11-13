@@ -1,6 +1,9 @@
 <?php
 /** Shared component rendering and native metadata helpers; no persistent presentation cache. */
 
+/** @var int Public missing-component resolver contract. @since 3.5.1 */
+define( 'SKYE_COMPONENT_RESOLVER_VERSION', 1 );
+
 /**
  * Render a child-overridable component with an isolated explicit context.
  *
@@ -28,7 +31,30 @@ function get_component( $name, $second = false, array $args = array() ) {
 		$template = locate_template( array( 'components/' . $name . '/' . basename( $name ) . '.php' ), false, false );
 	}
 	if ( ! $template ) {
-		return false;
+		try {
+			/**
+			 * Resolve an otherwise missing component through trusted local plugin code.
+			 *
+			 * Native child/theme files retain precedence. The validated combined name
+			 * and explicit context never choose an include path without this filter.
+			 * Callbacks are trusted PHP code, not a user-controlled template source.
+			 *
+			 * @since 3.5.1
+			 * @param string|false $template Missing template; return a local readable PHP path.
+			 * @param string $name Validated combined component path.
+			 * @param array $args Explicit native presentation context, without secrets.
+			 */
+			$template = apply_filters( 'skye_component_template', false, $name, $args );
+			if ( ! is_string( $template ) || '' === $template || strlen( $template ) > 4096 || str_contains( $template, "\0" ) || str_contains( $template, '://' ) || ! is_file( $template ) || ! is_readable( $template ) ) {
+				return false;
+			}
+			$template = realpath( $template );
+			if ( ! $template || ! str_ends_with( $template, '.php' ) ) {
+				return false;
+			}
+		} catch ( \Throwable ) {
+			return false;
+		}
 	}
 	extract( $args, EXTR_SKIP );
 	include $template;

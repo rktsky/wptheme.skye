@@ -38,6 +38,7 @@ $cases = array(
 	array( 'security.php' ),
 	array( 'core-test.php' ),
 	array( 'core-test.php', '--without-acf' ),
+	array( 'component-resolver-native.php' ),
 	array( 'media-pipeline.php' ),
 	array( 'performance-assets.php' ),
 	array( 'performance-strategies.php' ),
